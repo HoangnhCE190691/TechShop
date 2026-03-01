@@ -95,6 +95,7 @@ public class OrderStatusDAO extends DBContext {
             e.printStackTrace();
         }
     }
+
     //Hard delete
     public void deleteOrderStatus(int id) {
         String sql = "DELETE FROM order_statuses WHERE status_id = ?";
@@ -106,8 +107,29 @@ public class OrderStatusDAO extends DBContext {
             e.printStackTrace();
         }
     }
-    // TEST
 
+    // Đếm số đơn hàng đang dùng status này
+    public int countOrdersByStatusId(int id) {
+        String sql = "SELECT "
+                + "(SELECT COUNT(*) FROM orders WHERE UPPER(status) = "
+                + "    (SELECT UPPER(status_code) FROM order_statuses WHERE status_id = ?)) "
+                + "+ "
+                + "(SELECT COUNT(*) FROM order_status_history WHERE status_id = ?)";
+        try {
+            PreparedStatement ps = conn.prepareStatement(sql);
+            ps.setInt(1, id);
+            ps.setInt(2, id);
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) {
+                return rs.getInt(1);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return 0;
+    }
+
+    // TEST
     public static void main(String[] args) {
         OrderStatusDAO dao = new OrderStatusDAO();
 

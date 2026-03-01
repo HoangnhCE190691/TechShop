@@ -70,18 +70,30 @@ public class orderStatusServlet extends HttpServlet {
                     page = "/pages/OrderStatusManagementPage/addOrderStatus.jsp";
                     break;
                 case "delete":
-                    int idDelete = Integer.parseInt(request.getParameter("id"));
-                    osdao.deleteOrderStatus(idDelete);
-                    response.sendRedirect("adminservlet?action=orderStatusManagement");
-                    return;
+                    try {
+                        int idDel = Integer.parseInt(request.getParameter("id"));
+                        OrderStatus os = osdao.getOrderStatusById(idDel);
+                        if (os == null) {
+                            response.sendRedirect("orderStatusServlet?action=all");
+                            return;
+                        }
+                        int orderCount = osdao.countOrdersByStatusId(idDel);
+                        request.setAttribute("status", os);
+                        request.setAttribute("orderCount", orderCount);
+                        page = "/pages/OrderStatusManagementPage/deleteOrderStatus.jsp";
+                    } catch (NumberFormatException e) {
+                        response.sendRedirect("orderStatusServlet?action=all");
+                        return;
+                    }
+                    break;
                 case "edit":
                     try {
                         int idEdit = Integer.parseInt(request.getParameter("id"));
-                        
+
                         OrderStatus os = osdao.getOrderStatusById(idEdit);
 
                         if (os != null) {
-                            request.setAttribute("status", os); 
+                            request.setAttribute("status", os);
                             page = "/pages/OrderStatusManagementPage/editOrderStatus.jsp";
                         } else {
                             response.sendRedirect("adminservlet?action=orderStatusManagement");
@@ -134,6 +146,23 @@ public class orderStatusServlet extends HttpServlet {
             boolean isFinal = "1".equals(request.getParameter("is_final"));
 
             osdao.updateOrderStatus(new OrderStatus(id, code, name, step, isFinal));
+        } else if ("delete".equals(action)) {
+            int id = Integer.parseInt(request.getParameter("status_id"));
+            int count = osdao.countOrdersByStatusId(id);
+
+            if (count > 0) {
+                // CHẶN HOÀN TOÀN — không xóa, trả về trang confirm với thông báo lỗi
+                OrderStatus os = osdao.getOrderStatusById(id);
+                request.getSession().setAttribute("msg", "Cannot delete: this status is linked to " + count + " order(s). Remove all linked orders first.");
+                request.getSession().setAttribute("msgType", "danger");
+                response.sendRedirect("orderStatusServlet?action=delete&id=" + id);
+                return;
+            }
+
+            // Không có order liên kết → hard delete bình thường
+            osdao.deleteOrderStatus(id);
+            request.getSession().setAttribute("msg", "Order status deleted successfully!");
+            request.getSession().setAttribute("msgType", "success");
         }
 
         response.sendRedirect("orderStatusServlet?action=all");

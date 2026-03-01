@@ -70,14 +70,17 @@ public class paymentMethodServlet extends HttpServlet {
                     page = "/pages/PaymentMethodManagementPage/addPaymentMethod.jsp";
                     break;
                 case "delete":
-                    int idDelete = Integer.parseInt(request.getParameter("id"));
-                    pdao.deletePaymentMethod(idDelete);
-                    response.sendRedirect("paymentMethodServlet?action=all");
-                    return;
+                    int idDel = Integer.parseInt(request.getParameter("id"));
+                    PaymentMethod pm = pdao.getPaymentMethodById(idDel);
+                    int orderCount = pdao.countOrdersByPaymentMethodId(idDel);
+                    request.setAttribute("payment", pm);
+                    request.setAttribute("orderCount", orderCount);
+                    page = "/pages/PaymentMethodManagementPage/deletePaymentMethod.jsp";
+                    break;
                 case "edit":
                     int idEdit = Integer.parseInt(request.getParameter("id"));
-                    PaymentMethod pm = pdao.getPaymentMethodById(idEdit);
-                    request.setAttribute("payment", pm);
+                    PaymentMethod pmEdit = pdao.getPaymentMethodById(idEdit);
+                    request.setAttribute("payment", pmEdit);
                     page = "/pages/PaymentMethodManagementPage/editPaymentMethod.jsp";
                     break;
                 case "all":
@@ -120,6 +123,18 @@ public class paymentMethodServlet extends HttpServlet {
 
             PaymentMethod pm = new PaymentMethod(id, name, status);
             pdao.updatePaymentMethod(pm);
+        } else if ("delete".equals(action)) {
+            int id = Integer.parseInt(request.getParameter("method_id"));
+            int count = pdao.countOrdersByPaymentMethodId(id);
+
+            if (count > 0) {
+                pdao.deactivatePaymentMethod(id);
+                request.getSession().setAttribute("msg", "Payment method is linked to " + count + " order(s). Switched to INACTIVE.");
+            } else {
+                pdao.deletePaymentMethod(id);
+                request.getSession().setAttribute("msg", "Payment method deleted successfully!");
+            }
+            request.getSession().setAttribute("msgType", "success");
         }
 
         response.sendRedirect("paymentMethodServlet?action=all");

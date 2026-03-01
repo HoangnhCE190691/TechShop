@@ -1,4 +1,6 @@
+<%@page contentType="text/html" pageEncoding="UTF-8"%>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
 <div class="max-w-2xl mx-auto bg-white rounded-xl shadow-md overflow-hidden mt-10 border border-gray-200">
     <div class="bg-gray-800 p-4 text-white font-bold text-lg">
         Edit Order #${order.orderId}
@@ -15,7 +17,9 @@
             </div>
             <div>
                 <label class="block text-xs font-bold text-gray-500 uppercase">Total Amount</label>
-                <p class="font-bold text-red-500">${order.totalAmount}</p>
+                <p class="font-bold text-red-500">
+                    <fmt:formatNumber value="${order.totalAmount}" type="number" pattern="#,###"/>đ
+                </p>
             </div>
         </div>
 

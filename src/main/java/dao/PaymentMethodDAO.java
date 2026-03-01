@@ -94,6 +94,33 @@ public class PaymentMethodDAO extends DBContext {
             e.printStackTrace();
         }
     }
+    //Soft delete
+    public void deactivatePaymentMethod(int id) {
+        String sql = "UPDATE payment_methods SET is_active = 0 WHERE method_id = ?";
+        try {
+            PreparedStatement ps = conn.prepareStatement(sql);
+            ps.setInt(1, id);
+            ps.executeUpdate();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    //Count order with paymentmethod
+    public int countOrdersByPaymentMethodId(int id) {
+        String sql = "SELECT COUNT(*) FROM orders WHERE payment_method_id = ?";
+        try {
+            PreparedStatement ps = conn.prepareStatement(sql);
+            ps.setInt(1, id);
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) {
+                return rs.getInt(1);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return 0;
+    }
 
 //    //TEST
 //    public static void main(String[] args) {

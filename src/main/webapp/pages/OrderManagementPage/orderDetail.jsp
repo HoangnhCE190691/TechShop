@@ -1,5 +1,7 @@
 <%@page contentType="text/html" pageEncoding="UTF-8"%>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
+
 <div class="bg-gray-50 min-h-screen p-6">
     <div class="max-w-4xl mx-auto bg-white rounded-xl shadow-md overflow-hidden">
         <div class="bg-gray-800 p-4 text-white flex justify-between items-center">
@@ -52,7 +54,10 @@
                                 <div class="text-xs text-gray-400">SKU: ${item.sku}</div>
                             </td>
                             <td class="py-4 font-mono text-sm text-blue-600">${item.imei}</td>
-                            <td class="py-4 text-right font-bold text-red-500">${item.price}</td>
+                            <td class="py-4 text-right font-bold text-red-500">
+                                <fmt:formatNumber value="${item.price}" type="number" pattern="#,###"/>đ
+                            </td>
+                        </tr>
                         </tr>
                     </c:forEach>
                 </tbody>
@@ -61,7 +66,9 @@
             <div class="mt-8 border-t pt-4 flex justify-end">
                 <div class="text-right">
                     <span class="text-gray-500 mr-4">Total Amount:</span>
-                    <span class="text-2xl font-bold text-gray-900">${order.totalAmount}</span>
+                    <span class="text-2xl font-bold text-gray-900">
+                        <fmt:formatNumber value="${order.totalAmount}" type="number" pattern="#,###"/>đ
+                    </span>
                 </div>
             </div>
         </div>

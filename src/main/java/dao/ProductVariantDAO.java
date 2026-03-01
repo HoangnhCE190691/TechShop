@@ -47,6 +47,27 @@ public class ProductVariantDAO extends DBContext {
         return null;
     }
 
+    // 2.1. Lấy danh sách biến thể theo ID sản phẩm
+    public List<ProductVariant> getVariantsByProductId(int productId) {
+        List<ProductVariant> list = new ArrayList<>();
+        String sql = "SELECT pv.*, p.name AS product_name "
+                + "FROM product_variants pv "
+                + "JOIN products p ON pv.product_id = p.product_id "
+                + "WHERE pv.product_id = ? AND pv.is_active = 1 "
+                + "ORDER BY pv.selling_price ASC";
+        try {
+            PreparedStatement ps = conn.prepareStatement(sql);
+            ps.setInt(1, productId);
+            ResultSet rs = ps.executeQuery();
+            while (rs.next()) {
+                list.add(mapResultSet(rs));
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return list;
+    }
+
     // 3. Thêm mới biến thể
     public void insertVariant(ProductVariant v) {
         String sql = "INSERT INTO product_variants (product_id, sku, selling_price, is_active) VALUES (?, ?, ?, ?)";

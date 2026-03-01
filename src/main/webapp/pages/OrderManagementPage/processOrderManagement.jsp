@@ -1,5 +1,7 @@
 <%@page contentType="text/html" pageEncoding="UTF-8"%>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
+
 
 <div class="bg-white rounded-xl shadow-lg p-5">
     <div class="flex flex-col gap-4 mb-6">
@@ -71,7 +73,7 @@
                             <div class="text-xs text-gray-400">${o.createdAt}</div>
                         </td>
                         <td class="px-6 py-4 text-center font-bold text-red-500">
-                            ${o.totalAmount}
+                            <fmt:formatNumber value="${o.totalAmount}" type="number" pattern="#,###"/>đ
                         </td>
                         <td class="px-6 py-4 text-center">
                             <span class="px-3 py-1 rounded-full text-xs font-medium border

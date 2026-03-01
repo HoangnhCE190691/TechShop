@@ -54,6 +54,31 @@ public class ProductSpecificationValueDAO extends DBContext {
         return null;
     }
 
+    // Lấy tất cả thông số kỹ thuật của 1 sản phẩm
+    public List<ProductSpecificationValues> getSpecsByProductId(int productId) {
+        List<ProductSpecificationValues> list = new ArrayList<>();
+        String sql = "SELECT v.*, p.name as product_name, s.spec_name "
+                + "FROM product_spec_values v "
+                + "JOIN products p ON v.product_id = p.product_id "
+                + "JOIN specification_definitions s ON v.spec_id = s.spec_id "
+                + "WHERE v.product_id = ? "
+                + "ORDER BY s.spec_id ASC";
+        try {
+            PreparedStatement ps = conn.prepareStatement(sql);
+            ps.setInt(1, productId);
+            ResultSet rs = ps.executeQuery();
+            while (rs.next()) {
+                ProductSpecificationValues v = mapResultSet(rs);
+                v.setProductName(rs.getString("product_name"));
+                v.setSpecName(rs.getString("spec_name"));
+                list.add(v);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return list;
+    }
+
     // 3. THÊM MỚI
     public void insertProductSpec(ProductSpecificationValues v) {
         String sql = "INSERT INTO product_spec_values (product_id, spec_id, spec_value) VALUES (?, ?, ?)";

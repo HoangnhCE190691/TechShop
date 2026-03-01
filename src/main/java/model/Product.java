@@ -22,6 +22,26 @@ public class Product {
     private String categoryName;
     private String brandName;
 
+    // Thêm các thuộc tính hiển thị UI
+    private Double minPrice;
+    private String thumbnailUrl;
+
+    public Double getMinPrice() {
+        return minPrice;
+    }
+
+    public void setMinPrice(Double minPrice) {
+        this.minPrice = minPrice;
+    }
+
+    public String getThumbnailUrl() {
+        return thumbnailUrl;
+    }
+
+    public void setThumbnailUrl(String thumbnailUrl) {
+        this.thumbnailUrl = thumbnailUrl;
+    }
+
     public String getCategoryName() {
         return categoryName;
     }

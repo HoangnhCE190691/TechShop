@@ -6,6 +6,7 @@ package controller.User;
 
 import dao.CustomerAddressDAO;
 import dao.CustomerDAO;
+import dao.ProductDAO;
 import java.io.IOException;
 import java.io.PrintWriter;
 import jakarta.servlet.ServletException;
@@ -72,6 +73,14 @@ public class userServlet extends HttpServlet {
             switch (action) {
                 case "homePage":
                     page = "/pages/MainPage/homePage.jsp";
+                    ProductDAO productDAO = new ProductDAO();
+                    request.setAttribute("phoneList", productDAO.getProductsByCategoryId(1, 10));
+                    request.setAttribute("computerList", productDAO.getProductsByCategoryId(2, 10));
+                    request.setAttribute("accessoryList", productDAO.getProductsByCategoryId(3, 10));
+                    request.setAttribute("laptopList", productDAO.getProductsByCategoryId(4, 10));
+                    request.setAttribute("appleList", productDAO.getProductsByBrandId(1, 10));
+                    request.setAttribute("samsungList", productDAO.getProductsByBrandId(2, 10));
+
                     break;
                 case "loginPage":
                     page = "/pages/MainPage/loginPage.jsp"; // Bạn cần tạo file này

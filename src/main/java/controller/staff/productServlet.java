@@ -18,11 +18,22 @@ import jakarta.servlet.http.HttpSession;
 import java.util.List;
 import model.Product;
 
+import jakarta.servlet.http.Part;
+import java.io.File;
+import java.nio.file.Paths;
+import java.util.Collection;
+import dao.ProductImageDAO;
+import model.ProductImage;
+
 /**
  *
  * @author CaoTram
  */
 @WebServlet(name = "productServlet", urlPatterns = {"/productServlet"})
+@jakarta.servlet.annotation.MultipartConfig(fileSizeThreshold = 1024 * 1024 * 2, // 2 MB
+        maxFileSize = 1024 * 1024 * 10, // 10 MB
+        maxRequestSize = 1024 * 1024 * 50 // 50 MB
+)
 public class productServlet extends HttpServlet {
 
     /**
@@ -51,7 +62,8 @@ public class productServlet extends HttpServlet {
         }
     }
 
-    // <editor-fold defaultstate="collapsed" desc="HttpServlet methods. Click on the + sign on the left to edit the code.">
+    // <editor-fold defaultstate="collapsed" desc="HttpServlet methods. Click on the
+    // + sign on the left to edit the code.">
     /**
      * Handles the HTTP <code>GET</code> method.
      *
@@ -83,6 +95,10 @@ public class productServlet extends HttpServlet {
                     request.setAttribute("product", pdao.getProductById(idEdit));
                     request.setAttribute("categories", cdao.getAllCategory());
                     request.setAttribute("brands", bdao.getAllBrand());
+
+                    ProductImageDAO imgDaoEdit = new ProductImageDAO();
+                    request.setAttribute("images", imgDaoEdit.getImagesByProductId(idEdit));
+
                     page = "/pages/ProductManagementPage/editProduct.jsp";
                     break;
                 case "detail":
@@ -145,7 +161,42 @@ public class productServlet extends HttpServlet {
             p.setStatus(status);
             p.setCreatedBy((Integer) session.getAttribute("userId"));
 
-            pdao.insertProduct(p);
+            int productId = pdao.insertProduct(p);
+
+            // Handle multiple image upload
+            boolean isFirstImage = true;
+            for (Part filePart : request.getParts()) {
+                if ("productImage".equals(filePart.getName()) && filePart.getSize() > 0) {
+                    String fileName = Paths.get(filePart.getSubmittedFileName()).getFileName().toString();
+                    String uploadPath = getServletContext().getRealPath("") + File.separator + "assest" + File.separator
+                            + "img" + File.separator + "product";
+                    File uploadDir = new File(uploadPath);
+                    if (!uploadDir.exists()) {
+                        uploadDir.mkdir();
+                    }
+
+                    long timestamp = System.currentTimeMillis();
+                    fileName = timestamp + "_" + fileName; // Đề phòng trùng lặp tên file
+                    String filePath = uploadPath + File.separator + fileName;
+                    filePart.write(filePath);
+
+                    ProductImageDAO imgDao = new ProductImageDAO();
+                    ProductImage pi = new ProductImage();
+                    Product prod = new Product();
+                    prod.setProductId(productId);
+                    pi.setProduct(prod);
+                    pi.setImageUrl("assest/img/product/" + fileName);
+
+                    if (isFirstImage) {
+                        pi.setIs_thumbnail((byte) 1);
+                        isFirstImage = false;
+                    } else {
+                        pi.setIs_thumbnail((byte) 0);
+                    }
+                    imgDao.addProductImage(pi);
+                }
+            }
+
             session.setAttribute("msg", "Product added successfully!");
             session.setAttribute("msgType", "success");
 
@@ -166,9 +217,18 @@ public class productServlet extends HttpServlet {
 
             // KIỂM TRA THAY ĐỔI
             Product cur = pdao.getProductById(id);
-            if (cur.getName().equals(name) && cur.getCategoryId() == categoryId
+            boolean isImageChanged = false;
+            for (Part checkPart : request.getParts()) {
+                if ("productImage".equals(checkPart.getName()) && checkPart.getSize() > 0) {
+                    isImageChanged = true;
+                    break;
+                }
+            }
+
+            if (!isImageChanged && cur.getName().equals(name) && cur.getCategoryId() == categoryId
                     && cur.getBrandId() == brandId && cur.getStatus().equals(status)
-                    && cur.getDescription().equals(description)) {
+                    && (cur.getDescription() == null ? description == null
+                    : cur.getDescription().equals(description))) {
 
                 session.setAttribute("msg", "NO CHANGES DETECTED.");
                 session.setAttribute("msgType", "danger");
@@ -185,9 +245,65 @@ public class productServlet extends HttpServlet {
             p.setStatus(status);
             p.setUpdatedBy((Integer) session.getAttribute("userId"));
 
+            // Handle multiple image upload if a new file is chosen
+            boolean hasAnyImageUploaded = false;
+            for (Part checkPart : request.getParts()) {
+                if ("productImage".equals(checkPart.getName()) && checkPart.getSize() > 0) {
+                    hasAnyImageUploaded = true;
+                    break;
+                }
+            }
+
             pdao.updateProduct(p);
-            session.setAttribute("msg", "Product updated successfully!");
-            session.setAttribute("msgType", "success");
+
+            if (hasAnyImageUploaded) {
+                ProductImageDAO imgDao = new ProductImageDAO();
+
+                // Delete all old images for this product inside DB
+                List<ProductImage> oldImages = imgDao.getImagesByProductId(id);
+                for (ProductImage oldImg : oldImages) {
+                    imgDao.deleteProductImage(oldImg.getImageID());
+                }
+
+                String uploadPath = getServletContext().getRealPath("") + File.separator + "assest" + File.separator
+                        + "img" + File.separator + "product";
+                File uploadDir = new File(uploadPath);
+                if (!uploadDir.exists()) {
+                    uploadDir.mkdir();
+                }
+
+                boolean isFirstImage = true;
+                for (Part filePart : request.getParts()) {
+                    if ("productImage".equals(filePart.getName()) && filePart.getSize() > 0) {
+                        String fileName = Paths.get(filePart.getSubmittedFileName()).getFileName().toString();
+                        long timestamp = System.currentTimeMillis();
+                        fileName = timestamp + "_" + fileName;
+
+                        String filePath = uploadPath + File.separator + fileName;
+                        filePart.write(filePath);
+
+                        Product prod = new Product();
+                        prod.setProductId(id);
+                        ProductImage pi = new ProductImage();
+                        pi.setProduct(prod);
+                        pi.setImageUrl("assest/img/product/" + fileName);
+
+                        if (isFirstImage) {
+                            pi.setIs_thumbnail((byte) 1);
+                            isFirstImage = false;
+                        } else {
+                            pi.setIs_thumbnail((byte) 0);
+                        }
+
+                        imgDao.addProductImage(pi);
+                    }
+                }
+                session.setAttribute("msg", "Product and images updated successfully!");
+                session.setAttribute("msgType", "success");
+            } else {
+                session.setAttribute("msg", "Product updated successfully!");
+                session.setAttribute("msgType", "success");
+            }
 
         } else if ("delete".equals(action)) {
             int id = Integer.parseInt(request.getParameter("productId"));

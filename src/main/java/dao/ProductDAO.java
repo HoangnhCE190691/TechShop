@@ -105,11 +105,11 @@ public class ProductDAO extends DBContext {
     }
 
     // 5. Thêm mới sản phẩm
-    public void insertProduct(Product p) {
+    public int insertProduct(Product p) {
         String sql = "INSERT INTO products (name, category_id, brand_id, description, status, created_at, created_by) "
                 + "VALUES (?, ?, ?, ?, ?, ?, ?)";
         try {
-            PreparedStatement ps = conn.prepareStatement(sql);
+            PreparedStatement ps = conn.prepareStatement(sql, java.sql.Statement.RETURN_GENERATED_KEYS);
             ps.setString(1, p.getName());
             ps.setInt(2, p.getCategoryId());
             ps.setInt(3, p.getBrandId());
@@ -118,9 +118,15 @@ public class ProductDAO extends DBContext {
             ps.setTimestamp(6, java.sql.Timestamp.valueOf(java.time.LocalDateTime.now()));
             ps.setObject(7, p.getCreatedBy()); // ID của admin đang đăng nhập
             ps.executeUpdate();
+
+            ResultSet rs = ps.getGeneratedKeys();
+            if (rs.next()) {
+                return rs.getInt(1);
+            }
         } catch (Exception e) {
             e.printStackTrace();
         }
+        return -1;
     }
 
     // 6. Cập nhật sản phẩm
@@ -153,6 +159,143 @@ public class ProductDAO extends DBContext {
         }
     }
 
+    // 9. Lấy sản phẩm theo Category (Có ảnh và giá)
+    public List<Product> getProductsByCategoryId(int categoryId, int limit) {
+        List<Product> list = new ArrayList<>();
+        String sql = "SELECT TOP (?) p.*, c.category_name, b.brand_name, "
+                + "MIN(pv.selling_price) as min_price, "
+                + "MAX(CAST(CASE WHEN pi.is_thumbnail = 1 THEN pi.image_url ELSE NULL END AS VARCHAR(255))) as thumbnail_url "
+                + "FROM products p "
+                + "LEFT JOIN categories c ON p.category_id = c.category_id "
+                + "LEFT JOIN brands b ON p.brand_id = b.brand_id "
+                + "LEFT JOIN product_variants pv ON p.product_id = pv.product_id AND pv.is_active = 1 "
+                + "LEFT JOIN product_images pi ON p.product_id = pi.product_id AND pi.is_thumbnail = 1 "
+                + "WHERE p.category_id = ? AND p.status = 'ACTIVE' "
+                + "GROUP BY p.product_id, p.name, p.category_id, p.brand_id, p.description, p.status, p.created_at, p.created_by, p.updated_by, p.updated_at, c.category_name, b.brand_name "
+                + "ORDER BY p.product_id DESC";
+        try {
+            PreparedStatement ps = conn.prepareStatement(sql);
+            ps.setInt(1, limit);
+            ps.setInt(2, categoryId);
+            ResultSet rs = ps.executeQuery();
+            while (rs.next()) {
+                Product p = mapResultSetToProduct(rs);
+                p.setCategoryName(rs.getString("category_name"));
+                p.setBrandName(rs.getString("brand_name"));
+                list.add(p);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return list;
+    }
+
+    // 10. Lấy sản phẩm theo Brand (Có ảnh và giá)
+    public List<Product> getProductsByBrandId(int brandId, int limit) {
+        List<Product> list = new ArrayList<>();
+        String sql = "SELECT TOP (?) p.*, c.category_name, b.brand_name, "
+                + "MIN(pv.selling_price) as min_price, "
+                + "MAX(CAST(CASE WHEN pi.is_thumbnail = 1 THEN pi.image_url ELSE NULL END AS VARCHAR(255))) as thumbnail_url "
+                + "FROM products p "
+                + "LEFT JOIN categories c ON p.category_id = c.category_id "
+                + "LEFT JOIN brands b ON p.brand_id = b.brand_id "
+                + "LEFT JOIN product_variants pv ON p.product_id = pv.product_id AND pv.is_active = 1 "
+                + "LEFT JOIN product_images pi ON p.product_id = pi.product_id AND pi.is_thumbnail = 1 "
+                + "WHERE p.brand_id = ? AND p.status = 'ACTIVE' "
+                + "GROUP BY p.product_id, p.name, p.category_id, p.brand_id, p.description, p.status, p.created_at, p.created_by, p.updated_by, p.updated_at, c.category_name, b.brand_name "
+                + "ORDER BY p.product_id DESC";
+        try {
+            PreparedStatement ps = conn.prepareStatement(sql);
+            ps.setInt(1, limit);
+            ps.setInt(2, brandId);
+            ResultSet rs = ps.executeQuery();
+            while (rs.next()) {
+                Product p = mapResultSetToProduct(rs);
+                p.setCategoryName(rs.getString("category_name"));
+                p.setBrandName(rs.getString("brand_name"));
+                list.add(p);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return list;
+    }
+
+    // 11. Lấy sản phẩm có Filter
+    public List<Product> getFilteredProducts(String keyword, Integer categoryId, Integer brandId, Double minPrice,
+            Double maxPrice) {
+        List<Product> list = new ArrayList<>();
+        StringBuilder sql = new StringBuilder(
+                "SELECT p.*, c.category_name, b.brand_name, "
+                        + "MIN(pv.selling_price) as min_price, "
+                        + "MAX(CAST(CASE WHEN pi.is_thumbnail = 1 THEN pi.image_url ELSE NULL END AS VARCHAR(255))) as thumbnail_url "
+                        + "FROM products p "
+                        + "LEFT JOIN categories c ON p.category_id = c.category_id "
+                        + "LEFT JOIN brands b ON p.brand_id = b.brand_id "
+                        + "LEFT JOIN product_variants pv ON p.product_id = pv.product_id AND pv.is_active = 1 "
+                        + "LEFT JOIN product_images pi ON p.product_id = pi.product_id AND pi.is_thumbnail = 1 "
+                        + "WHERE p.status = 'ACTIVE' ");
+
+        if (keyword != null && !keyword.trim().isEmpty()) {
+            sql.append(" AND p.name LIKE ? ");
+        }
+        if (categoryId != null && categoryId > 0) {
+            sql.append(" AND p.category_id = ? ");
+        }
+        if (brandId != null && brandId > 0) {
+            sql.append(" AND p.brand_id = ? ");
+        }
+
+        sql.append(
+                "GROUP BY p.product_id, p.name, p.category_id, p.brand_id, p.description, p.status, p.created_at, p.created_by, p.updated_by, p.updated_at, c.category_name, b.brand_name ");
+
+        // HAVING để so sánh với min_price (do min_price được tạo ra từ GROUP BY nên
+        // phải dùng HAVING)
+        if (minPrice != null || maxPrice != null) {
+            sql.append(" HAVING 1=1 ");
+            if (minPrice != null) {
+                sql.append(" AND MIN(pv.selling_price) >= ? ");
+            }
+            if (maxPrice != null) {
+                sql.append(" AND MIN(pv.selling_price) <= ? ");
+            }
+        }
+
+        sql.append(" ORDER BY p.product_id DESC");
+
+        try {
+            PreparedStatement ps = conn.prepareStatement(sql.toString());
+            int paramIndex = 1;
+
+            if (keyword != null && !keyword.trim().isEmpty()) {
+                ps.setString(paramIndex++, "%" + keyword.trim() + "%");
+            }
+            if (categoryId != null && categoryId > 0) {
+                ps.setInt(paramIndex++, categoryId);
+            }
+            if (brandId != null && brandId > 0) {
+                ps.setInt(paramIndex++, brandId);
+            }
+            if (minPrice != null) {
+                ps.setDouble(paramIndex++, minPrice);
+            }
+            if (maxPrice != null) {
+                ps.setDouble(paramIndex++, maxPrice);
+            }
+
+            ResultSet rs = ps.executeQuery();
+            while (rs.next()) {
+                Product p = mapResultSetToProduct(rs);
+                p.setCategoryName(rs.getString("category_name"));
+                p.setBrandName(rs.getString("brand_name"));
+                list.add(p);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return list;
+    }
+
     // 8. Xóa mềm (Chuyển Inactive)
     public void softDeleteProduct(int id) {
         String sql = "UPDATE products SET status = 'Inactive', updated_at = ? WHERE product_id = ?";
@@ -182,6 +325,19 @@ public class ProductDAO extends DBContext {
         if (ut != null) {
             p.setUpdatedAt(ut.toLocalDateTime());
         }
+
+        // Map các cột UI dựa theo câu Query
+        java.sql.ResultSetMetaData rsmd = rs.getMetaData();
+        for (int i = 1; i <= rsmd.getColumnCount(); i++) {
+            String colName = rsmd.getColumnName(i);
+            if (colName.equalsIgnoreCase("min_price")) {
+                p.setMinPrice(rs.getDouble("min_price"));
+            }
+            if (colName.equalsIgnoreCase("thumbnail_url")) {
+                p.setThumbnailUrl(rs.getString("thumbnail_url"));
+            }
+        }
+
         return p;
     }
 }
