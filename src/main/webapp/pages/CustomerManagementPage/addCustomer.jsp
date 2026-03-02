@@ -60,14 +60,7 @@
                 </c:if>
             </div>
 
-            <div class="relative z-0 w-full group">
-                <select name="role_id" id="role_id" class="block py-2.5 px-0 w-full text-sm text-gray-900 bg-transparent border-0 border-b-2 border-gray-300 focus:outline-none focus:ring-0 focus:border-blue-600 peer" required>
-                    <option value="" disabled ${empty oldRoleId ? 'selected' : ''}>Select Position</option>
-                    <option value="1" ${oldRoleId == '1' ? 'selected' : ''}>Admin</option>                    
-                    <option value="3" ${oldRoleId == '3' ? 'selected' : ''}>Staff</option>
-                </select>
-                <label for="role_id" class="absolute text-xs text-blue-600 duration-300 transform -translate-y-6 scale-75 top-3 -z-10 origin-[0]">Role / Position</label>
-            </div>
+          
                 <div class="relative z-0 w-full group">
         <select name="status" id="status" class="block py-2.5 px-0 w-full text-sm text-gray-900 bg-transparent border-0 border-b-2 border-gray-300 focus:outline-none focus:ring-0 focus:border-blue-600 peer">
             <option value="ACTIVE" selected>Active</option>

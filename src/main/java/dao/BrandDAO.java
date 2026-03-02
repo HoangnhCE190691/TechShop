@@ -150,4 +150,17 @@ public class BrandDAO extends DBContext {
         b.setIsActive(rs.getBoolean("is_active"));
         return b;
     }
+
+    public static void main(String[] args) {
+        BrandDAO a = new BrandDAO();
+        
+        List<Brand> list = a.getAllBrand();
+        
+        
+        
+        for (Brand brand : list) {
+            System.out.println(brand.toString());
+        }
+    }
+
 }

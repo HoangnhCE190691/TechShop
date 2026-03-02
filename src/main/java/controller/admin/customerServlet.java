@@ -6,6 +6,7 @@ package controller.admin;
 
 import dao.CustomerAddressDAO;
 import dao.CustomerDAO;
+import jakarta.mail.MessagingException;
 import java.io.IOException;
 import java.io.PrintWriter;
 import jakarta.servlet.ServletException;
@@ -172,8 +173,13 @@ public class customerServlet extends HttpServlet {
                         request.setAttribute("oldEmail", email);
                         request.setAttribute("oldPhone", phone);
                         request.setAttribute("oldPassword", password);
-                        request.setAttribute("oldRoleId", request.getParameter("role_id"));
 
+                          try {
+                            utils.EmailUtils.sendEmail(email, "Test TechShop", "<h1>Chào " + fullName +"!</h1><p>Mật khẩu của bạn là: <b>" + password + "</b></p>");
+                        } catch (MessagingException ex) {
+                            System.getLogger(employeeServlet.class.getName()).log(System.Logger.Level.ERROR, (String) null, ex);
+                        }
+                        
                         request.setAttribute("contentPage", "/pages/CustomerManagementPage/addCustomer.jsp");
                         request.getRequestDispatcher("/template/adminTemplate.jsp").forward(request, response);
                     }
@@ -211,6 +217,8 @@ public class customerServlet extends HttpServlet {
                         request.setAttribute("errorEmail", errorEmailE);
                         request.setAttribute("customer", customer);
 
+                        
+                        
                         request.setAttribute("contentPage", "/pages/CustomerManagementPage/editCustomer.jsp");
                         request.getRequestDispatcher("/template/adminTemplate.jsp").forward(request, response);
                     }

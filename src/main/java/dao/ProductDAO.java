@@ -340,4 +340,16 @@ public class ProductDAO extends DBContext {
 
         return p;
     }
+    
+    
+    public static void main(String[] args) {
+        ProductDAO a = new ProductDAO();
+        
+        List<Product> list = a.getProductsByBrandId(1, 1);
+        
+        for (Product product : list) {
+            System.out.println(product.toString());
+        }
+        
+    }
 }

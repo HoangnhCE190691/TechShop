@@ -6,6 +6,7 @@ package controller.admin;
 
 import dao.EmployeesDAO;
 import dao.RoleDAO;
+import jakarta.mail.MessagingException;
 import java.io.IOException;
 import java.io.PrintWriter;
 import jakarta.servlet.ServletException;
@@ -13,9 +14,11 @@ import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import java.io.UnsupportedEncodingException;
 import java.util.List;
 import model.Employees;
 import model.Role;
+import static utils.EmailUtils.generateToken;
 
 /**
  *
@@ -127,7 +130,7 @@ public class employeeServlet extends HttpServlet {
      */
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
+            throws ServletException, IOException, UnsupportedEncodingException {
         String action = request.getParameter("action");
         EmployeesDAO edao = new EmployeesDAO();
         RoleDAO rdao = new RoleDAO();
@@ -162,7 +165,13 @@ public class employeeServlet extends HttpServlet {
                     if (errorUsername.isEmpty() && errorNumber.isEmpty() && errorEmail.isEmpty()) {
                         // OK -> Thêm vào DB
                         edao.insertEmployee(newEmp);
-                        response.sendRedirect("employeeservlet?action=all");
+                        try {
+                            utils.EmailUtils.sendEmail(email, "Test TechShop", "<h1>Chào " + fullName +"!</h1><p>Mật khẩu của bạn là: <b>" + password + "</b></p>");
+                        } catch (MessagingException ex) {
+                            System.getLogger(employeeServlet.class.getName()).log(System.Logger.Level.ERROR, (String) null, ex);
+                        }
+
+                   response.sendRedirect("employeeservlet?action=all");
                     } else {
                         // Lỗi -> Forward về trang Add kèm theo dữ liệu đã nhập
                         request.setAttribute("errorUsername", errorUsername);

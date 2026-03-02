@@ -140,6 +140,7 @@ public class specificationValueServlet extends HttpServlet {
 
                 vdao.updateProductSpec(v);
                 session.setAttribute("msg", "Specification value updated!");
+               
             } else if ("delete".equals(action)) {
                 int pId = Integer.parseInt(request.getParameter("productId"));
                 int sId = Integer.parseInt(request.getParameter("specId"));
@@ -151,7 +152,7 @@ public class specificationValueServlet extends HttpServlet {
             session.setAttribute("msg", "Error: Duplicate or invalid data!");
             session.setAttribute("msgType", "danger");
         }
-        response.sendRedirect("specificationValueServlet?action=all");
+        response.sendRedirect("adminservlet?action=isSpecificationValueManagement");
     }
 
     /**

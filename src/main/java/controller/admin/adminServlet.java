@@ -102,12 +102,12 @@ public class adminServlet extends HttpServlet {
                     BrandDAO bdao = new BrandDAO();
                     listData = bdao.getAllBrand();
                     break;
-                case "specificationValueManagement":
+                case "isSpecificationValueManagement":
                     ProductSpecificationValueDAO svdao = new ProductSpecificationValueDAO();
                     listData = svdao.getAllProductSpecs();
                     SpecificationDefinitionDAO specDefDao = new SpecificationDefinitionDAO();
                     request.setAttribute("specs", specDefDao.getAllSpecs());
-                    page = "/pages/SpecificationValueManagementPage/specificationValueManagement.jsp";
+                    page = "/pages/SpecificationValueManagementPage/SpecificationValueManagement.jsp";
                     break;
                 case "specificationDefinitionManagement":
                     SpecificationDefinitionDAO sdao = new SpecificationDefinitionDAO();

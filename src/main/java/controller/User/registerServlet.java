@@ -76,7 +76,9 @@ public class registerServlet extends HttpServlet {
         // 1. Set Encoding để nhận tiếng Việt không bị lỗi font
         CustomerDAO cdao = new CustomerDAO();
         request.setCharacterEncoding("UTF-8");
-
+     
+        
+        
         try {
             // 2. Lấy dữ liệu từ Form (dựa theo thuộc tính name="")
             String username = request.getParameter("username");
@@ -104,6 +106,9 @@ public class registerServlet extends HttpServlet {
             boolean isSuccess = cdao.addCustomer(u);
 
             if (errorUsername.isEmpty() && errorNumber.isEmpty() && errorEmail.isEmpty() && isSuccess) {
+                
+                
+                
                 response.sendRedirect("userservlet?action=loginPage");
             } else {
                 request.setAttribute("errorUsername", errorUsername);

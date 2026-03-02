@@ -55,4 +55,10 @@ public class Brand {
     public void setIsActive(boolean isActive) {
         this.isActive = isActive;
     }
+
+    @Override
+    public String toString() {
+        return "Brand{" + "brandId=" + brandId + ", brandName=" + brandName + ", imageUrl=" + imageUrl + ", isActive=" + isActive + '}';
+    }
+    
 }
