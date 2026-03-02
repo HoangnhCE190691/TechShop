@@ -81,6 +81,11 @@ public class voucherServlet extends HttpServlet {
         VoucherDAO vdao = new VoucherDAO();
         if (action != null) {
             switch (action) {
+                 case "search":
+                    String name = request.getParameter("name");
+                      page = "/pages/VoucherManagementPage/voucherManagement.jsp";
+                    listData = vdao.searchByCode(name);
+                    break;
                 case "add":
                     page = "/pages/VoucherManagementPage/addVoucher.jsp";
                     break;

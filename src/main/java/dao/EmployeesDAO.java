@@ -93,6 +93,41 @@ public class EmployeesDAO extends DBContext {
         return null;
     }
     // 17.3 Modify Employee Record
+    
+    public List<Employees> searchByName(String name) {
+    List<Employees> list = new ArrayList<>();
+    RoleDAO rdao = new RoleDAO();
+    // Sử dụng LIKE để tìm kiếm gần đúng
+    String sql = "SELECT * FROM employees WHERE full_name LIKE ?";
+    
+    try {
+        PreparedStatement ps = conn.prepareStatement(sql);
+        // Gán tham số dạng %tên%
+        ps.setNString(1, "%" + name + "%");
+        
+        ResultSet rs = ps.executeQuery();
+        while (rs.next()) {
+            int employeesId = rs.getInt("employee_id");
+            String username = rs.getString("username");
+            String password = rs.getString("password_hash");
+            String fullname = rs.getString("full_name");
+            String email = rs.getString("email");
+            String phone = rs.getString("phone_number");
+            int roleId = rs.getInt("role_id");
+            String status = rs.getString("status");
+            LocalDateTime createdAt = rs.getTimestamp("created_at").toLocalDateTime();
+
+            // Khởi tạo đối tượng nhân viên
+            Employees employees = new Employees(employeesId, username, password, fullname, 
+                                                email, phone, rdao.getRoleById(roleId), 
+                                                status, createdAt);
+            list.add(employees);
+        }
+    } catch (Exception e) {
+        e.printStackTrace();
+    }
+    return list;
+}
 
     public boolean updateEmployee(Employees e) {
         // Câu lệnh SQL cập nhật các trường thông tin dựa trên employee_id

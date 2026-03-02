@@ -200,7 +200,28 @@ public class CustomerDAO extends DBContext {
         return u;
 
     }
-
+public List<Customer> searchByName(String name) {
+    List<Customer> list = new ArrayList<>();
+    // Câu lệnh SQL với toán tử LIKE để tìm kiếm gần đúng
+    String sql = "SELECT * FROM customers WHERE full_name LIKE ?";
+    
+    try {
+        PreparedStatement ps = conn.prepareStatement(sql);
+        
+        // Thêm dấu % vào trước và sau từ khóa
+        // Ví dụ: name = "Minh" -> sẽ tìm "%Minh%"
+        ps.setNString(1, "%" + name + "%");
+        
+        ResultSet rs = ps.executeQuery();
+        while (rs.next()) {
+            // Tái sử dụng hàm mapResultSetToCustomer bạn đã viết
+            list.add(mapResultSetToCustomer(rs));
+        }
+    } catch (Exception e) {
+        e.printStackTrace();
+    }
+    return list;
+}
     public static void main(String[] args) {
         CustomerDAO a = new CustomerDAO();
         a.getAllCustomer();

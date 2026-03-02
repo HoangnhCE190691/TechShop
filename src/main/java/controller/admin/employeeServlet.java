@@ -72,6 +72,11 @@ public class employeeServlet extends HttpServlet {
         RoleDAO rdao = new RoleDAO();
         if (action != null) {
             switch (action) {
+                 case "search":
+                    String name = request.getParameter("name");
+                      page = "/pages/EmployeeManagementPage/employeeManagement.jsp";
+                    listData = new EmployeesDAO().searchByName(name);
+                    break;
                 case "add":
                     page = "/pages/EmployeeManagementPage/addEmployee.jsp";
                     break;

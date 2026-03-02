@@ -140,7 +140,26 @@ public class VoucherDAO extends DBContext {
         }
         return false;
     }
-
+public List<Voucher> searchByCode(String code) {
+    List<Voucher> list = new ArrayList<>();
+    // Tìm kiếm gần đúng theo mã Voucher
+    String sql = "SELECT * FROM vouchers WHERE code LIKE ?";
+    
+    try {
+        PreparedStatement ps = conn.prepareStatement(sql);
+        // Gán tham số dạng %CODE%
+        ps.setString(1, "%" + code + "%");
+        
+        ResultSet rs = ps.executeQuery();
+        while (rs.next()) {
+            // Tái sử dụng hàm mapResultSetToVoucher có sẵn của bạn
+            list.add(mapResultSetToVoucher(rs));
+        }
+    } catch (Exception e) {
+        e.printStackTrace();
+    }
+    return list;
+}
     // ===== TEST MAIN =====
     public static void main(String[] args) {
         VoucherDAO dao = new VoucherDAO();

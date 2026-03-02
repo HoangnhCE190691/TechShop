@@ -72,6 +72,11 @@ public class customerServlet extends HttpServlet {
 
         if (action != null) {
             switch (action) {
+                case "search":
+                    String name = request.getParameter("name");
+                    page = "/pages/CustomerManagementPage/customerManagement.jsp";
+                    listData = new CustomerDAO().searchByName(name);
+                    break;
                 case "add":
                     page = "/pages/CustomerManagementPage/addCustomer.jsp";
                     break;
@@ -174,12 +179,12 @@ public class customerServlet extends HttpServlet {
                         request.setAttribute("oldPhone", phone);
                         request.setAttribute("oldPassword", password);
 
-                          try {
-                            utils.EmailUtils.sendEmail(email, "Test TechShop", "<h1>Chào " + fullName +"!</h1><p>Mật khẩu của bạn là: <b>" + password + "</b></p>");
+                        try {
+                            utils.EmailUtils.sendEmail(email, "Test TechShop", "<h1>Chào " + fullName + "!</h1><p>Mật khẩu của bạn là: <b>" + password + "</b></p>");
                         } catch (MessagingException ex) {
                             System.getLogger(employeeServlet.class.getName()).log(System.Logger.Level.ERROR, (String) null, ex);
                         }
-                        
+
                         request.setAttribute("contentPage", "/pages/CustomerManagementPage/addCustomer.jsp");
                         request.getRequestDispatcher("/template/adminTemplate.jsp").forward(request, response);
                     }
@@ -217,8 +222,6 @@ public class customerServlet extends HttpServlet {
                         request.setAttribute("errorEmail", errorEmailE);
                         request.setAttribute("customer", customer);
 
-                        
-                        
                         request.setAttribute("contentPage", "/pages/CustomerManagementPage/editCustomer.jsp");
                         request.getRequestDispatcher("/template/adminTemplate.jsp").forward(request, response);
                     }

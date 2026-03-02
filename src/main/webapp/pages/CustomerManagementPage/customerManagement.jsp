@@ -5,7 +5,7 @@
     <!-- Header -->
     <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-5">
         <!-- Search -->
-        <form class="w-full md:w-1/2">
+        <form action="customerservlet" method="get" class="w-full md:w-1/2">
             <div class="relative">
                 <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-400">
                     <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
@@ -14,10 +14,12 @@
                           clip-rule="evenodd"/>
                     </svg>
                 </span>
-                <input type="text"
+                <input name="action" value="search" hidden>
+                <input type="text" name="name" 
                        class="w-full pl-10 pr-4 py-2 text-sm border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                       placeholder="Tìm kiếm theo tên, email, số điện thoại...">
+                       placeholder="Tìm kiếm theo tên">
             </div>
+            <button type="submit" class="hidden"></button>
         </form>
 
         <!-- Add button -->
