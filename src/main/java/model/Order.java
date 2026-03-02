@@ -17,7 +17,7 @@ public class Order {
     private String orderName;
     private int customerId;
     private String customerName;
-    private Integer voucherId;
+    private Voucher voucher;
     private int paymentMethodId;
     private String shippingAddress;
     private BigDecimal totalAmount;
@@ -32,22 +32,22 @@ public class Order {
     }
 
     //INSERT constructor
-    public Order(int customerId, Integer voucherId, int paymentMethodId,
+    public Order(int customerId, Voucher voucher, int paymentMethodId,
             String shippingAddress, BigDecimal totalAmount) {
         this.customerId = customerId;
-        this.voucherId = voucherId;
+        this.voucher = voucher;
         this.paymentMethodId = paymentMethodId;
         this.shippingAddress = shippingAddress;
         this.totalAmount = totalAmount;
     }
 
     //READ constructor 
-    public Order(int orderId, int customerId, Integer voucherId, int paymentMethodId,
+    public Order(int orderId, int customerId, Voucher voucher, int paymentMethodId,
             String shippingAddress, BigDecimal totalAmount,
             String paymentStatus, String status, Timestamp createdAt) {
         this.orderId = orderId;
         this.customerId = customerId;
-        this.voucherId = voucherId;
+        this.voucher = voucher;
         this.paymentMethodId = paymentMethodId;
         this.shippingAddress = shippingAddress;
         this.totalAmount = totalAmount;
@@ -88,12 +88,12 @@ public class Order {
         this.customerId = customerId;
     }
 
-    public Integer getVoucherId() {
-        return voucherId;
+    public Voucher getVoucher() {
+        return voucher;
     }
 
-    public void setVoucherId(Integer voucherId) {
-        this.voucherId = voucherId;
+    public void setVoucher(Voucher voucher) {
+        this.voucher = voucher;
     }
 
     public int getPaymentMethodId() {
@@ -173,7 +173,7 @@ public class Order {
         return "Order{"
                 + "orderId=" + orderId
                 + ", customerId=" + customerId
-                + ", voucherId=" + voucherId
+                + ", voucher=" + (voucher != null ? voucher.getCode() : "None")
                 + ", paymentMethodId=" + paymentMethodId
                 + ", shippingAddress='" + shippingAddress + '\''
                 + ", totalAmount=" + totalAmount
