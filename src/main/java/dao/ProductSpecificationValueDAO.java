@@ -139,4 +139,10 @@ public class ProductSpecificationValueDAO extends DBContext {
         v.setSpecValue(rs.getString("spec_value"));
         return v;
     }
+    
+    public static void main(String[] args) {
+//        ProductSpecificationValueDAO a =new ProductSpecificationValueDAO();
+//        a.insertProductSpec(new ProductSpecificationValues(1, 1, "22"));
+        
+    }
 }

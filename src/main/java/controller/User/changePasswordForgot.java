@@ -19,8 +19,8 @@ import model.Customer;
  *
  * @author ASUS
  */
-@WebServlet(name = "verificationServlet", urlPatterns = {"/verificationservlet"})
-public class verificationServlet extends HttpServlet {
+@WebServlet(name = "changePasswordForgot", urlPatterns = {"/changepasswordforgot"})
+public class changePasswordForgot extends HttpServlet {
 
     /**
      * Processes requests for both HTTP <code>GET</code> and <code>POST</code>
@@ -39,10 +39,10 @@ public class verificationServlet extends HttpServlet {
             out.println("<!DOCTYPE html>");
             out.println("<html>");
             out.println("<head>");
-            out.println("<title>Servlet verificationServlet</title>");
+            out.println("<title>Servlet changePasswordForgot</title>");
             out.println("</head>");
             out.println("<body>");
-            out.println("<h1>Servlet verificationServlet at " + request.getContextPath() + "</h1>");
+            out.println("<h1>Servlet changePasswordForgot at " + request.getContextPath() + "</h1>");
             out.println("</body>");
             out.println("</html>");
         }
@@ -60,15 +60,13 @@ public class verificationServlet extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-
         String headerComponent = "/components/navbar.jsp"; // Trang mặc định khi mới vào
         String footerComponent = "/components/footer.jsp"; // Trang mặc định khi mới vào
 
         request.setAttribute("HeaderComponent", headerComponent);
         request.setAttribute("FooterComponent", footerComponent);
-        request.setAttribute("ContentPage", "/pages/MainPage/verification.jsp");
+        request.setAttribute("ContentPage", "/pages/MainPage/changePasswordWhenForgotPassword.jsp");
         request.getRequestDispatcher("/template/userTemplate.jsp").forward(request, response);
-
     }
 
     /**
@@ -82,45 +80,51 @@ public class verificationServlet extends HttpServlet {
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        // 1. Lấy mã OTP người dùng nhập từ Form
-        String otpInput = request.getParameter("otp_input");
 
-        // 2. Lấy dữ liệu đã lưu trong Session
-        HttpSession session = request.getSession(false);
+        String password = request.getParameter("password");
+        String passwordConfirm = request.getParameter("confirmPassword");
+        CustomerDAO cdao = new CustomerDAO();
 
-        if (session != null) {
-            String otpServer = (String) session.getAttribute("code");
-            // Giả sử Object của bạn tên là Customer hoặc User
-            Customer customer = (Customer) session.getAttribute("customer");
+        // 1. Kiểm tra mật khẩu khớp nhau (Dùng equals thay vì equalsIgnoreCase để bảo mật case-sensitive)
+        if (password != null && password.equals(passwordConfirm)) {
+            HttpSession session = request.getSession(false);
 
-            // 3. Kiểm tra logic
-            if (otpServer != null && otpServer.equals(otpInput)) {
-                // THÀNH CÔNG: Mã khớp
+            if (session != null && session.getAttribute("id") != null) {
+                int idC = (int) session.getAttribute("id");
+                Customer c = cdao.getCustomerById(idC);
 
-                // TODO: Gọi hàm DAO để insert 'customer' vào Database ở đây
-                 CustomerDAO cdao = new CustomerDAO();
-                 cdao.addCustomer(customer);
-                // Ví dụ: customerDAO.register(customer);
-                // Xóa dữ liệu tạm trong session sau khi đã dùng xong
-                session.removeAttribute("code");
-                session.removeAttribute("customer");
+                if (c != null) {
+                    // 2. Hash mật khẩu và update
+                   
+                    boolean isUpdated = cdao.changePassword(idC,passwordConfirm);
 
-                // Chuyển hướng đến trang thành công hoặc đăng nhập
-                response.sendRedirect("userservlet?action=loginPage");
-            } else {
-                // THẤT BẠI: Mã sai
-                request.setAttribute("mess", "Mã xác thực không chính xác. Vui lòng thử lại!");
+                    if (isUpdated) {
+                        // Cập nhật thành công mới xóa session và gửi mail
+                        session.removeAttribute("id");
 
-                // Giữ lại các thành phần giao diện để forward ngược về trang OTP
-                request.setAttribute("HeaderComponent", "/components/navbar.jsp");
-                request.setAttribute("FooterComponent", "/components/footer.jsp");
-                request.setAttribute("ContentPage", "/pages/MainPage/verification.jsp");
-                request.getRequestDispatcher("/template/userTemplate.jsp").forward(request, response);
+                        try {
+                            utils.EmailUtils.sendEmail(c.getEmail(), "TechShop - Password Changed",
+                                    "Chào " + c.getUserName() + ", mật khẩu của bạn đã được thay đổi thành công.");
+                        } catch (Exception e) {
+                            e.printStackTrace(); // Log lỗi gửi mail nhưng đừng chặn người dùng
+                        }
+
+                        response.sendRedirect("userservlet?action=loginPage");
+                        return;
+                    }
+                }
             }
+            // Nếu rơi xuống đây nghĩa là không tìm thấy Customer hoặc lỗi DB
+            request.setAttribute("errorPassword", "Lỗi hệ thống: Không thể xác định người dùng.");
         } else {
-            // Session đã hết hạn (timeout)
-            response.sendRedirect("register.jsp?mess=SessionExpired");
+            request.setAttribute("errorPassword", "Hai mật khẩu không khớp nhau!");
         }
+
+        // 3. Xử lý khi có lỗi (Forward lại trang cũ)
+        request.setAttribute("HeaderComponent", "/components/navbar.jsp");
+        request.setAttribute("FooterComponent", "/components/footer.jsp");
+        request.setAttribute("ContentPage", "/pages/MainPage/changePasswordWhenForgotPassword.jsp");
+        request.getRequestDispatcher("/template/userTemplate.jsp").forward(request, response);
     }
 
     /**

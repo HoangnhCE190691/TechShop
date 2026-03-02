@@ -13,6 +13,9 @@
             <c:if test="${not empty error}">
                 <p class="mt-2 text-sm text-red-600 font-medium">${error}</p>
             </c:if>
+            <div class="flex justify-end mt-2">
+                <a href="forgotpassword" class="text-sm text-blue-600 hover:underline">Forgot password?</a>
+            </div>
         </div>
 
 

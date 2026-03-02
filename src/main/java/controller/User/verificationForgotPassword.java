@@ -2,6 +2,7 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
  * Click nbfs://nbhost/SystemFileSystem/Templates/JSP_Servlet/Servlet.java to edit this template
  */
+
 package controller.User;
 
 import dao.CustomerDAO;
@@ -19,30 +20,28 @@ import model.Customer;
  *
  * @author ASUS
  */
-@WebServlet(name = "verificationServlet", urlPatterns = {"/verificationservlet"})
-public class verificationServlet extends HttpServlet {
+@WebServlet(name="verificationForgotPassword", urlPatterns={"/verificationforgotpassword"})
+public class verificationForgotPassword extends HttpServlet {
 
     /**
-     * Processes requests for both HTTP <code>GET</code> and <code>POST</code>
-     * methods.
-     *
+     * Processes requests for both HTTP <code>GET</code> and <code>POST</code> methods.
      * @param request servlet request
      * @param response servlet response
      * @throws ServletException if a servlet-specific error occurs
      * @throws IOException if an I/O error occurs
      */
     protected void processRequest(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
+    throws ServletException, IOException {
         response.setContentType("text/html;charset=UTF-8");
         try (PrintWriter out = response.getWriter()) {
             /* TODO output your page here. You may use following sample code. */
             out.println("<!DOCTYPE html>");
             out.println("<html>");
             out.println("<head>");
-            out.println("<title>Servlet verificationServlet</title>");
+            out.println("<title>Servlet verificationForgotPassword</title>");
             out.println("</head>");
             out.println("<body>");
-            out.println("<h1>Servlet verificationServlet at " + request.getContextPath() + "</h1>");
+            out.println("<h1>Servlet verificationForgotPassword at " + request.getContextPath () + "</h1>");
             out.println("</body>");
             out.println("</html>");
         }
@@ -51,7 +50,6 @@ public class verificationServlet extends HttpServlet {
     // <editor-fold defaultstate="collapsed" desc="HttpServlet methods. Click on the + sign on the left to edit the code.">
     /**
      * Handles the HTTP <code>GET</code> method.
-     *
      * @param request servlet request
      * @param response servlet response
      * @throws ServletException if a servlet-specific error occurs
@@ -59,21 +57,20 @@ public class verificationServlet extends HttpServlet {
      */
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
-
+    throws ServletException, IOException {
         String headerComponent = "/components/navbar.jsp"; // Trang mặc định khi mới vào
         String footerComponent = "/components/footer.jsp"; // Trang mặc định khi mới vào
-
+        String page = "/pages/MainPage/verificationForgotPassword.jsp"; // Trang mặc định khi mới vào
         request.setAttribute("HeaderComponent", headerComponent);
         request.setAttribute("FooterComponent", footerComponent);
-        request.setAttribute("ContentPage", "/pages/MainPage/verification.jsp");
-        request.getRequestDispatcher("/template/userTemplate.jsp").forward(request, response);
+        request.setAttribute("ContentPage", page);
 
+        // 5. Forward đến Template duy nhất
+        request.getRequestDispatcher("/template/userTemplate.jsp").forward(request, response);
     }
 
     /**
      * Handles the HTTP <code>POST</code> method.
-     *
      * @param request servlet request
      * @param response servlet response
      * @throws ServletException if a servlet-specific error occurs
@@ -81,8 +78,7 @@ public class verificationServlet extends HttpServlet {
      */
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
-        // 1. Lấy mã OTP người dùng nhập từ Form
+    throws ServletException, IOException {
         String otpInput = request.getParameter("otp_input");
 
         // 2. Lấy dữ liệu đã lưu trong Session
@@ -90,23 +86,19 @@ public class verificationServlet extends HttpServlet {
 
         if (session != null) {
             String otpServer = (String) session.getAttribute("code");
+//            int idC = (int) session.getAttribute("id");
             // Giả sử Object của bạn tên là Customer hoặc User
-            Customer customer = (Customer) session.getAttribute("customer");
-
+         
             // 3. Kiểm tra logic
             if (otpServer != null && otpServer.equals(otpInput)) {
                 // THÀNH CÔNG: Mã khớp
-
-                // TODO: Gọi hàm DAO để insert 'customer' vào Database ở đây
-                 CustomerDAO cdao = new CustomerDAO();
-                 cdao.addCustomer(customer);
-                // Ví dụ: customerDAO.register(customer);
                 // Xóa dữ liệu tạm trong session sau khi đã dùng xong
                 session.removeAttribute("code");
-                session.removeAttribute("customer");
+//                session.removeAttribute("id");
 
+                
                 // Chuyển hướng đến trang thành công hoặc đăng nhập
-                response.sendRedirect("userservlet?action=loginPage");
+                response.sendRedirect("changepasswordforgot");
             } else {
                 // THẤT BẠI: Mã sai
                 request.setAttribute("mess", "Mã xác thực không chính xác. Vui lòng thử lại!");
@@ -114,7 +106,7 @@ public class verificationServlet extends HttpServlet {
                 // Giữ lại các thành phần giao diện để forward ngược về trang OTP
                 request.setAttribute("HeaderComponent", "/components/navbar.jsp");
                 request.setAttribute("FooterComponent", "/components/footer.jsp");
-                request.setAttribute("ContentPage", "/pages/MainPage/verification.jsp");
+                request.setAttribute("ContentPage", "/pages/MainPage/forgot-password.jsp");
                 request.getRequestDispatcher("/template/userTemplate.jsp").forward(request, response);
             }
         } else {
@@ -125,7 +117,6 @@ public class verificationServlet extends HttpServlet {
 
     /**
      * Returns a short description of the servlet.
-     *
      * @return a String containing servlet description
      */
     @Override
