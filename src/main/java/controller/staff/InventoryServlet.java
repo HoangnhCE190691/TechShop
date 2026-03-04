@@ -66,7 +66,8 @@ public class InventoryServlet extends HttpServlet {
                 setMsg(request.getSession(), ok ? "Inventory item deleted." : "Delete failed (invalid ID or item in use).", ok ? "success" : "danger");
                 response.sendRedirect(request.getContextPath() + "/staffservlet?action=inventoryManagement");
             }
-            default -> response.sendRedirect(request.getContextPath() + "/staffservlet?action=inventoryManagement");
+            default ->
+                response.sendRedirect(request.getContextPath() + "/staffservlet?action=inventoryManagement");
         }
     }
 
@@ -83,9 +84,12 @@ public class InventoryServlet extends HttpServlet {
         }
 
         switch (action) {
-            case "add" -> handleAdd(request, response);
-            case "update" -> handleUpdate(request, response);
-            default -> response.sendRedirect(request.getContextPath() + "/staffservlet?action=inventoryManagement");
+            case "add" ->
+                handleAdd(request, response);
+            case "update" ->
+                handleUpdate(request, response);
+            default ->
+                response.sendRedirect(request.getContextPath() + "/staffservlet?action=inventoryManagement");
         }
     }
 
@@ -170,4 +174,3 @@ public class InventoryServlet extends HttpServlet {
         session.setAttribute("msgType", type);
     }
 }
-
