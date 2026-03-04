@@ -1,6 +1,7 @@
 <%@page contentType="text/html" pageEncoding="UTF-8" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
+<%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
 <div class="max-w-[1200px] mx-auto px-4 py-10 font-sans text-gray-800 bg-white">
 
     <div class="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-14">
@@ -113,7 +114,9 @@
                                 class="flex px-4 py-3.5 ${loop.index % 2 == 0 ? 'bg-gray-50' : 'bg-white'}">
                                 <div class="w-1/3 text-gray-500 font-medium text-sm flex-shrink-0 pr-2">
                                     ${s.specName}:</div>
-                                <div class="w-2/3 text-gray-900 text-sm font-medium">${s.specValue}</div>
+                                <div class="w-2/3 text-gray-900 text-sm font-medium">
+                                    ${s.specValue} ${(not empty s.unit and s.unit ne '-') ? s.unit : ''}
+                                </div>
                             </div>
                         </c:forEach>
                     </div>
@@ -128,185 +131,246 @@
         </div>
     </div>
 
-    <div class="mt-16 border border-gray-200 rounded-3xl p-6 md:p-10 bg-white shadow-sm mb-12">
+    <div class="mt-16 border border-gray-200 rounded-3xl p-6 md:p-10 bg-white shadow-sm mb-12" id="reviews-section">
         <h2 class="text-2xl font-bold text-gray-900 mb-8">Đánh giá sản phẩm</h2>
 
-        <div
-            class="grid grid-cols-1 md:grid-cols-3 gap-8 items-center bg-gray-50 rounded-2xl p-6 mb-10 border border-gray-100">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8 items-center bg-gray-50 rounded-2xl p-6 mb-10 border border-gray-100">
             <div class="flex flex-col items-center justify-center text-center">
-                <span class="text-6xl font-black text-red-600">4.8</span>
+                <span class="text-6xl font-black text-red-600">
+                    <fmt:formatNumber value="${averageRating}" maxFractionDigits="1" minFractionDigits="1" />
+                </span>
                 <div class="flex text-yellow-400 text-xl mt-3 mb-1">
-                    ★★★★★
+                    <c:forEach begin="1" end="5" var="i">
+                        <c:choose>
+                            <c:when test="${i <= averageRating}">★</c:when>
+                            <c:when test="${i - 0.5 <= averageRating}">★</c:when> <%-- Nửa sao, thực ra unicode k có nửa nên hiển thị sao đen --%>
+                            <c:otherwise><span class="text-gray-300">★</span></c:otherwise>
+                        </c:choose>
+                    </c:forEach>
                 </div>
-                <span class="text-gray-500 text-sm font-medium">Dựa trên 128 đánh giá</span>
+                <span class="text-gray-500 text-sm font-medium">Dựa trên ${totalReviews} đánh giá</span>
             </div>
 
             <div class="flex flex-col gap-2.5">
-                <div class="flex items-center gap-3 text-sm">
-                    <span class="text-gray-700 font-bold w-12">5 sao</span>
-                    <div class="flex-1 h-2.5 bg-gray-200 rounded-full overflow-hidden">
-                        <div class="h-full bg-red-500 rounded-full" style="width: 85%"></div>
+                <c:forEach begin="1" end="5" step="1" var="star">
+                    <c:set var="idx" value="${6 - star}" /> <!-- 5, 4, 3, 2, 1 -->
+                    <div class="flex items-center gap-3 text-sm">
+                        <span class="text-gray-700 font-bold w-12">${idx} sao</span>
+                        <div class="flex-1 h-2.5 bg-gray-200 rounded-full overflow-hidden">
+                            <div class="h-full bg-red-500 rounded-full" style="width: ${starPercentages[idx]}%"></div>
+                        </div>
+                        <span class="text-gray-500 text-xs font-bold w-8 text-right">${starPercentages[idx]}%</span>
                     </div>
-                    <span class="text-gray-500 text-xs font-bold w-8 text-right">85%</span>
-                </div>
-                <div class="flex items-center gap-3 text-sm">
-                    <span class="text-gray-700 font-bold w-12">4 sao</span>
-                    <div class="flex-1 h-2.5 bg-gray-200 rounded-full overflow-hidden">
-                        <div class="h-full bg-red-500 rounded-full" style="width: 10%"></div>
-                    </div>
-                    <span class="text-gray-500 text-xs font-bold w-8 text-right">10%</span>
-                </div>
-                <div class="flex items-center gap-3 text-sm">
-                    <span class="text-gray-700 font-bold w-12">3 sao</span>
-                    <div class="flex-1 h-2.5 bg-gray-200 rounded-full overflow-hidden">
-                        <div class="h-full bg-red-500 rounded-full" style="width: 3%"></div>
-                    </div>
-                    <span class="text-gray-500 text-xs font-bold w-8 text-right">3%</span>
-                </div>
-                <div class="flex items-center gap-3 text-sm">
-                    <span class="text-gray-700 font-bold w-12">2 sao</span>
-                    <div class="flex-1 h-2.5 bg-gray-200 rounded-full overflow-hidden">
-                        <div class="h-full bg-red-500 rounded-full" style="width: 1%"></div>
-                    </div>
-                    <span class="text-gray-500 text-xs font-bold w-8 text-right">1%</span>
-                </div>
-                <div class="flex items-center gap-3 text-sm">
-                    <span class="text-gray-700 font-bold w-12">1 sao</span>
-                    <div class="flex-1 h-2.5 bg-gray-200 rounded-full overflow-hidden">
-                        <div class="h-full bg-red-500 rounded-full" style="width: 1%"></div>
-                    </div>
-                    <span class="text-gray-500 text-xs font-bold w-8 text-right">1%</span>
-                </div>
+                </c:forEach>
             </div>
 
             <div class="flex justify-center md:justify-end">
-                <button
-                    class="bg-white border-2 border-red-600 text-red-600 font-bold py-3 px-8 rounded-xl hover:bg-red-600 hover:text-white transition-all duration-300 shadow-sm">
-                    ✍️ Viết đánh giá của bạn
-                </button>
+                <c:choose>
+                    <c:when test="${userReview != null}">
+                        <button onclick="openReviewModal(true)"
+                                class="bg-white border-2 border-blue-600 text-blue-600 font-bold py-3 px-8 rounded-xl hover:bg-blue-600 hover:text-white transition-all duration-300 shadow-sm">
+                            ✍️ Sửa đánh giá của bạn
+                        </button>
+                    </c:when>
+                    <c:when test="${canReview}">
+                        <button onclick="openReviewModal(false)"
+                                class="bg-white border-2 border-red-600 text-red-600 font-bold py-3 px-8 rounded-xl hover:bg-red-600 hover:text-white transition-all duration-300 shadow-sm">
+                            ✍️ Viết đánh giá của bạn
+                        </button>
+                    </c:when>
+                    <c:when test="${empty cookie.cookieID.value}">
+                        <a href="userservlet?action=loginPage"
+                           class="bg-gray-100 border border-gray-300 text-gray-600 font-semibold py-3 px-6 rounded-xl hover:bg-gray-200 transition-all text-center">
+                            Đăng nhập để đánh giá
+                        </a>
+                    </c:when>
+                    <c:otherwise>
+                        <div class="text-sm text-gray-500 text-center px-4">
+                            Bạn cần mua <br/> sản phẩm này để đánh giá.
+                        </div>
+                    </c:otherwise>
+                </c:choose>
             </div>
         </div>
 
         <div class="space-y-8">
-            <div class="flex gap-5 border-b border-gray-100 pb-8">
-                <div
-                    class="w-14 h-14 bg-gray-200 rounded-full flex items-center justify-center font-bold text-gray-500 text-xl flex-shrink-0">
-                    H
-                </div>
-                <div class="flex-1">
-                    <div class="flex items-center justify-between mb-1">
-                        <h4 class="font-bold text-gray-900 text-base">Hoàng Ngọc Anh</h4>
-                        <span class="text-sm text-gray-400 font-medium">18/02/2026</span>
-                    </div>
-                    <div class="text-yellow-400 text-sm mb-3 tracking-widest">★★★★★</div>
-                    <p class="text-gray-700 text-base leading-relaxed mb-4">
-                        Máy dùng siêu mượt, thiết kế viền Titan cầm rất nhẹ và sướng tay. Camera chụp buổi
-                        tối cực kỳ nét. Shop giao hàng nhanh, bọc gói cẩn thận. Sẽ ủng hộ shop dài dài!
-                    </p>
-                    <button
-                        class="text-sm text-gray-500 font-medium hover:text-blue-600 flex items-center gap-1.5 transition-colors">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"
-                             xmlns="http://www.w3.org/2000/svg">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                  d="M14 10h4.764a2 2 0 011.789 2.894l-3.5 7A2 2 0 0115.263 21h-4.017c-.163 0-.326-.02-.485-.06L7 20m7-10V5a2 2 0 00-2-2h-.095c-.5 0-.905.405-.905.905 0 .714-.211 1.412-.608 2.006L7 11v9m7-10h-2M7 20H5a2 2 0 01-2-2v-6a2 2 0 012-2h2.5">
-                            </path>
-                        </svg>
-                        Hữu ích (12)
-                    </button>
-                </div>
-            </div>
-
-            <div class="flex gap-5">
-                <div
-                    class="w-14 h-14 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center font-bold text-xl flex-shrink-0">
-                    T
-                </div>
-                <div class="flex-1">
-                    <div class="flex items-center justify-between mb-1">
-                        <h4 class="font-bold text-gray-900 text-base">Trần Lê Minh</h4>
-                        <span class="text-sm text-gray-400 font-medium">15/02/2026</span>
-                    </div>
-                    <div class="text-yellow-400 text-sm mb-3 tracking-widest">★★★★<span
-                            class="text-gray-300">★</span></div>
-                    <p class="text-gray-700 text-base leading-relaxed mb-4">
-                        Mọi thứ đều hoàn hảo ngoại trừ việc sạc pin đôi lúc máy hơi nóng lên một chút. Màn
-                        hình 120Hz lướt cực êm. Điểm trừ là không kèm củ sạc trong hộp.
-                    </p>
-                    <button
-                        class="text-sm text-gray-500 font-medium hover:text-blue-600 flex items-center gap-1.5 transition-colors">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"
-                             xmlns="http://www.w3.org/2000/svg">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                  d="M14 10h4.764a2 2 0 011.789 2.894l-3.5 7A2 2 0 0115.263 21h-4.017c-.163 0-.326-.02-.485-.06L7 20m7-10V5a2 2 0 00-2-2h-.095c-.5 0-.905.405-.905.905 0 .714-.211 1.412-.608 2.006L7 11v9m7-10h-2M7 20H5a2 2 0 01-2-2v-6a2 2 0 012-2h2.5">
-                            </path>
-                        </svg>
-                        Hữu ích (5)
-                    </button>
-                </div>
-            </div>
-        </div>
-
-        <div class="mt-10 flex justify-center">
-            <button
-                class="px-8 py-3 border-2 border-gray-200 rounded-xl text-base font-bold text-gray-700 hover:border-gray-400 hover:bg-gray-50 transition-all">
-                Xem thêm đánh giá
-            </button>
+            <c:choose>
+                <c:when test="${empty productReviews}">
+                    <div class="text-center py-10 text-gray-500">Chưa có đánh giá nào cho sản phẩm này.</div>
+                </c:when>
+                <c:otherwise>
+                    <c:forEach var="rev" items="${productReviews}">
+                        <div class="flex gap-5 border-b border-gray-100 pb-8 last:border-0 last:pb-0">
+                            <div class="w-14 h-14 bg-gray-200 rounded-full flex items-center justify-center font-bold text-gray-600 text-xl flex-shrink-0 uppercase">
+                                ${fn:substring(rev.customerName, 0, 1)}
+                            </div>
+                            <div class="flex-1">
+                                <div class="flex items-center justify-between mb-1">
+                                    <h4 class="font-bold text-gray-900 text-base">${rev.customerName}</h4>
+                                    <span class="text-sm text-gray-400 font-medium">${rev.formattedDate}</span>
+                                </div>
+                                <div class="text-yellow-400 text-sm mb-3 tracking-widest">
+                                    <c:forEach begin="1" end="5" var="i">
+                                        <c:choose>
+                                            <c:when test="${i <= rev.rating}">★</c:when>
+                                            <c:otherwise><span class="text-gray-300">★</span></c:otherwise>
+                                        </c:choose>
+                                    </c:forEach>
+                                </div>
+                                <p class="text-gray-700 text-base leading-relaxed mb-4">
+                                    ${rev.comment}
+                                </p>
+                            </div>
+                        </div>
+                    </c:forEach>
+                </c:otherwise>
+            </c:choose>
         </div>
     </div>
 
-</div>
+    <!-- Review Modal Form -->
+    <div id="reviewModal" class="fixed inset-0 z-[100] hidden bg-black bg-opacity-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl w-full max-w-lg shadow-xl overflow-hidden transform transition-all">
+            <div class="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50">
+                <h3 id="modalTitle" class="text-xl font-bold text-gray-900">Viết đánh giá</h3>
+                <button type="button" onclick="closeReviewModal()" class="text-gray-400 hover:text-gray-600 focus:outline-none">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                </button>
+            </div>
 
-<script src="https://cdn.jsdelivr.net/npm/@fancyapps/ui@5.0/dist/fancybox/fancybox.umd.js"></script>
+            <form action="reviewservlet" method="POST" class="p-6">
+                <input type="hidden" name="productId" value="${product.productId}">
+                    <input type="hidden" name="action" id="reviewAction" value="add">
+                        <input type="hidden" name="reviewId" id="reviewId" value="${userReview != null ? userReview.reviewId : ''}">
+                            <input type="hidden" name="rating" id="reviewRating" value="${userReview != null ? userReview.rating : 5}">
 
-<script>
-                            // 1. Khởi tạo Fancybox
-                            Fancybox.bind('[data-fancybox="gallery"]', {
-                                hideScrollbar: false,
-                            });
+                                <div class="mb-6 flex flex-col items-center">
+                                    <p class="text-sm font-medium text-gray-700 mb-2">Chất lượng sản phẩm</p>
+                                    <div class="flex gap-2 text-3xl cursor-pointer" id="starContainer">
+                                        <c:set var="initialRating" value="${userReview != null ? userReview.rating : 5}"/>
+                                        <c:forEach begin="1" end="5" var="i">
+                                            <span data-value="${i}" onclick="setRating(${i})" class="star-btn transition-colors ${i <= initialRating ? 'text-yellow-400' : 'text-gray-300'}">★</span>
+                                        </c:forEach>
+                                    </div>
+                                    <span id="ratingText" class="text-sm text-red-500 font-medium mt-2">Tuyệt vời</span>
+                                </div>
 
-                            // 2. Hàm đổi ảnh khi click ảnh thu nhỏ
-                            function changeImage(event, newImgSrc, newHighResSrc) {
-                                document.getElementById('mainImage').src = newImgSrc;
-                                document.getElementById('mainImageLink').href = newHighResSrc;
+                                <div class="mb-6">
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Cảm nhận của bạn</label>
+                                    <textarea name="comment" id="reviewComment" rows="4" required
+                                              class="w-full p-3 border border-gray-300 rounded-xl focus:ring-red-500 focus:border-red-500 resize-none text-gray-700"
+                                              placeholder="Hãy chia sẻ trải nghiệm của bạn về sản phẩm này nhé...">${userReview != null ? userReview.comment : ''}</textarea>
+                                </div>
 
-                                let buttons = document.querySelectorAll('.thumb-btn');
-                                buttons.forEach(btn => {
-                                    btn.classList.remove('border-red-500');
-                                    btn.classList.add('border-gray-100');
-                                });
+                                <div class="flex gap-3 justify-end">
+                                    <button type="button" onclick="closeReviewModal()"
+                                            class="px-5 py-2.5 border border-gray-300 rounded-xl text-gray-700 font-medium hover:bg-gray-50 transition-colors">
+                                        Hủy
+                                    </button>
+                                    <button type="submit"
+                                            class="px-5 py-2.5 bg-red-600 rounded-xl text-white font-medium hover:bg-red-700 shadow-sm transition-colors">
+                                        Gửi đánh giá
+                                    </button>
+                                </div>
+                                </form>
+                                </div>
+                                </div>
 
-                                event.currentTarget.classList.remove('border-gray-100');
-                                event.currentTarget.classList.add('border-red-500');
-                            }
+                                </div>
 
-                            // 3. Xử lý click chọn Phiên bản
-                            function selectVariant(event, price, variantId) {
-                                // Lấy danh sách tất cả các nút
-                                let buttons = document.querySelectorAll('.variant-btn');
+                                <script src="https://cdn.jsdelivr.net/npm/@fancyapps/ui@5.0/dist/fancybox/fancybox.umd.js"></script>
 
-                                // Reset tất cả các nút về trạng thái xám (không chọn)
-                                buttons.forEach(btn => {
-                                    btn.className = "variant-btn px-5 py-2.5 border border-gray-200 text-gray-600 font-semibold rounded-xl hover:border-gray-400 transition-all";
-                                });
+                                <script>
+                                        // 1. Khởi tạo Fancybox
+                                        Fancybox.bind('[data-fancybox="gallery"]', {
+                                            hideScrollbar: false,
+                                        });
 
-                                // Đổi màu nút vừa được click thành màu đỏ (đã chọn)
-                                let clickedBtn = event.currentTarget;
-                                clickedBtn.className = "variant-btn px-5 py-2.5 border-2 border-red-600 text-red-600 font-bold rounded-xl bg-red-50 transition-all selected";
-                                clickedBtn.dataset.variantId = variantId;
+                                        // 2. Hàm đổi ảnh khi click ảnh thu nhỏ
+                                        function changeImage(event, newImgSrc, newHighResSrc) {
+                                            document.getElementById('mainImage').src = newImgSrc;
+                                            document.getElementById('mainImageLink').href = newHighResSrc;
 
-                                // Update price
-                                document.getElementById('displayPrice').innerText = price.toLocaleString('vi-VN') + 'đ';
-                            }
+                                            let buttons = document.querySelectorAll('.thumb-btn');
+                                            buttons.forEach(btn => {
+                                                btn.classList.remove('border-red-500');
+                                                btn.classList.add('border-gray-100');
+                                            });
 
-                            // 5. Nút tăng giảm số lượng
-                            function updateQuantity(change) {
-                                let input = document.getElementById('qtyInput');
-                                let currentVal = parseInt(input.value);
-                                let newVal = currentVal + change;
+                                            event.currentTarget.classList.remove('border-gray-100');
+                                            event.currentTarget.classList.add('border-red-500');
+                                        }
 
-                                // Đảm bảo số lượng không thể rớt xuống số 0 hoặc âm
-                                if (newVal >= 1) {
-                                    input.value = newVal;
-                                }
-                            }
-</script>
+                                        // 3. Xử lý click chọn Phiên bản
+                                        function selectVariant(event, price, variantId) {
+                                            // Lấy danh sách tất cả các nút
+                                            let buttons = document.querySelectorAll('.variant-btn');
+
+                                            // Reset tất cả các nút về trạng thái xám (không chọn)
+                                            buttons.forEach(btn => {
+                                                btn.className = "variant-btn px-5 py-2.5 border border-gray-200 text-gray-600 font-semibold rounded-xl hover:border-gray-400 transition-all";
+                                            });
+
+                                            // Đổi màu nút vừa được click thành màu đỏ (đã chọn)
+                                            let clickedBtn = event.currentTarget;
+                                            clickedBtn.className = "variant-btn px-5 py-2.5 border-2 border-red-600 text-red-600 font-bold rounded-xl bg-red-50 transition-all selected";
+                                            clickedBtn.dataset.variantId = variantId;
+
+                                            // Update price
+                                            document.getElementById('displayPrice').innerText = price.toLocaleString('vi-VN') + 'đ';
+                                        }
+
+                                        // 5. Nút tăng giảm số lượng
+                                        function updateQuantity(change) {
+                                            let input = document.getElementById('qtyInput');
+                                            let currentVal = parseInt(input.value);
+                                            let newVal = currentVal + change;
+
+                                            // Đảm bảo số lượng không thể rớt xuống số 0 hoặc âm
+                                            if (newVal >= 1) {
+                                                input.value = newVal;
+                                            }
+                                        }
+
+                                        // 6. Xử lý logic Modal Đánh giá
+                                        function openReviewModal(isEdit) {
+                                            document.getElementById('reviewModal').classList.remove('hidden');
+                                            document.getElementById('reviewAction').value = isEdit ? 'edit' : 'add';
+                                            document.getElementById('modalTitle').innerText = isEdit ? 'Sửa đánh giá của bạn' : 'Viết đánh giá';
+
+                                            // Trigger setRating text based on initial/current value
+                                            let val = document.getElementById('reviewRating').value;
+                                            setRating(val);
+                                        }
+
+                                        function closeReviewModal() {
+                                            document.getElementById('reviewModal').classList.add('hidden');
+                                        }
+
+                                        function setRating(rating) {
+                                            document.getElementById('reviewRating').value = rating;
+
+                                            // Update UI
+                                            let stars = document.querySelectorAll('.star-btn');
+                                            stars.forEach(star => {
+                                                if (parseInt(star.dataset.value) <= rating) {
+                                                    star.classList.remove('text-gray-300');
+                                                    star.classList.add('text-yellow-400');
+                                                } else {
+                                                    star.classList.remove('text-yellow-400');
+                                                    star.classList.add('text-gray-300');
+                                                }
+                                            });
+
+                                            // Update Text
+                                            let textSpan = document.getElementById('ratingText');
+                                            let texts = ["Tệ", "Không hài lòng", "Bình thường", "Hài lòng", "Tuyệt vời"];
+                                            textSpan.innerText = texts[rating - 1];
+
+                                            // Update text color
+                                            let colors = ["text-gray-500", "text-orange-500", "text-blue-500", "text-green-500", "text-red-500"];
+                                            textSpan.className = "text-sm font-medium mt-2 " + colors[rating - 1];
+                                        }
+                                </script>

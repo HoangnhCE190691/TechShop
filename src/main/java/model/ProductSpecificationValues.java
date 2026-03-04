@@ -9,6 +9,8 @@ public class ProductSpecificationValues {
     private String productName;
     private String specName;
 
+    private String unit;
+
     public ProductSpecificationValues() {
     }
 
@@ -58,8 +60,17 @@ public class ProductSpecificationValues {
         this.specName = specName;
     }
 
+    public String getUnit() {
+        return unit;
+    }
+
+    public void setUnit(String unit) {
+        this.unit = unit;
+    }
+
     @Override
     public String toString() {
-        return "ProductSpecificationValues{" + "productId=" + productId + ", specId=" + specId + ", specValue=" + specValue + '}';
+        return "ProductSpecificationValues{" + "productId=" + productId + ", specId=" + specId + ", specValue="
+                + specValue + ", unit=" + unit + '}';
     }
 }

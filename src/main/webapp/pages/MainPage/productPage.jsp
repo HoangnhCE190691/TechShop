@@ -127,8 +127,8 @@
                             </div>
                             <div class="mt-auto pt-3">
                                 <p class="text-red-600 font-bold text-lg">
-                                <fmt:formatNumber value="${p.minPrice != null ? p.minPrice : 0}"
-                                                  type="number" groupingUsed="true" />đ
+                                    <fmt:formatNumber value="${p.minPrice != null ? p.minPrice : 0}"
+                                                      type="number" groupingUsed="true" />đ
                                 </p>
                             </div>
                             <a href="detailservlet?productId=${p.productId}"
