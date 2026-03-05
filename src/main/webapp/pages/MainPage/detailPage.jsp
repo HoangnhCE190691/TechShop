@@ -9,11 +9,11 @@
         <div class="lg:col-span-5 flex flex-col gap-4">
 
             <a id="mainImageLink"
-               href="${not empty images ? pageContext.request.contextPath.concat('/').concat(images[0].imageUrl) : pageContext.request.contextPath.concat('/assest/img/product/samsung-galaxy-s25-green-thumbai-600x600.jpg')}"
+               href="${not empty images ? pageContext.request.contextPath.concat('/').concat(images[0].imageUrl) : pageContext.request.contextPath.concat('/assets/img/product/samsung-galaxy-s25-green-thumbai-600x600.jpg')}"
                data-fancybox="gallery"
                class="cursor-zoom-in border border-gray-100 rounded-3xl overflow-hidden p-6 flex items-center justify-center bg-gray-50 aspect-square shadow-sm transition-shadow hover:shadow-md">
                 <img id="mainImage"
-                     src="${not empty images ? pageContext.request.contextPath.concat('/').concat(images[0].imageUrl) : pageContext.request.contextPath.concat('/assest/img/product/samsung-galaxy-s25-green-thumbai-600x600.jpg')}"
+                     src="${not empty images ? pageContext.request.contextPath.concat('/').concat(images[0].imageUrl) : pageContext.request.contextPath.concat('/assets/img/product/samsung-galaxy-s25-green-thumbai-600x600.jpg')}"
                      alt="${product.name}"
                      class="w-full h-full object-contain mix-blend-multiply transition-transform duration-300 hover:scale-105">
             </a>
