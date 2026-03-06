@@ -5,6 +5,9 @@
 package controller.User;
 
 import dao.CartItemDAO;
+import dao.CustomerAddressDAO;
+import dao.CustomerDAO;
+import dao.VoucherDAO;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
@@ -112,8 +115,14 @@ public class orderpageServlet extends HttpServlet {
                 totalAmount += d.getSubtotal();
             }
         }
+        CustomerDAO aO = new CustomerDAO();
+        CustomerAddressDAO addressDAO = new CustomerAddressDAO();
+        VoucherDAO vdao = new VoucherDAO();
+        
+        request.setAttribute("listaddress", addressDAO.getAddressesByCustomerId(customerId));
         request.setAttribute("listCart", listCart);
         request.setAttribute("totalAmount", totalAmount);
+        request.setAttribute("listVoucher", vdao.getAllVoucher());
 
         String headerComponent = "/components/navbar.jsp";
         String footerComponent = "/components/footer.jsp";

@@ -118,7 +118,21 @@ public class Voucher {
 
     // Helper method: Kiểm tra xem voucher còn lượt dùng không
     public boolean isAvailable() {
-        return "ACTIVE".equalsIgnoreCase(this.status) && (usedQuantity < totalQuantity);
+//        return "ACTIVE".equalsIgnoreCase(this.status) && (usedQuantity < totalQuantity);
+        LocalDateTime now = LocalDateTime.now();
+
+        // 1. Check trạng thái
+        boolean isStatusActive = "ACTIVE".equalsIgnoreCase(this.status);
+
+        // 2. Check số lượng
+        boolean isNotOutOfStock = this.usedQuantity < this.totalQuantity;
+
+        // 3. Check thời gian (Đã đến giờ bắt đầu chưa & Đã hết hạn chưa)
+        boolean isStarted = (this.validFrom == null || !now.isBefore(this.validFrom));
+        boolean isNotExpired = (this.validTo == null || !now.isAfter(this.validTo));
+
+        // Phải thỏa mãn TẤT CẢ các điều kiện trên
+        return isStatusActive && isNotOutOfStock && isStarted && isNotExpired;
     }
 
     @Override
@@ -126,4 +140,5 @@ public class Voucher {
         return String.format("Voucher[ID=%d, Code=%s, %d%%, Min=%.2f, Status=%s, Qty=%d/%d]",
                 voucherId, code, discountPercent, minOrderValue, status, usedQuantity, totalQuantity);
     }
+
 }

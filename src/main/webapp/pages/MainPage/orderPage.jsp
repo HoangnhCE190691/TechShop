@@ -3,14 +3,14 @@
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
 <c:set var="listCart" value="${requestScope.listCart != null ? requestScope.listCart : []}"/>
 <c:set var="totalAmount" value="${requestScope.totalAmount != null ? requestScope.totalAmount : 0}"/>
-
+<%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
 <div class="bg-gray-50 min-h-screen pb-12 font-sans text-gray-800 relative">
     <div class="max-w-[1200px] mx-auto px-4 py-8 md:py-12">
 
         <h1 class="text-2xl md:text-3xl font-extrabold text-gray-900 mb-8 tracking-tight">Thanh toán & Đặt hàng</h1>
 
         <form id="checkoutForm" onsubmit="event.preventDefault(); showSuccessModal();" class="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-10">
-
+<input type="hidden" name="appliedVoucherId" id="appliedVoucherId" value="0">
             <div class="lg:col-span-7 flex flex-col gap-8">
 
                 <div class="bg-white p-6 md:p-8 rounded-3xl border border-gray-100 shadow-sm">
@@ -20,23 +20,56 @@
                     </h2>
 
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <label class="relative border-2 border-red-600 bg-red-50 rounded-2xl p-5 cursor-pointer transition-all">
-                            <input type="radio" name="address" value="address1" class="absolute top-5 right-5 w-5 h-5 text-red-600 focus:ring-red-500" checked>
-                            <div class="pr-8">
-                                <h3 class="font-bold text-gray-900 text-lg mb-1">Nhà riêng</h3>
-                                <p class="text-sm font-semibold text-gray-800 mb-2">Hoàng Ngọc Anh - 0987.654.321</p>
-                                <p class="text-sm text-gray-500 leading-relaxed">Số 123, Đường Nguyễn Văn Cừ, Phường 4, Quận 5, TP. Hồ Chí Minh</p>
-                            </div>
-                        </label>
+                        <c:choose>
+                            <%-- TRƯỜNG HỢP 1: Danh sách rỗng (Chưa có địa chỉ nào) --%>
+                            <c:when test="${empty listaddress}">
+                                <div class="col-span-1 md:col-span-2">
+                                    <a href="addresssuserservlet?action=add" class="relative block w-full border-2 border-dashed border-gray-300 bg-gray-50 rounded-2xl p-8 hover:bg-gray-100 hover:border-red-400 transition-all text-center group cursor-pointer">
+                                        <svg class="mx-auto h-10 w-10 text-gray-400 group-hover:text-red-500 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+                                        <h3 class="mt-2 text-base font-bold text-gray-900">Chưa có địa chỉ giao hàng</h3>
+                                        <p class="mt-1 text-sm text-gray-500">Bấm vào đây để thêm địa chỉ mới nhé.</p>
+                                    </a>
+                                </div>
+                            </c:when>
 
-                        <label class="relative border-2 border-gray-100 bg-white rounded-2xl p-5 cursor-pointer hover:border-red-300 transition-all">
-                            <input type="radio" name="address" value="address2" class="absolute top-5 right-5 w-5 h-5 text-red-600 focus:ring-red-500">
-                            <div class="pr-8">
-                                <h3 class="font-bold text-gray-900 text-lg mb-1">Công ty</h3>
-                                <p class="text-sm font-semibold text-gray-800 mb-2">Hoàng Ngọc Anh - 0987.654.321</p>
-                                <p class="text-sm text-gray-500 leading-relaxed">Tòa nhà Etown, 364 Cộng Hòa, Phường 13, Quận Tân Bình, TP. Hồ Chí Minh</p>
-                            </div>
-                        </label>
+                            <%-- TRƯỜNG HỢP 2: Đã có danh sách địa chỉ --%>
+                            <c:otherwise>
+                                <c:forEach items="${listaddress}" var="addr" varStatus="loop">
+                                    <c:set var="isSelected" value="${addr.isDefault || loop.first}" />
+
+                                    <label class="address-card relative border-2 rounded-2xl p-5 cursor-pointer transition-all
+                                           ${isSelected ? 'border-red-600 bg-red-50' : 'border-gray-100 bg-white hover:border-red-300'}">
+
+                                        <input type="radio" name="addressId" value="${addr.addressId}" 
+                                               class="absolute top-5 right-5 w-5 h-5 text-red-600 focus:ring-red-500" 
+                                               ${isSelected ? 'checked' : ''}
+                                               onclick="changeSelectedAddress(this)">
+
+                                        <div class="pr-8">
+                                            <div class="flex items-center gap-2 mb-1">
+                                                <h3 class="font-bold text-gray-900 text-lg">
+                                                    ${addr.nameReceiver}
+                                                </h3>
+                                                <c:if test="${addr.isDefault}">
+                                                    <span class="px-2 py-0.5 text-[10px] font-bold bg-red-100 text-red-600 rounded">Mặc định</span>
+                                                </c:if>
+                                            </div>
+
+                                            <p class="text-sm font-semibold text-gray-800 mb-2">${addr.nameReceiver} - ${addr.phoneReceiver}</p>
+                                            <p class="text-sm text-gray-500 leading-relaxed">${addr.address}</p>
+                                        </div>
+                                    </label>
+                                </c:forEach>
+
+                                <%-- CHỈ HIỂN THỊ NÚT THÊM NẾU SỐ LƯỢNG ĐỊA CHỈ < 2 --%>
+                                <c:if test="${fn:length(listaddress) < 2}">
+                                    <a href="addresssuserservlet?action=add" class="relative border-2 border-dashed border-gray-300 bg-gray-50 rounded-2xl p-5 cursor-pointer hover:bg-gray-100 hover:border-red-400 transition-all flex flex-col items-center justify-center min-h-[140px] group">
+                                        <svg class="w-8 h-8 text-gray-400 group-hover:text-red-500 transition-colors mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+                                        <span class="font-bold text-gray-600 group-hover:text-red-600 transition-colors">Thêm địa chỉ mới</span>
+                                    </a>
+                                </c:if>
+                            </c:otherwise>
+                        </c:choose>
                     </div>
                 </div>
 
@@ -184,6 +217,21 @@
 </div>
 
 <script>
+
+    function changeSelectedAddress(radioElement) {
+        // 1. Tìm tất cả các thẻ label có class address-card và reset về viền xám nền trắng
+        let allCards = document.querySelectorAll('.address-card');
+        allCards.forEach(card => {
+            card.classList.remove('border-red-600', 'bg-red-50');
+            card.classList.add('border-gray-100', 'bg-white');
+        });
+
+        // 2. Tìm thẻ label đang bọc cái radio vừa được click và đổi sang viền đỏ nền đỏ
+        let selectedCard = radioElement.closest('.address-card');
+        selectedCard.classList.remove('border-gray-100', 'bg-white');
+        selectedCard.classList.add('border-red-600', 'bg-red-50');
+    }
+
     // --- 1. SCRIPT ĐỔI ĐỊA CHỈ ---
     const addressLabels = document.querySelectorAll('input[name="address"]');
     addressLabels.forEach(radio => {
@@ -200,40 +248,90 @@
     });
 
     // --- 2. SCRIPT XỬ LÝ VOUCHER (Tính toán giao diện) ---
-    let subTotal = ${totalAmount};
+
+    let subTotal = ${totalAmount != null ? totalAmount : 0};
     let currentDiscount = 0;
 
-    function applyVoucher() {
-        // Lấy mã người dùng nhập và viết hoa
-        const code = document.getElementById('voucherInput').value.trim().toUpperCase();
-        const messageDiv = document.getElementById('voucherMessage');
-        const discountDisplay = document.getElementById('discountDisplay');
-        const totalDisplay = document.getElementById('totalDisplay');
+    // 1. CHUYỂN JAVA LIST SANG JAVASCRIPT ARRAY
+    const availableVouchers = [
+    <c:forEach items="${listVoucher}" var="v" varStatus="loop">
+    {
+    code: '${v.code}',
+    voucherId: ${v.voucherId},
+            discountPercent: ${v.discountPercent},
+            maxDiscountAmount: ${v.maxDiscountAmount},
+            minOrderValue: ${v.minOrderValue},
+            isAvailable: ${v.available} // Gọi hàm isAvailable() của Java trả về boolean (true/false)
+    }${!loop.last ? ',' : ''}
+    </c:forEach>
+    ];
 
-        // Logic kiểm tra mã giảm giá giả lập
-        if (code === 'GIAM500K') {
-            currentDiscount = 500000;
-            messageDiv.innerHTML = '<span class="text-green-600 font-medium flex items-center gap-1"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg> Áp dụng thành công giảm 500.000đ!</span>';
-        } else if (code === 'SALE10') {
-            currentDiscount = subTotal * 0.1; // Giảm 10%
-            messageDiv.innerHTML = '<span class="text-green-600 font-medium flex items-center gap-1"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg> Áp dụng thành công giảm 10%!</span>';
-        } else if (code === '') {
-            currentDiscount = 0;
-            messageDiv.innerHTML = '<span class="text-red-500 font-medium">Vui lòng nhập mã giảm giá.</span>';
+    function applyVoucher() {
+    const inputCode = document.getElementById('voucherInput').value.trim().toUpperCase();
+    const messageDiv = document.getElementById('voucherMessage');
+    const discountDisplay = document.getElementById('discountDisplay');
+    const totalDisplay = document.getElementById('totalDisplay');
+
+    // Hàm format số thành tiền VNĐ
+    const formatMoney = (amount) => amount.toLocaleString('vi-VN') + 'đ';
+
+    if (inputCode === '') {
+        currentDiscount = 0;
+        document.getElementById('appliedVoucherId').value = "0"; // Xóa ID
+        messageDiv.innerHTML = '<span class="text-red-500 font-medium">Vui lòng nhập mã giảm giá.</span>';
+    } else {
+        // 2. TÌM VOUCHER TRONG MẢNG
+        const foundVoucher = availableVouchers.find(v => v.code.toUpperCase() === inputCode);
+
+        if (foundVoucher) {
+            // Bước 2.1: Kiểm tra voucher còn khả dụng không (Status, Số lượt dùng, Thời gian)
+            if (!foundVoucher.isAvailable) {
+                currentDiscount = 0;
+                document.getElementById('appliedVoucherId').value = "0"; // Xóa ID
+                messageDiv.innerHTML = '<span class="text-red-500 font-medium">Mã giảm giá đã hết lượt sử dụng hoặc đã hết hạn!</span>';
+            }
+            // Bước 2.2: Kiểm tra đơn hàng có đạt mức tối thiểu không
+            else if (subTotal < foundVoucher.minOrderValue) {
+                currentDiscount = 0;
+                document.getElementById('appliedVoucherId').value = "0"; // Xóa ID
+                messageDiv.innerHTML = `<span class="text-red-500 font-medium">Đơn hàng tối thiểu để áp dụng mã này là ` + formatMoney(foundVoucher.minOrderValue) + `!</span>`;
+            }
+            // Bước 2.3: Nếu thỏa mãn mọi điều kiện -> Tiến hành tính tiền
+            else {
+                // Tính mức giảm dựa trên phần trăm (%)
+                let calculatedDiscount = subTotal * (foundVoucher.discountPercent / 100);
+
+                // So sánh với mức giảm tối đa (Cap)
+                if (foundVoucher.maxDiscountAmount > 0 && calculatedDiscount > foundVoucher.maxDiscountAmount) {
+                    currentDiscount = foundVoucher.maxDiscountAmount; // Giới hạn số tiền giảm
+                } else {
+                    currentDiscount = calculatedDiscount;
+                }
+
+                // Đề phòng trường hợp tiền giảm vượt quá tổng tiền
+                if (currentDiscount > subTotal) {
+                    currentDiscount = subTotal;
+                }
+
+                // Gán ID để gửi về Servlet
+                document.getElementById('appliedVoucherId').value = foundVoucher.voucherId;
+                
+                messageDiv.innerHTML = `<span class="text-green-600 font-medium flex items-center gap-1">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg> 
+                    Áp dụng thành công giảm ` + formatMoney(currentDiscount) + `!</span>`;
+            }
         } else {
             currentDiscount = 0;
-            messageDiv.innerHTML = '<span class="text-red-500 font-medium">Mã giảm giá không hợp lệ hoặc đã hết hạn!</span>';
+            document.getElementById('appliedVoucherId').value = "0"; // Xóa ID
+            messageDiv.innerHTML = '<span class="text-red-500 font-medium">Mã giảm giá không tồn tại!</span>';
         }
-
-        // Hàm format số thành tiền VNĐ (VD: 1000000 -> 1.000.000đ)
-        const formatMoney = (amount) => amount.toLocaleString('vi-VN') + 'đ';
-
-        // Cập nhật lại HTML
-        discountDisplay.innerText = '-' + formatMoney(currentDiscount);
-        let finalTotal = subTotal - currentDiscount;
-        totalDisplay.innerText = formatMoney(finalTotal);
     }
 
+    // 3. Cập nhật lại HTML hiển thị giá tiền
+    discountDisplay.innerText = '-' + formatMoney(currentDiscount);
+    let finalTotal = subTotal - currentDiscount;
+    totalDisplay.innerText = formatMoney(finalTotal);
+}
     // --- 3. SCRIPT HIỂN THỊ MODAL THÀNH CÔNG ---
     const modal = document.getElementById('successModal');
     const modalContent = document.getElementById('modalContent');
