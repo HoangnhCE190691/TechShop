@@ -20,7 +20,10 @@ import model.Product;
 import model.ProductImage;
 import model.ProductVariant;
 import model.ProductSpecificationValues;
+import model.Review;
+import dao.ReviewDAO;
 import java.util.List;
+import jakarta.servlet.http.Cookie;
 
 /**
  *
@@ -89,10 +92,70 @@ public class detailServlet extends HttpServlet {
                 ProductSpecificationValueDAO specDao = new ProductSpecificationValueDAO();
                 List<ProductSpecificationValues> specs = specDao.getSpecsByProductId(productId);
 
+                // Fetch reviews
+                ReviewDAO reviewDao = new ReviewDAO();
+                List<Review> productReviews = reviewDao.getReviewsByProductId(productId);
+
+                // Calculate statistics
+                int totalReviews = productReviews.size();
+                double averageRating = 0;
+                int[] starCounts = new int[6]; // index 1 to 5
+
+                for (Review r : productReviews) {
+                    averageRating += r.getRating();
+                    if (r.getRating() >= 1 && r.getRating() <= 5) {
+                        starCounts[r.getRating()]++;
+                    }
+                }
+
+                if (totalReviews > 0) {
+                    averageRating = averageRating / totalReviews;
+                }
+
+                int[] starPercentages = new int[6];
+                for (int i = 1; i <= 5; i++) {
+                    if (totalReviews > 0) {
+                        starPercentages[i] = (int) Math.round(((double) starCounts[i] / totalReviews) * 100);
+                    }
+                }
+
+                // Check user login and review eligibility
+                int customerId = -1;
+                Cookie[] cookies = request.getCookies();
+                if (cookies != null) {
+                    for (Cookie c : cookies) {
+                        if (c.getName().equals("cookieID")) {
+                            customerId = Integer.parseInt(c.getValue());
+                            break;
+                        }
+                    }
+                }
+
+                Review userReview = null;
+                boolean canReview = false;
+
+                if (customerId != -1) {
+                    // check if the user already reviewed
+                    userReview = reviewDao.getReviewByCustomerAndProduct(customerId, productId);
+
+                    if (userReview == null) {
+                        // check if the user bought and hasn't reviewed
+                        canReview = reviewDao.getUnreviewedOrderItemId(customerId, productId) != -1;
+                    }
+                }
+
                 request.setAttribute("product", p);
                 request.setAttribute("images", images);
                 request.setAttribute("variants", variants);
                 request.setAttribute("specs", specs);
+
+                request.setAttribute("productReviews", productReviews);
+                request.setAttribute("totalReviews", totalReviews);
+                request.setAttribute("averageRating", averageRating);
+                request.setAttribute("starCounts", starCounts);
+                request.setAttribute("starPercentages", starPercentages);
+                request.setAttribute("userReview", userReview);
+                request.setAttribute("canReview", canReview);
 
             } catch (Exception e) {
                 e.printStackTrace();

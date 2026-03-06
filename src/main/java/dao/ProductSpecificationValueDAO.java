@@ -11,7 +11,7 @@ public class ProductSpecificationValueDAO extends DBContext {
 
     public List<ProductSpecificationValues> getAllProductSpecs() {
         List<ProductSpecificationValues> list = new ArrayList<>();
-        String sql = "SELECT v.*, p.name as product_name, s.spec_name "
+        String sql = "SELECT v.*, p.name as product_name, s.spec_name, s.unit "
                 + "FROM product_spec_values v "
                 + "JOIN products p ON v.product_id = p.product_id "
                 + "JOIN specification_definitions s ON v.spec_id = s.spec_id "
@@ -31,33 +31,10 @@ public class ProductSpecificationValueDAO extends DBContext {
         return list;
     }
 
-    public ProductSpecificationValues getSpecValueById(int productId, int specId) {
-        String sql = "SELECT v.*, p.name as product_name, s.spec_name "
-                + "FROM product_spec_values v "
-                + "JOIN products p ON v.product_id = p.product_id "
-                + "JOIN specification_definitions s ON v.spec_id = s.spec_id "
-                + "WHERE v.product_id = ? AND v.spec_id = ?";
-        try {
-            PreparedStatement ps = conn.prepareStatement(sql);
-            ps.setInt(1, productId);
-            ps.setInt(2, specId);
-            ResultSet rs = ps.executeQuery();
-            if (rs.next()) {
-                ProductSpecificationValues v = mapResultSet(rs);
-                v.setProductName(rs.getString("product_name"));
-                v.setSpecName(rs.getString("spec_name"));
-                return v;
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return null;
-    }
-
     // Lấy tất cả thông số kỹ thuật của 1 sản phẩm
     public List<ProductSpecificationValues> getSpecsByProductId(int productId) {
         List<ProductSpecificationValues> list = new ArrayList<>();
-        String sql = "SELECT v.*, p.name as product_name, s.spec_name "
+        String sql = "SELECT v.*, p.name as product_name, s.spec_name, s.unit "
                 + "FROM product_spec_values v "
                 + "JOIN products p ON v.product_id = p.product_id "
                 + "JOIN specification_definitions s ON v.spec_id = s.spec_id "
@@ -77,6 +54,29 @@ public class ProductSpecificationValueDAO extends DBContext {
             e.printStackTrace();
         }
         return list;
+    }
+
+    public ProductSpecificationValues getSpecValueById(int productId, int specId) {
+        String sql = "SELECT v.*, p.name as product_name, s.spec_name, s.unit "
+                + "FROM product_spec_values v "
+                + "JOIN products p ON v.product_id = p.product_id "
+                + "JOIN specification_definitions s ON v.spec_id = s.spec_id "
+                + "WHERE v.product_id = ? AND v.spec_id = ?";
+        try {
+            PreparedStatement ps = conn.prepareStatement(sql);
+            ps.setInt(1, productId);
+            ps.setInt(2, specId);
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) {
+                ProductSpecificationValues v = mapResultSet(rs);
+                v.setProductName(rs.getString("product_name"));
+                v.setSpecName(rs.getString("spec_name"));
+                return v;
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
     }
 
     // 3. THÊM MỚI
@@ -137,12 +137,13 @@ public class ProductSpecificationValueDAO extends DBContext {
         v.setProductId(rs.getInt("product_id"));
         v.setSpecId(rs.getInt("spec_id"));
         v.setSpecValue(rs.getString("spec_value"));
+
+        // Cố gắng map Unit từ câu query nếu có
+        try {
+            v.setUnit(rs.getString("unit"));
+        } catch (Exception e) {
+        }
+
         return v;
-    }
-    
-    public static void main(String[] args) {
-//        ProductSpecificationValueDAO a =new ProductSpecificationValueDAO();
-//        a.insertProductSpec(new ProductSpecificationValues(1, 1, "22"));
-        
     }
 }

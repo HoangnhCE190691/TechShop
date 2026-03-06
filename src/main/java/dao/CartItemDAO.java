@@ -9,6 +9,7 @@ import java.sql.ResultSet;
 import java.util.ArrayList;
 import java.util.List;
 import model.CartItem;
+import model.CartItemDisplay;
 import utils.DBContext;
 
 /**
@@ -123,6 +124,58 @@ public class CartItemDAO extends DBContext {
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+
+    // 7. Lấy 1 dòng giỏ theo customer + variant (để add: nếu có thì update quantity)
+    public CartItem getByCustomerAndVariant(int customerId, int variantId) {
+        String sql = "SELECT * FROM cart_items WHERE customer_id = ? AND variant_id = ?";
+        try {
+            PreparedStatement ps = conn.prepareStatement(sql);
+            ps.setInt(1, customerId);
+            ps.setInt(2, variantId);
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) {
+                return new CartItem(
+                        rs.getInt("cart_item_id"),
+                        rs.getInt("customer_id"),
+                        rs.getInt("variant_id"),
+                        rs.getInt("quantity"),
+                        rs.getTimestamp("created_at")
+                );
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    // 8. Lấy giỏ của 1 khách kèm tên SP, SKU, giá (để hiển thị trang cart)
+    public List<CartItemDisplay> getCartDisplayByCustomerId(int customerId) {
+        List<CartItemDisplay> list = new ArrayList<>();
+        String sql = "SELECT c.cart_item_id, c.variant_id, c.quantity, p.name AS product_name, pv.sku, pv.selling_price "
+                + "FROM cart_items c "
+                + "JOIN product_variants pv ON c.variant_id = pv.variant_id "
+                + "JOIN products p ON pv.product_id = p.product_id "
+                + "WHERE c.customer_id = ? "
+                + "ORDER BY c.created_at DESC";
+        try {
+            PreparedStatement ps = conn.prepareStatement(sql);
+            ps.setInt(1, customerId);
+            ResultSet rs = ps.executeQuery();
+            while (rs.next()) {
+                list.add(new CartItemDisplay(
+                        rs.getInt("cart_item_id"),
+                        rs.getInt("variant_id"),
+                        rs.getString("product_name"),
+                        rs.getString("sku"),
+                        rs.getLong("selling_price"),
+                        rs.getInt("quantity")
+                ));
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return list;
     }
 
     // --- MAIN TEST ---

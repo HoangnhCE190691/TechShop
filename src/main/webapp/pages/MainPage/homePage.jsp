@@ -20,7 +20,7 @@
         <figure
             class="w-full overflow-hidden rounded-2xl shadow-lg hover:shadow-xl transition-shadow duration-300">
             <img class="w-full h-auto object-cover hover:scale-[1.02] transition-transform duration-500"
-                 src="../assest/img/banner/banner_TGDD_tet.png" alt="Banner Tết">
+                 src="../assets/img/banner/banner_TGDD_tet.png" alt="Banner Tết">
         </figure>
     </div>
 
@@ -63,7 +63,7 @@
                                 <div
                                     class="relative overflow-hidden mb-4 flex-shrink-0 rounded-lg bg-gray-50 p-2">
                                     <img class="w-full h-44 object-contain group-hover:scale-110 group-hover:-translate-y-2 transition-all duration-500"
-                                         src="${empty p.thumbnailUrl ? '../assest/img/product/samsung-galaxy-s25-green-thumbai-600x600.jpg' : p.thumbnailUrl}"
+                                         src="${empty p.thumbnailUrl ? '../assets/img/product/samsung-galaxy-s25-green-thumbai-600x600.jpg' : p.thumbnailUrl}"
                                          alt="${p.name}">
                                 </div>
                                 <h3
@@ -95,7 +95,7 @@
                                 <div
                                     class="relative overflow-hidden mb-4 flex-shrink-0 rounded-lg bg-gray-50 p-2">
                                     <img class="w-full h-44 object-contain group-hover:scale-110 group-hover:-translate-y-2 transition-all duration-500"
-                                         src="${empty p.thumbnailUrl ? '../assest/img/product/samsung-galaxy-s25-green-thumbai-600x600.jpg' : p.thumbnailUrl}"
+                                         src="${empty p.thumbnailUrl ? '../assets/img/product/samsung-galaxy-s25-green-thumbai-600x600.jpg' : p.thumbnailUrl}"
                                          alt="${p.name}">
                                 </div>
                                 <h3
@@ -127,7 +127,7 @@
                                 <div
                                     class="relative overflow-hidden mb-4 flex-shrink-0 rounded-lg bg-gray-50 p-2">
                                     <img class="w-full h-44 object-contain group-hover:scale-110 group-hover:-translate-y-2 transition-all duration-500"
-                                         src="${empty p.thumbnailUrl ? '../assest/img/product/samsung-galaxy-s25-green-thumbai-600x600.jpg' : p.thumbnailUrl}"
+                                         src="${empty p.thumbnailUrl ? '../assets/img/product/samsung-galaxy-s25-green-thumbai-600x600.jpg' : p.thumbnailUrl}"
                                          alt="${p.name}">
                                 </div>
                                 <h3
@@ -159,7 +159,7 @@
                                 <div
                                     class="relative overflow-hidden mb-4 flex-shrink-0 rounded-lg bg-gray-50 p-2">
                                     <img class="w-full h-44 object-contain group-hover:scale-110 group-hover:-translate-y-2 transition-all duration-500"
-                                         src="${empty p.thumbnailUrl ? '../assest/img/product/samsung-galaxy-s25-green-thumbai-600x600.jpg' : p.thumbnailUrl}"
+                                         src="${empty p.thumbnailUrl ? '../assets/img/product/samsung-galaxy-s25-green-thumbai-600x600.jpg' : p.thumbnailUrl}"
                                          alt="${p.name}">
                                 </div>
                                 <h3
@@ -190,17 +190,17 @@
         <div class="relative h-[220px] md:h-[450px] overflow-hidden rounded-2xl bg-white">
             <div class="hidden duration-700 ease-in-out flex items-center justify-center"
                  data-carousel-item="active">
-                <img src="../assest/img/carousel/colorOS.jpg" class="block w-full h-full object-cover"
+                <img src="../assets/img/carousel/colorOS.jpg" class="block w-full h-full object-cover"
                      alt="ColorOS">
             </div>
             <div class="hidden duration-700 ease-in-out flex items-center justify-center"
                  data-carousel-item>
-                <img src="../assest/img/carousel/kynguyenmoi.png" class="block w-full h-full object-cover"
+                <img src="../assets/img/carousel/kynguyenmoi.png" class="block w-full h-full object-cover"
                      alt="Kỷ nguyên mới">
             </div>
             <div class="hidden duration-700 ease-in-out flex items-center justify-center"
                  data-carousel-item>
-                <img src="../assest/img/carousel/tetsumvay.jpg" class="block w-full h-full object-cover"
+                <img src="../assets/img/carousel/tetsumvay.jpg" class="block w-full h-full object-cover"
                      alt="Tết sum vầy">
             </div>
         </div>
@@ -245,7 +245,7 @@
                             Trả góp 0%</div>
 
                     <div class="mt-8 mb-4 overflow-hidden rounded-xl bg-gray-50 p-2">
-                        <img src="../assest/img/product/samsung-galaxy-s25-green-thumbai-600x600.jpg" class="w-full h-44 object-contain transition-transform duration-500 group-hover:scale-110">
+                        <img src="../assets/img/product/samsung-galaxy-s25-green-thumbai-600x600.jpg" class="w-full h-44 object-contain transition-transform duration-500 group-hover:scale-110">
                     </div>
 
                         <h3
@@ -299,7 +299,7 @@
                             Trả góp 0%</div>
 
                         <div class="mt-8 mb-4 overflow-hidden rounded-xl bg-gray-50 p-2">
-                            <img src="${empty p.thumbnailUrl ? '../assest/img/product/samsung-galaxy-s25-green-thumbai-600x600.jpg' : p.thumbnailUrl}"
+                            <img src="${empty p.thumbnailUrl ? '../assets/img/product/samsung-galaxy-s25-green-thumbai-600x600.jpg' : p.thumbnailUrl}"
                                  class="w-full h-44 object-contain transition-transform duration-500 group-hover:scale-110"
                                  alt="${p.name}">
                         </div>
@@ -342,42 +342,42 @@
 
             <div
                 class="relative w-full h-[300px] lg:h-full rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 lg:col-start-1 lg:row-start-1 lg:row-span-2 group">
-                <img src="/assest/img/Other/desk_block_6_03_ec4f7f4459.webp"
+                <img src="/assets/img/Other/desk_block_6_03_ec4f7f4459.webp"
                      class="w-full h-full object-cover group-hover:scale-[1.03] transition-transform duration-700"
                      alt="">
             </div>
 
             <div
                 class="relative w-full h-[200px] lg:h-full rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 lg:col-start-1 lg:row-start-3 group">
-                <img src="/assest/img/Other/desk_block_6_02_0005292b04.webp"
+                <img src="/assets/img/Other/desk_block_6_02_0005292b04.webp"
                      class="w-full h-full object-cover group-hover:scale-[1.03] transition-transform duration-700"
                      alt="">
             </div>
 
             <div
                 class="relative w-full h-[400px] lg:h-full rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 lg:col-start-2 lg:col-span-2 lg:row-start-1 lg:row-span-3 group">
-                <img src="/assest/img/Other/desk_block_6_01_0a33a33b56.webp"
+                <img src="/assets/img/Other/desk_block_6_01_0a33a33b56.webp"
                      class="w-full h-full object-cover group-hover:scale-[1.03] transition-transform duration-700"
                      alt="">
             </div>
 
             <div
                 class="relative w-full h-[200px] lg:h-full rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 lg:col-start-4 lg:row-start-1 group">
-                <img src="/assest/img/Other/desk_block_6_06_a957eb885c.webp"
+                <img src="/assets/img/Other/desk_block_6_06_a957eb885c.webp"
                      class="w-full h-full object-cover group-hover:scale-[1.03] transition-transform duration-700"
                      alt="">
             </div>
 
             <div
                 class="relative w-full h-[200px] lg:h-full rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 lg:col-start-4 lg:row-start-2 group">
-                <img src="/assest/img/Other/desk_block_6_05_a711c23f81.webp"
+                <img src="/assets/img/Other/desk_block_6_05_a711c23f81.webp"
                      class="w-full h-full object-cover group-hover:scale-[1.03] transition-transform duration-700"
                      alt="">
             </div>
 
             <div
                 class="relative w-full h-[200px] lg:h-full rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 lg:col-start-4 lg:row-start-3 group">
-                <img src="/assest/img/Other/desk_block_6_04_eb61c25602.webp"
+                <img src="/assets/img/Other/desk_block_6_04_eb61c25602.webp"
                      class="w-full h-full object-cover group-hover:scale-[1.03] transition-transform duration-700"
                      alt="">
             </div>

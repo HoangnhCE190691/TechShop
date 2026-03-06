@@ -112,7 +112,7 @@
                         class="group bg-white border border-gray-100 rounded-2xl p-4 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 flex flex-col relative">
                         <div
                             class="aspect-square mb-4 overflow-hidden rounded-xl bg-gray-50 flex items-center justify-center p-4">
-                            <img src="${empty p.thumbnailUrl ? pageContext.request.contextPath.concat('/assest/img/product/samsung-galaxy-s25-green-thumbai-600x600.jpg') : pageContext.request.contextPath.concat('/').concat(p.thumbnailUrl)}"
+                            <img src="${empty p.thumbnailUrl ? pageContext.request.contextPath.concat('/assets/img/product/samsung-galaxy-s25-green-thumbai-600x600.jpg') : pageContext.request.contextPath.concat('/').concat(p.thumbnailUrl)}"
                                  alt="${p.name}"
                                  class="object-contain w-full h-full group-hover:scale-105 transition-transform duration-500">
                         </div>
@@ -127,8 +127,8 @@
                             </div>
                             <div class="mt-auto pt-3">
                                 <p class="text-red-600 font-bold text-lg">
-                                <fmt:formatNumber value="${p.minPrice != null ? p.minPrice : 0}"
-                                                  type="number" groupingUsed="true" />đ
+                                    <fmt:formatNumber value="${p.minPrice != null ? p.minPrice : 0}"
+                                                      type="number" groupingUsed="true" />đ
                                 </p>
                             </div>
                             <a href="detailservlet?productId=${p.productId}"

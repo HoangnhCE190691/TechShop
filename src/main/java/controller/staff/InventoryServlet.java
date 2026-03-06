@@ -83,9 +83,12 @@ public class InventoryServlet extends HttpServlet {
         }
 
         switch (action) {
-            case "add" -> handleAdd(request, response);
-            case "update" -> handleUpdate(request, response);
-            default -> response.sendRedirect(request.getContextPath() + "/staffservlet?action=inventoryManagement");
+            case "add" ->
+                handleAdd(request, response);
+            case "update" ->
+                handleUpdate(request, response);
+            default ->
+                response.sendRedirect(request.getContextPath() + "/staffservlet?action=inventoryManagement");
         }
     }
 
@@ -170,4 +173,3 @@ public class InventoryServlet extends HttpServlet {
         session.setAttribute("msgType", type);
     }
 }
-
