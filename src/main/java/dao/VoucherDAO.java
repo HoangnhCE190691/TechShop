@@ -106,7 +106,7 @@ public class VoucherDAO extends DBContext {
         String sql = """
             UPDATE vouchers 
             SET code=?, discount_percent=?, max_discount_amount=?, min_order_value=?, 
-                valid_from=?, valid_to=?, total_quantity=?, used_quantity=?, status=? 
+                valid_from=?, valid_to=?, total_quantity=?, status=? 
             WHERE voucher_id=?
         """;
         try {
@@ -118,9 +118,8 @@ public class VoucherDAO extends DBContext {
             ps.setTimestamp(5, Timestamp.valueOf(v.getValidFrom()));
             ps.setTimestamp(6, Timestamp.valueOf(v.getValidTo()));
             ps.setInt(7, v.getTotalQuantity());
-            ps.setInt(8, v.getUsedQuantity());
-            ps.setString(9, v.getStatus());
-            ps.setInt(10, v.getVoucherId());
+            ps.setString(8, v.getStatus());
+            ps.setInt(9, v.getVoucherId());
             return ps.executeUpdate() > 0;
         } catch (Exception e) {
             e.printStackTrace();
@@ -140,36 +139,37 @@ public class VoucherDAO extends DBContext {
         }
         return false;
     }
-public List<Voucher> searchByCode(String code) {
-    List<Voucher> list = new ArrayList<>();
-    // Tìm kiếm gần đúng theo mã Voucher
-    String sql = "SELECT * FROM vouchers WHERE code LIKE ?";
-    
-    try {
-        PreparedStatement ps = conn.prepareStatement(sql);
-        // Gán tham số dạng %CODE%
-        ps.setString(1, "%" + code + "%");
-        
-        ResultSet rs = ps.executeQuery();
-        while (rs.next()) {
-            // Tái sử dụng hàm mapResultSetToVoucher có sẵn của bạn
-            list.add(mapResultSetToVoucher(rs));
+
+    public List<Voucher> searchByCode(String code) {
+        List<Voucher> list = new ArrayList<>();
+        // Tìm kiếm gần đúng theo mã Voucher
+        String sql = "SELECT * FROM vouchers WHERE code LIKE ?";
+
+        try {
+            PreparedStatement ps = conn.prepareStatement(sql);
+            // Gán tham số dạng %CODE%
+            ps.setString(1, "%" + code + "%");
+
+            ResultSet rs = ps.executeQuery();
+            while (rs.next()) {
+                // Tái sử dụng hàm mapResultSetToVoucher có sẵn của bạn
+                list.add(mapResultSetToVoucher(rs));
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
         }
-    } catch (Exception e) {
-        e.printStackTrace();
+        return list;
     }
-    return list;
-}
+
     // ===== TEST MAIN =====
     public static void main(String[] args) {
         VoucherDAO dao = new VoucherDAO();
         dao.getAllVoucher();
-        
+
 //        System.out.println("--- DANH SÁCH VOUCHER ---");
 //        for (Voucher v : list) {
 //            System.out.println(v);
 //        }
-        
         LocalDateTime startTime = LocalDateTime.now();
         LocalDateTime endTime = startTime.plusMonths(1); // Hết hạn sau 1 tháng
 
@@ -185,7 +185,6 @@ public List<Voucher> searchByCode(String code) {
 //                0, // Đã dùng 0 mã
 //                "ACTIVE" // Trạng thái
 //        ));
-        
         dao.updateVoucher(new Voucher(
                 5, // ID (sẽ tự tăng trong DB)
                 "SUMMER2026", // Code
@@ -198,9 +197,9 @@ public List<Voucher> searchByCode(String code) {
                 0, // Đã dùng 0 mã
                 "ACTIVE" // Trạng thái
         ));
-        
+
 //        dao.deleteVoucher(6);
-System.out.println(   dao.getVoucherById(5));
+        System.out.println(dao.getVoucherById(5));
 //        dao.getVoucherById(1);
     }
 }

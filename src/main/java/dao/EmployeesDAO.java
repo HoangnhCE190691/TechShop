@@ -252,7 +252,49 @@ public class EmployeesDAO extends DBContext {
 
         return u;
     }
+// --- 1. Hàm Update Thông Tin Nhân Viên (Không bao gồm Password) ---
+    public boolean updateEmployeeNoPassword(Employees e) {
+        String sql = "UPDATE employees SET "
+                + "full_name = ?, "
+                + "email = ?, "
+                + "phone_number = ? "
+                // Lưu ý: Nếu user tự edit profile, thường họ không tự đổi role_id và status được.
+                // Nếu quy trình của bạn là manager đổi thì thêm role_id và status vào nhé.
+                + "WHERE employee_id = ?";
+        try {
+            PreparedStatement ps = conn.prepareStatement(sql);
 
+            ps.setNString(1, e.getFullName()); 
+            ps.setString(2, e.getEmail());
+            ps.setString(3, e.getPhoneNumber());
+            ps.setInt(4, e.getEmployeeId());
+
+            return ps.executeUpdate() > 0;
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+        return false;
+    }
+
+    // --- 2. Hàm Đổi Mật Khẩu (Bắt buộc phải mã hóa MD5 trước khi lưu) ---
+    public boolean changePassword(int employeeId, String newPassword) {
+        // Mã hóa mật khẩu mới trước khi lưu vào DB
+        String hashedNewPassword = hashMD5(newPassword);
+
+        String sql = "UPDATE employees SET password_hash = ? WHERE employee_id = ?";
+        try {
+            PreparedStatement ps = conn.prepareStatement(sql);
+            
+            ps.setString(1, hashedNewPassword);
+            ps.setInt(2, employeeId);
+
+            return ps.executeUpdate() > 0;
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+        return false;
+    }
+    
     // Test Main
     public static void main(String[] args) {
         EmployeesDAO dao = new EmployeesDAO();

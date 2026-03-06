@@ -21,6 +21,7 @@ import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.util.List;
+import model.Employees;
 
 /**
  *
@@ -132,7 +133,32 @@ public class adminServlet extends HttpServlet {
                     OrderStatusDAO osdao = new OrderStatusDAO();
                     listData = osdao.getAllOrderStatuses();
                     break;
+                case "profile":
+                    int currentUserId = -1;
+                    jakarta.servlet.http.Cookie[] cookies = request.getCookies();
+                    if (cookies != null) {
+                        for (jakarta.servlet.http.Cookie cookie : cookies) {
+                            if (cookie.getName().equals("cookieID")) {
+                                currentUserId = Integer.parseInt(cookie.getValue());
+                                break;
+                            }
+                        }
+                    }
 
+                    // Nếu không thấy Cookie, đá về Login, đừng để chạy tiếp
+                    if (currentUserId == -1) {
+                        response.sendRedirect("userservlet?action=loginPage");
+                        return;
+                    }
+
+                    EmployeesDAO edao = new EmployeesDAO();
+                    Employees e = edao.getEmployeeById(currentUserId);
+
+                    page = "/pages/DashboardPage/profileEmployee.jsp";
+
+                    // 4. Kiểm tra xem page có bị rỗng không trước khi forward
+                    request.setAttribute("employee", e);
+                    break;
                 default:
                     page = "/pages/DashboardPage/dashboardPage.jsp";
             }

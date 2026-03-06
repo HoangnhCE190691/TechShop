@@ -5,7 +5,7 @@
     <div class="w-full max-w-2xl bg-white rounded-2xl shadow-2xl p-10 border border-gray-100">
 
         <div class="text-center mb-10">
-            <h2 class="text-3xl font-extrabold text-gray-900 tracking-tight">New Employee</h2>
+            <h2 class="text-3xl font-extrabold text-gray-900 tracking-tight">New Customer</h2>
             <p class="text-gray-500 mt-2">Enter the professional details for the new staff member.</p>
         </div>
         <%-- Updated action to point to your employee/user servlet --%>
@@ -76,7 +76,7 @@
             Cancel
         </a>
         <button type="submit" class="px-10 py-2.5 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 focus:ring-4 focus:ring-blue-300 shadow-lg shadow-blue-500/40 transition-all duration-200 transform active:scale-95">
-            Register Employee
+            Register Customer
         </button>
     </div>
     </div>

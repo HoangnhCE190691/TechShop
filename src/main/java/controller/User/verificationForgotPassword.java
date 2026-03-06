@@ -106,7 +106,7 @@ public class verificationForgotPassword extends HttpServlet {
                 // Giữ lại các thành phần giao diện để forward ngược về trang OTP
                 request.setAttribute("HeaderComponent", "/components/navbar.jsp");
                 request.setAttribute("FooterComponent", "/components/footer.jsp");
-                request.setAttribute("ContentPage", "/pages/MainPage/forgot-password.jsp");
+                request.setAttribute("ContentPage", "/pages/MainPage/verificationForgotPassword.jsp");
                 request.getRequestDispatcher("/template/userTemplate.jsp").forward(request, response);
             }
         } else {

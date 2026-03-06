@@ -60,7 +60,7 @@
                         <td class="px-4 py-3">
 
                             <c:choose>
-                                <c:when test="${cus.status eq 'Active' || cus.status eq 'Hoạt động'}">
+                                <c:when test="${cus.status eq 'Active' || cus.status eq 'Hoạt động' || cus.status eq 'ACTIVE'}">
                                     <span class="px-2 py-1 text-xs font-semibold text-green-700 bg-green-100 rounded-full">
                                         Active
                                     </span>

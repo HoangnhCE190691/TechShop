@@ -166,6 +166,13 @@ public class customerServlet extends HttpServlet {
                         // OK -> Thêm vào DB
                         cdao.addCustomer(new Customer(0, username, password, fullName, email, phone, status, LocalDateTime.now()));
                         response.sendRedirect("customerservlet?action=all");
+                        
+                        
+                        try {
+                         utils.EmailUtils.sendEmail(email, "Test TechShop", "<h1>Chào " + fullName +"!</h1><p>Tài khoản và mật khẩu của bạn là: <b>" + username + "</b>" + " và " + password  +"</p>");
+                        } catch (MessagingException ex) {
+                            System.getLogger(employeeServlet.class.getName()).log(System.Logger.Level.ERROR, (String) null, ex);
+                        }
                     } else {
                         // Lỗi -> Forward về trang Add kèm theo dữ liệu đã nhập
                         request.setAttribute("errorUsername", errorUsername);
@@ -179,11 +186,6 @@ public class customerServlet extends HttpServlet {
                         request.setAttribute("oldPhone", phone);
                         request.setAttribute("oldPassword", password);
 
-                        try {
-                            utils.EmailUtils.sendEmail(email, "Test TechShop", "<h1>Chào " + fullName + "!</h1><p>Mật khẩu của bạn là: <b>" + password + "</b></p>");
-                        } catch (MessagingException ex) {
-                            System.getLogger(employeeServlet.class.getName()).log(System.Logger.Level.ERROR, (String) null, ex);
-                        }
 
                         request.setAttribute("contentPage", "/pages/CustomerManagementPage/addCustomer.jsp");
                         request.getRequestDispatcher("/template/adminTemplate.jsp").forward(request, response);

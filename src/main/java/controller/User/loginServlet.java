@@ -101,6 +101,14 @@ public class loginServlet extends HttpServlet {
         } // 3. Trường hợp là Nhân viên (Employee)
         else if (employee.getEmployeeId() != -1) {
 
+            if (!employee.getStatus().equalsIgnoreCase("ACTIVE")) {
+                request.setAttribute("error", "Your account has been banned!");
+                // Đăng nhập thất bại
+                request.setAttribute("ContentPage", "/pages/MainPage/loginPage.jsp");
+                request.getRequestDispatcher("/template/userTemplate.jsp").forward(request, response);
+                return;
+            }
+
             // Tạo Cookie cho Employee
             Cookie cookieId = new Cookie("cookieID", String.valueOf(employee.getEmployeeId()));
             Cookie cookieUser = new Cookie("cookieUser", employee.getUsername());
@@ -131,6 +139,17 @@ public class loginServlet extends HttpServlet {
         } // 4. Trường hợp là Khách hàng (Customer)
         else {
             // Tạo Cookie cho Customer
+            
+            if (!customer.getStatus().equalsIgnoreCase("ACTIVE")) {
+                request.setAttribute("error", "Your account has been banned!");
+                // Đăng nhập thất bại
+                request.setAttribute("ContentPage", "/pages/MainPage/loginPage.jsp");
+                request.getRequestDispatcher("/template/userTemplate.jsp").forward(request, response);
+                return;
+            }
+
+            
+            
             Cookie cookieId = new Cookie("cookieID", String.valueOf(customer.getCustomerID()));
             Cookie cookieUser = new Cookie("cookieUser", customer.getUserName()); // Lưu ý: userName không được có dấu cách hoặc ký tự lạ
             Cookie cookieRole = new Cookie("cookieRole", "customer");

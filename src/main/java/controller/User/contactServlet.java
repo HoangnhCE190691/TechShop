@@ -104,7 +104,7 @@ public class contactServlet extends HttpServlet {
             // 3. (Tùy chọn) Gọi DAO để insert vào Database
             // contactDAO.insertContact(name, phone, email, subject, message);
             // 4. Thông báo thành công và quay lại trang contact
-            response.sendRedirect("userservlet?action=homepage");
+            response.sendRedirect("contactservlet");
 
         } catch (Exception e) {
             e.printStackTrace();

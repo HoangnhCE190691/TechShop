@@ -169,6 +169,18 @@
                 </ul>
 
                 <ul class="pt-4 mt-4 space-y-2 font-medium border-t border-gray-200">
+                     <c:set var="isProfile" value="${param.action == 'isProfile'}" />
+                    <li>
+                        <div class="flex items-center w-full rounded-lg group ${isProfile ? 'bg-blue-50' : 'hover:bg-gray-100'}">
+                            <a href="adminservlet?action=profile" 
+                               class="flex-1 flex items-center p-2 ${isProfile ? 'text-blue-600 font-bold' : 'text-gray-900 group-hover:text-blue-600'}">
+                                <svg class="w-5 h-5 transition duration-75 ${isProfile ? 'text-blue-600' : 'text-gray-500 group-hover:text-blue-600'}" fill="currentColor" viewBox="0 0 20 20">
+                                <path d="M2 5a2 2 0 012-2h12a2 2 0 012 2v2a2 2 0 01-2 2H4a2 2 0 01-2-2V5zM2 13a2 2 0 012-2h12a2 2 0 012 2v2a2 2 0 01-2 2H4a2 2 0 01-2-2v-2z" />
+                                </svg>
+                                <span class="ms-3">Profile</span>
+                            </a>
+                        </div>
+                    </li>
                     <li>
                         <a href="logoutservlet" class="flex items-center p-2 text-red-600 rounded-lg hover:bg-red-50 group">
                             <svg class="w-5 h-5 transition duration-75" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 18 16">

@@ -6,6 +6,7 @@ package controller.User;
 
 import dao.CustomerAddressDAO;
 import dao.CustomerDAO;
+import dao.EmployeesDAO;
 import dao.ProductDAO;
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -17,6 +18,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import java.util.List;
 import model.Customer;
 import model.CustomerAddress;
+import model.Employees;
 
 /**
  *
@@ -68,6 +70,9 @@ public class userServlet extends HttpServlet {
         String footerComponent = "/components/footer.jsp"; // Trang mặc định khi mới vào
         String page = "/pages/MainPage/homePage.jsp"; // Trang mặc định khi mới vào
         String action = request.getParameter("action");
+        if (action == null) {
+            action = "homePage";
+        }
 
         if (action != null) {
             switch (action) {
@@ -91,15 +96,20 @@ public class userServlet extends HttpServlet {
                 case "userDashboard":
                     page = "/pages/DashboardPage/userDashboard.jsp";
                     int customerID = Integer.parseInt(request.getParameter("id"));
+                    String role = request.getParameter("role");
                     CustomerDAO cdao = new CustomerDAO();
+                    EmployeesDAO Edao = new EmployeesDAO();
                     CustomerAddressDAO cadd = new CustomerAddressDAO();
-                    List<CustomerAddress> listdata = cadd.getAddressesByCustomerId(customerID);
+                    
                     Customer customer = cdao.getCustomerById(customerID);
-                    request.setAttribute("customer", customer);
-                    request.setAttribute("listAddress", listdata);
+                        request.setAttribute("customer", customer);
+                        List<CustomerAddress> listdata = cadd.getAddressesByCustomerId(customerID);
+                        request.setAttribute("listAddress", listdata);
+                   
                     break;
                 default:
-                    page = "/pages/dashboardPage.jsp";
+
+                    page = "/pages/MainPage/homePage.jsp";
             }
         }
 
@@ -110,9 +120,6 @@ public class userServlet extends HttpServlet {
         // 5. Forward đến Template duy nhất
         request.getRequestDispatcher("/template/userTemplate.jsp").forward(request, response);
 
-
-
-    
     }
 
     /**

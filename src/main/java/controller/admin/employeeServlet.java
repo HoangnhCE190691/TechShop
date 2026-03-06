@@ -171,7 +171,7 @@ public class employeeServlet extends HttpServlet {
                         // OK -> Thêm vào DB
                         edao.insertEmployee(newEmp);
                         try {
-                            utils.EmailUtils.sendEmail(email, "Test TechShop", "<h1>Chào " + fullName +"!</h1><p>Mật khẩu của bạn là: <b>" + password + "</b></p>");
+                            utils.EmailUtils.sendEmail(email, "Test TechShop", "<h1>Chào " + fullName +"!</h1><p>Tài khoản và mật khẩu của bạn là: <b>" + username + "</b>" + " và " + password  +"</p>");
                         } catch (MessagingException ex) {
                             System.getLogger(employeeServlet.class.getName()).log(System.Logger.Level.ERROR, (String) null, ex);
                         }
