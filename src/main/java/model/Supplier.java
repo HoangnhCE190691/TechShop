@@ -49,7 +49,14 @@ public class Supplier {
         this.phone = phone;
     }
 
-    public boolean isIs_active() {
+    public boolean Is_active() {
+        return is_active;
+    }
+
+    /**
+     * Cho EL trong JSP: ${s.is_active}
+     */
+    public boolean getIs_active() {
         return is_active;
     }
 
@@ -59,11 +66,7 @@ public class Supplier {
 
     @Override
     public String toString() {
-        return "Supplier{"
-                + "supplier_id=" + supplier_id
-                + ", supplier_name='" + supplier_name + '\''
-                + ", phone='" + phone + '\''
-                + ", is_active=" + is_active
-                + '}';
+        return "Supplier{" + "supplier_id=" + supplier_id + ", supplier_name=" + supplier_name + ", phone=" + phone + ", is_active=" + is_active + '}';
     }
+
 }

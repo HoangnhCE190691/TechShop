@@ -15,6 +15,24 @@ import java.util.List;
 @WebServlet(name = "cartServlet", urlPatterns = {"/cartservlet"})
 public class cartServlet extends HttpServlet {
 
+    private int getCustomerId(HttpServletRequest request) {
+        Object sid = request.getSession(false) != null ? request.getSession().getAttribute("customerId") : null;
+        if (sid instanceof Integer) {
+            return (Integer) sid;
+        }
+        if (sid != null) {
+            try {
+                return Integer.parseInt(sid.toString());
+            } catch (NumberFormatException ignored) {
+            }
+        }
+        int fromCookie = getCustomerIdFromCookie(request);
+        if (fromCookie > 0) {
+            request.getSession(true).setAttribute("customerId", fromCookie);
+        }
+        return fromCookie;
+    }
+
     private int getCustomerIdFromCookie(HttpServletRequest request) {
         jakarta.servlet.http.Cookie[] cookies = request.getCookies();
         if (cookies == null) {
@@ -43,16 +61,32 @@ public class cartServlet extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        String headerComponent = "/components/navbar.jsp";
-        String footerComponent = "/components/footer.jsp";
-        String page = "/pages/MainPage/cartPage.jsp";
+        response.setHeader("Cache-Control", "no-store, no-cache, must-revalidate, max-age=0");
+        response.setHeader("Pragma", "no-cache");
+        response.setDateHeader("Expires", 0);
 
-        int customerId = getCustomerIdFromCookie(request);
+        int customerId = getCustomerId(request);
         List<CartItemDisplay> listCart = new java.util.ArrayList<>();
         if (customerId > 0) {
             CartItemDAO cartDao = new CartItemDAO();
             listCart = cartDao.getCartDisplayByCustomerId(customerId);
         }
+        int cartCount = listCart.size();
+
+        // API chỉ trả số giỏ (JSON) để client cập nhật badge không cần F5
+        if ("count".equals(request.getParameter("action"))) {
+            response.setContentType("application/json");
+            response.setCharacterEncoding("UTF-8");
+            response.getWriter().print("{\"cartCount\":" + cartCount + "}");
+            return;
+        }
+
+        String headerComponent = "/components/navbar.jsp";
+        String footerComponent = "/components/footer.jsp";
+        String page = "/pages/MainPage/cartPage.jsp";
+
+        request.setAttribute("cartCount", cartCount);
+        request.getSession().setAttribute("cartCount", cartCount);
 
         request.setAttribute("listCart", listCart);
         request.setAttribute("HeaderComponent", headerComponent);
@@ -66,18 +100,28 @@ public class cartServlet extends HttpServlet {
             throws ServletException, IOException {
         request.setCharacterEncoding("UTF-8");
         String action = request.getParameter("action");
+        boolean isAjax = "XMLHttpRequest".equals(request.getHeader("X-Requested-With"))
+                || "1".equals(request.getParameter("ajax"));
 
         if ("add".equals(action)) {
-            int customerId = getCustomerIdFromCookie(request);
+            int customerId = getCustomerId(request);
             if (customerId <= 0) {
-                response.sendRedirect(request.getContextPath() + "/userservlet?action=loginPage&from=cart");
+                if (isAjax) {
+                    sendJson(response, false, 0, 0, "Vui lòng đăng nhập để thêm sản phẩm vào giỏ hàng.");
+                } else {
+                    response.sendRedirect(request.getContextPath() + "/userservlet?action=loginPage&from=cart");
+                }
                 return;
             }
 
             String vParam = request.getParameter("variant_id");
             String qParam = request.getParameter("quantity");
             if (vParam == null || vParam.isEmpty() || qParam == null || qParam.isEmpty()) {
-                response.sendRedirect(request.getContextPath() + "/cartservlet");
+                if (isAjax) {
+                    sendJson(response, false, 0, 0, "Dữ liệu sản phẩm không hợp lệ.");
+                } else {
+                    response.sendRedirect(request.getContextPath() + "/cartservlet");
+                }
                 return;
             }
 
@@ -90,7 +134,11 @@ public class cartServlet extends HttpServlet {
                     quantity = 1;
                 }
             } catch (NumberFormatException e) {
-                response.sendRedirect(request.getContextPath() + "/cartservlet");
+                if (isAjax) {
+                    sendJson(response, false, 0, 0, "Số lượng không hợp lệ.");
+                } else {
+                    response.sendRedirect(request.getContextPath() + "/cartservlet");
+                }
                 return;
             }
 
@@ -103,18 +151,28 @@ public class cartServlet extends HttpServlet {
                 CartItem newItem = new CartItem(0, customerId, variantId, quantity, null);
                 cartDao.insertCartItem(newItem);
             }
-
-            response.sendRedirect(request.getContextPath() + "/cartservlet");
+            if (isAjax) {
+                long totalAmount = 0;
+                List<CartItemDisplay> list = cartDao.getCartDisplayByCustomerId(customerId);
+                int cartCountAjax = (list != null) ? list.size() : 0; // Số sản phẩm khác nhau (như trong giỏ)
+                for (CartItemDisplay d : list) {
+                    totalAmount += d.getSubtotal();
+                }
+                request.getSession().setAttribute("cartCount", cartCountAjax);
+                sendJson(response, true, totalAmount, cartCountAjax, "Đã thêm vào giỏ hàng.");
+            } else {
+                request.getSession().setAttribute("msg", "Đã thêm vào giỏ hàng.");
+                request.getSession().setAttribute("msgType", "success");
+                response.sendRedirect(request.getContextPath() + "/cartservlet");
+            }
             return;
         }
 
         if ("update".equals(action)) {
-            int customerId = getCustomerIdFromCookie(request);
-            boolean isAjax = "XMLHttpRequest".equals(request.getHeader("X-Requested-With"))
-                    || "1".equals(request.getParameter("ajax"));
+            int customerId = getCustomerId(request);
             if (customerId <= 0) {
                 if (isAjax) {
-                    sendJson(response, false, 0);
+                    sendJson(response, false, 0, 0, "Vui lòng đăng nhập lại để cập nhật giỏ hàng.");
                 } else {
                     response.sendRedirect(request.getContextPath() + "/cartservlet");
                 }
@@ -140,10 +198,12 @@ public class cartServlet extends HttpServlet {
             if (isAjax) {
                 long totalAmount = 0;
                 List<CartItemDisplay> list = cartDao.getCartDisplayByCustomerId(customerId);
+                int cartCountAjax = (list != null) ? list.size() : 0; // Số sản phẩm khác nhau (như badge)
                 for (CartItemDisplay d : list) {
                     totalAmount += d.getSubtotal();
                 }
-                sendJson(response, true, totalAmount);
+                request.getSession().setAttribute("cartCount", cartCountAjax);
+                sendJson(response, true, totalAmount, cartCountAjax, null);
             } else {
                 response.sendRedirect(request.getContextPath() + "/cartservlet");
             }
@@ -151,7 +211,7 @@ public class cartServlet extends HttpServlet {
         }
 
         if ("remove".equals(action)) {
-            int customerId = getCustomerIdFromCookie(request);
+            int customerId = getCustomerId(request);
             if (customerId <= 0) {
                 response.sendRedirect(request.getContextPath() + "/cartservlet");
                 return;
@@ -176,11 +236,18 @@ public class cartServlet extends HttpServlet {
     }
 
     /**
-     * Trả JSON cho AJAX: { "success": true/false, "totalAmount": number }
+     * Trả JSON cho AJAX: { "success": true/false, "totalAmount": number,
+     * "cartCount": number, "message": "..." }
      */
-    private void sendJson(HttpServletResponse response, boolean success, long totalAmount) throws IOException {
+    private void sendJson(HttpServletResponse response, boolean success, long totalAmount, int cartCount) throws IOException {
+        sendJson(response, success, totalAmount, cartCount, null);
+    }
+
+    private void sendJson(HttpServletResponse response, boolean success, long totalAmount, int cartCount, String message) throws IOException {
         response.setContentType("application/json");
         response.setCharacterEncoding("UTF-8");
-        response.getWriter().print("{\"success\":" + success + ",\"totalAmount\":" + totalAmount + "}");
+        String msg = message != null ? ",\"message\":\"" + message.replace("\\", "\\\\").replace("\"", "\\\"") + "\"" : "";
+        response.getWriter().print("{\"success\":" + success + ",\"totalAmount\":" + totalAmount + ",\"cartCount\":" + cartCount + msg + "}");
     }
+
 }

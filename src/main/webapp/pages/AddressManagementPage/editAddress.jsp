@@ -102,8 +102,8 @@
 
 <script>
     const contextPath = "${pageContext.request.contextPath}";
-    const provinceUrl = contextPath + "/assest/js/province.json";
-    const wardUrl = contextPath + "/assest/js/ward.json";
+    const provinceUrl = contextPath + "/assets/js/province.json";
+    const wardUrl = contextPath + "/assets/js/ward.json";
 
     let provincesData = [];
     let wardsData = [];

@@ -58,6 +58,20 @@ public class orderpageServlet extends HttpServlet {
      * @throws ServletException if a servlet-specific error occurs
      * @throws IOException if an I/O error occurs
      */
+    private int getCustomerId(HttpServletRequest request) {
+        Object sid = request.getSession(false) != null ? request.getSession().getAttribute("customerId") : null;
+        if (sid instanceof Integer) {
+            return (Integer) sid;
+        }
+        if (sid != null) {
+            try {
+                return Integer.parseInt(sid.toString());
+            } catch (NumberFormatException ignored) {
+            }
+        }
+        return getCustomerIdFromCookie(request);
+    }
+
     private int getCustomerIdFromCookie(HttpServletRequest request) {
         jakarta.servlet.http.Cookie[] cookies = request.getCookies();
         if (cookies == null) {
@@ -86,7 +100,9 @@ public class orderpageServlet extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        int customerId = getCustomerIdFromCookie(request);
+        response.setHeader("Cache-Control", "no-store, no-cache, must-revalidate, max-age=0");
+        response.setHeader("Pragma", "no-cache");
+        int customerId = getCustomerId(request);
         List<CartItemDisplay> listCart = new java.util.ArrayList<>();
         long totalAmount = 0;
         if (customerId > 0) {

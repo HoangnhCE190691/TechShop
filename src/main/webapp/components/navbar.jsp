@@ -1,4 +1,4 @@
-<%@page contentType="text/html" pageEncoding="UTF-8" %>
+<%@page contentType="text/html" pageEncoding="UTF-8" import="dao.CartItemDAO,jakarta.servlet.http.Cookie" %>
 <%@taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
 <header class=" w-full z-20 top-0 start-0 bg-white shadow-sm">
 
@@ -43,6 +43,52 @@
                     <%-- TRƯỜNG HỢP 1: CÓ COOKIE (Đã đăng nhập) --%>
                     <c:when test="${not empty cookie.cookieID.value}">
 
+                        <%
+                            int cartCountNavbar = 0;
+                            try {
+                                // Trang giỏ: dùng luôn listCart từ request để badge = đúng "X sản phẩm" trong giỏ
+                                java.util.List listCartReq = (java.util.List) request.getAttribute("listCart");
+                                if (listCartReq != null) {
+                                    cartCountNavbar = listCartReq.size();
+                                } else {
+                                    int cid = -1;
+                                    jakarta.servlet.http.HttpSession sess = request.getSession(false);
+                                    if (sess != null) {
+                                        Object sid = sess.getAttribute("customerId");
+                                        if (sid != null) {
+                                            try {
+                                                cid = sid instanceof Integer ? (Integer) sid : Integer.parseInt(sid.toString());
+                                            } catch (NumberFormatException ignored) {
+                                            }
+                                        }
+                                    }
+                                    if (cid <= 0 && request.getCookies() != null) {
+                                        String idVal = null;
+                                        boolean isCustomer = false;
+                                        for (Cookie c : request.getCookies()) {
+                                            if ("cookieID".equals(c.getName())) {
+                                                idVal = c.getValue();
+                                            }
+                                            if ("cookieRole".equals(c.getName()) && "customer".equals(c.getValue())) {
+                                                isCustomer = true;
+                                            }
+                                        }
+                                        if (isCustomer && idVal != null && !idVal.isEmpty()) {
+                                            try {
+                                                cid = Integer.parseInt(idVal);
+                                            } catch (NumberFormatException ignored) {
+                                            }
+                                        }
+                                    }
+                                    if (cid > 0) {
+                                        CartItemDAO dao = new CartItemDAO();
+                                        java.util.List list = dao.getCartDisplayByCustomerId(cid);
+                                        cartCountNavbar = (list != null) ? list.size() : 0;
+                                    }
+                                }
+                            } catch (Exception ignored) {
+                            }
+                        %>
                         <a href="cartservlet"
                            class="relative group p-2 text-gray-700 hover:text-blue-600 transition-colors">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none"
@@ -50,12 +96,10 @@
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                       d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
                             </svg>
-
-                            <!--                <c:if test="">
-                                    <span class="absolute top-0 right-0 inline-flex items-center justify-center px-1.5 py-0.5 text-xs font-bold leading-none text-white transform translate-x-1/4 -translate-y-1/4 bg-red-600 rounded-full">
-                                   
-                                    </span>
-                            </c:if>-->
+                            <span id="navbarCartCount"
+                                  class="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 flex items-center justify-center rounded-full bg-orange-500 text-white text-[11px] font-bold leading-none">
+                                <%= cartCountNavbar%>
+                            </span>
                         </a>
 
                         <div class="relative group ml-2">

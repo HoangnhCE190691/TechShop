@@ -24,8 +24,7 @@ public class SupplierDAO extends DBContext {
             return list;
         }
         String sql = "SELECT * FROM suppliers";
-        try (PreparedStatement ps = conn.prepareStatement(sql);
-             ResultSet rs = ps.executeQuery()) {
+        try (PreparedStatement ps = conn.prepareStatement(sql); ResultSet rs = ps.executeQuery()) {
             while (rs.next()) {
                 Supplier s = new Supplier(
                         rs.getInt("supplier_id"),
@@ -69,7 +68,7 @@ public class SupplierDAO extends DBContext {
             PreparedStatement ps = conn.prepareStatement(sql);
             ps.setString(1, s.getSupplier_name());
             ps.setString(2, s.getPhone());
-            ps.setBoolean(3, s.isIs_active());
+            ps.setBoolean(3, s.getIs_active());
             ps.executeUpdate();
         } catch (Exception e) {
             e.printStackTrace();
@@ -83,7 +82,7 @@ public class SupplierDAO extends DBContext {
             PreparedStatement ps = conn.prepareStatement(sql);
             ps.setString(1, s.getSupplier_name());
             ps.setString(2, s.getPhone());
-            ps.setBoolean(3, s.isIs_active());
+            ps.setBoolean(3, s.getIs_active());
             ps.setInt(4, s.getSupplier_id());
             ps.executeUpdate();
         } catch (Exception e) {
@@ -140,7 +139,9 @@ public class SupplierDAO extends DBContext {
         }
     }
 
-    /** True if supplier is used in import_receipts (FK), cannot hard-delete. */
+    /**
+     * True if supplier is used in import_receipts (FK), cannot hard-delete.
+     */
     public boolean isReferencedByReceipts(int supplierId) {
         String sql = "SELECT 1 FROM import_receipts WHERE supplier_id = ?";
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
@@ -154,7 +155,10 @@ public class SupplierDAO extends DBContext {
         }
     }
 
-    /** Hard delete only when not referenced by import_receipts. Returns true if deleted. */
+    /**
+     * Hard delete only when not referenced by import_receipts. Returns true if
+     * deleted.
+     */
     public boolean deleteSupplierIfNoReferences(int id) {
         if (conn == null || isReferencedByReceipts(id)) {
             return false;

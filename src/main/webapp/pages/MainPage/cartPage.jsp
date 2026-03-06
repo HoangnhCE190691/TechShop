@@ -7,6 +7,32 @@
     <c:set var="totalAmount" value="${totalAmount + item.subtotal}"/>
 </c:forEach>
 
+<c:if test="${not empty sessionScope.msg}">
+    <div id="toast-cart" class="fixed top-4 right-4 z-[9999] min-w-[280px] max-w-sm animate-fade-in">
+        <c:choose>
+            <c:when test="${sessionScope.msgType == 'danger'}">
+                <div class="flex items-center gap-3 p-4 rounded-xl shadow-lg border border-red-200 bg-red-50 text-red-800">
+                    <span class="flex-shrink-0 text-red-500">!</span>
+                    <span class="font-medium text-sm">${sessionScope.msg}</span>
+                </div>
+            </c:when>
+            <c:otherwise>
+                <div class="flex items-center gap-3 p-4 rounded-xl shadow-lg border border-green-200 bg-green-50 text-green-800">
+                    <svg class="w-5 h-5 flex-shrink-0 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                    <span class="font-medium text-sm">${sessionScope.msg}</span>
+                </div>
+            </c:otherwise>
+        </c:choose>
+    </div>
+    <c:remove var="msg" scope="session"/>
+    <c:remove var="msgType" scope="session"/>
+    <script>setTimeout(function () {
+            var t = document.getElementById('toast-cart');
+            if (t)
+                t.remove();
+        }, 3000);</script>
+</c:if>
+
 <div class="bg-gray-50 min-h-screen pb-12">
     <div class="max-w-[1200px] mx-auto px-4 py-8 md:py-12 font-sans text-gray-800">
 
@@ -50,11 +76,14 @@
                                             <span class="text-sm text-gray-500 mt-0.5">Thành tiền: <span class="item-subtotal font-bold text-red-600"><fmt:formatNumber value="${item.subtotal}" groupingUsed="true"/>đ</span></span>
                                         </div>
 
-                                        <div class="cart-qty-box flex items-center border border-gray-200 rounded-xl h-10 bg-gray-50 p-1" data-cart-item-id="${item.cartItemId}" data-cart-url="${pageContext.request.contextPath}/cartservlet" data-unit-price="${item.sellingPrice}">
-                                            <button type="button" class="cart-qty-minus w-8 h-full flex items-center justify-center text-gray-500 hover:bg-white hover:shadow-sm rounded-lg transition-all text-lg font-medium" onclick="typeof cartQtyChange === 'function' && cartQtyChange(this, -1)">−</button>
-                                            <input type="text" value="<c:out value='${item.quantity}' default='1'/>" class="item-qty w-10 h-full text-center border-none bg-transparent focus:ring-0 text-gray-900 font-bold text-sm pointer-events-none" readonly>
-                                            <button type="button" class="cart-qty-plus w-8 h-full flex items-center justify-center text-gray-500 hover:bg-white hover:shadow-sm rounded-lg transition-all text-lg font-medium" onclick="typeof cartQtyChange === 'function' && cartQtyChange(this, 1)">+</button>
-                                        </div>
+                                        <form action="${pageContext.request.contextPath}/cartservlet" method="post" class="cart-qty-form flex items-center border border-gray-200 rounded-xl h-10 bg-gray-50 p-1 w-fit" data-unit-price="${item.sellingPrice}">
+                                            <input type="hidden" name="action" value="update"/>
+                                            <input type="hidden" name="cart_item_id" value="${item.cartItemId}"/>
+                                            <input type="hidden" name="quantity" value="<c:out value='${item.quantity}' default='1'/>"/>
+                                            <button type="submit" name="change" value="-1" class="cart-qty-minus w-8 h-full flex items-center justify-center text-gray-500 hover:bg-white hover:shadow-sm rounded-lg transition-all text-lg font-medium">−</button>
+                                            <span class="cart-qty-display w-10 h-full flex items-center justify-center text-gray-900 font-bold text-sm"><c:out value="${item.quantity}" default="1"/></span>
+                                            <button type="submit" name="change" value="1" class="cart-qty-plus w-8 h-full flex items-center justify-center text-gray-500 hover:bg-white hover:shadow-sm rounded-lg transition-all text-lg font-medium">+</button>
+                                        </form>
                                     </div>
                                 </div>
                             </div>
@@ -116,127 +145,94 @@
 
 <script>
     (function () {
-        function formatVnd(n) {
-            n = Number(n);
-            if (isNaN(n))
-                return '0';
-            return n.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+        var container = document.getElementById('cartItemsContainer');
+        if (!container)
+            return;
+
+        function formatVnd(num) {
+            return Number(num).toLocaleString('vi-VN') + 'đ';
         }
-        function parseVndText(txt) {
-            if (!txt || typeof txt !== 'string')
-                return 0;
-            var num = txt.replace(/\s/g, '').replace(/\./g, '').replace(/đ/g, '');
-            return parseInt(num, 10) || 0;
-        }
-        function updateSummaryFromCart() {
-            var els = document.querySelectorAll('.cart-item .item-subtotal');
-            var total = 0;
-            for (var i = 0; i < els.length; i++)
-                total += parseVndText(els[i].textContent);
-            var txt = formatVnd(total) + 'đ';
-            var summary = document.getElementById('cartOrderSummary');
-            var sub = summary ? summary.querySelector('.cart-summary-subtotal') : document.getElementById('cartSubtotal');
-            var tot = summary ? summary.querySelector('.cart-summary-total') : document.getElementById('cartTotal');
-            if (!sub)
-                sub = document.getElementById('cartSubtotal');
-            if (!tot)
-                tot = document.getElementById('cartTotal');
-            if (sub)
-                sub.textContent = txt;
-            if (tot)
-                tot.textContent = txt;
-        }
-        function doUpdateQty(box, change) {
-            var input = box.querySelector('.item-qty');
-            if (!input)
-                return;
-            var oldVal = parseInt(input.value, 10) || 0;
-            var val = oldVal + change;
-            if (val < 1)
-                val = 1;
-            input.value = val;
-            var unitPrice = parseInt(box.getAttribute('data-unit-price'), 10) || 0;
-            var row = box.closest('.cart-item');
-            var itemSubtotalEl = row ? row.querySelector('.item-subtotal') : null;
-            if (itemSubtotalEl)
-                itemSubtotalEl.textContent = formatVnd(unitPrice * val) + 'đ';
-            updateSummaryFromCart();
-            var cartItemId = box.getAttribute('data-cart-item-id');
-            var url = box.getAttribute('data-cart-url') || 'cartservlet';
-            if (!cartItemId) {
-                input.value = oldVal;
-                if (itemSubtotalEl)
-                    itemSubtotalEl.textContent = formatVnd(unitPrice * oldVal) + 'đ';
-                updateSummaryFromCart();
-                return;
-            }
-            var fd = new FormData();
-            fd.append('action', 'update');
-            fd.append('cart_item_id', cartItemId);
-            fd.append('quantity', String(val));
-            fd.append('ajax', '1');
+
+        function submitCartQtyAjax(form, newQty) {
+            var url = form.getAttribute('action');
+            url = url + (url.indexOf('?') >= 0 ? '&' : '?') + 'ajax=1';
+            var params = new URLSearchParams();
+            params.append('action', 'update');
+            params.append('cart_item_id', form.querySelector('input[name="cart_item_id"]').value);
+            params.append('quantity', String(newQty));
+            params.append('ajax', '1');
+
+            var unitPrice = parseFloat(form.getAttribute('data-unit-price')) || 0;
+            var row = form.closest('.cart-item');
+            var subtotalEl = row ? row.querySelector('.item-subtotal') : null;
+
+            form.classList.add('opacity-60', 'pointer-events-none');
             fetch(url, {
                 method: 'POST',
-                headers: {'X-Requested-With': 'XMLHttpRequest'},
-                body: fd
-            })
-                    .then(function (res) {
-                        if (!res.ok)
-                            throw new Error('HTTP ' + res.status);
-                        var ct = res.headers.get('Content-Type') || '';
-                        if (ct.indexOf('application/json') === -1)
-                            throw new Error('Not JSON');
-                        return res.json();
-                    })
-                    .then(function (data) {
-                        if (data && data.success !== false) {
-                            updateSummaryFromCart();
-                        } else {
-                            input.value = oldVal;
-                            if (itemSubtotalEl)
-                                itemSubtotalEl.textContent = formatVnd(unitPrice * oldVal) + 'đ';
-                            updateSummaryFromCart();
-                        }
-                    })
-                    .catch(function (err) {
-                        input.value = oldVal;
-                        if (itemSubtotalEl)
-                            itemSubtotalEl.textContent = formatVnd(unitPrice * oldVal) + 'đ';
-                        updateSummaryFromCart();
-                    });
-        }
-        window.cartQtyChange = function (btn, change) {
-            var box = btn && btn.closest ? btn.closest('.cart-qty-box') : null;
-            if (box)
-                doUpdateQty(box, change);
-        };
-        function initCartQty() {
-            var container = document.getElementById('cartItemsContainer');
-            if (!container)
-                return;
-            container.addEventListener('click', function (e) {
-                var target = e.target;
-                var minusBtn = target.closest('.cart-qty-minus');
-                var plusBtn = target.closest('.cart-qty-plus');
-                var box = target.closest('.cart-qty-box');
-                if (!box)
-                    return;
-                if (minusBtn) {
-                    e.preventDefault();
-                    doUpdateQty(box, -1);
+                credentials: 'same-origin',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                body: params.toString()
+            }).then(function (r) {
+                if (!r.ok)
+                    throw new Error('HTTP ' + r.status);
+                var ct = (r.headers.get('content-type') || '').toLowerCase();
+                if (ct.indexOf('application/json') === -1) {
+                    form.classList.remove('opacity-60', 'pointer-events-none');
                     return;
                 }
-                if (plusBtn) {
-                    e.preventDefault();
-                    doUpdateQty(box, 1);
+                return r.json();
+            }).then(function (data) {
+                form.classList.remove('opacity-60', 'pointer-events-none');
+                if (!data || data.success !== true)
                     return;
+                if (subtotalEl && unitPrice > 0) {
+                    subtotalEl.textContent = formatVnd(unitPrice * newQty);
                 }
+                if (typeof data.totalAmount === 'number') {
+                    var subEl = document.getElementById('cartSubtotal');
+                    var totalEl = document.getElementById('cartTotal');
+                    if (subEl)
+                        subEl.textContent = formatVnd(data.totalAmount);
+                    if (totalEl)
+                        totalEl.textContent = formatVnd(data.totalAmount);
+                }
+                var badge = document.getElementById('navbarCartCount');
+                if (badge && typeof data.cartCount === 'number') {
+                    badge.textContent = data.cartCount;
+                    if (data.cartCount > 0)
+                        badge.classList.remove('hidden');
+                    else
+                        badge.classList.add('hidden');
+                }
+            }).catch(function () {
+                form.classList.remove('opacity-60', 'pointer-events-none');
             });
         }
-        if (document.readyState === 'loading') {
-            document.addEventListener('DOMContentLoaded', initCartQty);
-        } else {
-            initCartQty();
-        }
+
+        container.addEventListener('submit', function (e) {
+            var form = e.target;
+            if (!form || !form.classList.contains('cart-qty-form'))
+                return;
+            var btn = e.submitter;
+            if (!btn || btn.name !== 'change')
+                return;
+            e.preventDefault();
+            var qtyInput = form.querySelector('input[name="quantity"]');
+            var displayEl = form.querySelector('.cart-qty-display');
+            if (!qtyInput)
+                return;
+            var cur = parseInt(qtyInput.value, 10) || 1;
+            var delta = parseInt(btn.value, 10) || 0;
+            var newQty = cur + delta;
+            if (newQty < 1)
+                newQty = 1;
+            qtyInput.value = newQty;
+            if (displayEl)
+                displayEl.textContent = newQty;
+            submitCartQtyAjax(form, newQty);
+        });
     })();
 </script>

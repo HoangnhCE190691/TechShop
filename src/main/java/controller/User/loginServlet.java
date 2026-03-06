@@ -138,18 +138,18 @@ public class loginServlet extends HttpServlet {
             }
         } // 4. Trường hợp là Khách hàng (Customer)
         else {
-            // Tạo Cookie cho Customer
-            
+            // Session cho giỏ hàng, cart count... (phần của bạn)
+            request.getSession().setAttribute("customerId", customer.getCustomerID());
+
+            // Kiểm tra tài khoản bị khóa (phần của người kia)
             if (!customer.getStatus().equalsIgnoreCase("ACTIVE")) {
                 request.setAttribute("error", "Your account has been banned!");
-                // Đăng nhập thất bại
                 request.setAttribute("ContentPage", "/pages/MainPage/loginPage.jsp");
                 request.getRequestDispatcher("/template/userTemplate.jsp").forward(request, response);
                 return;
             }
 
-            
-            
+            // Tạo Cookie cho Customer
             Cookie cookieId = new Cookie("cookieID", String.valueOf(customer.getCustomerID()));
             Cookie cookieUser = new Cookie("cookieUser", customer.getUserName()); // Lưu ý: userName không được có dấu cách hoặc ký tự lạ
             Cookie cookieRole = new Cookie("cookieRole", "customer");
@@ -157,13 +157,16 @@ public class loginServlet extends HttpServlet {
             cookieId.setMaxAge(60 * 60);
             cookieUser.setMaxAge(60 * 60);
             cookieRole.setMaxAge(60 * 60);
-
+            String path = request.getContextPath();
+            if (path == null || path.isEmpty()) path = "/";
+            cookieId.setPath(path);
+            cookieUser.setPath(path);
+            cookieRole.setPath(path);
             response.addCookie(cookieId);
             response.addCookie(cookieUser);
             response.addCookie(cookieRole);
 
             response.sendRedirect("userservlet?action=homePage");
-
         }
 
 //        if (Customer.getCustomerID() == -1 && Employee.getEmployeeId() == -1) {

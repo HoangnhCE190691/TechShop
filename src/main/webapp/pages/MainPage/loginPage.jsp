@@ -1,4 +1,5 @@
 <%@page contentType="text/html" pageEncoding="UTF-8"%>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <div class="mt-20 mb-20">
     <form action="loginservlet" method="post" class="max-w-sm mx-auto p-4 border border-gray-200 rounded-lg shadow-sm bg-white mt-2">
         <div class="mb-5">

@@ -178,6 +178,42 @@ public class CartItemDAO extends DBContext {
         return list;
     }
 
+    /**
+     * Tổng số lượng sản phẩm trong giỏ (tổng quantity các dòng)
+     */
+    public int getCartTotalQuantityByCustomerId(int customerId) {
+        String sql = "SELECT COALESCE(SUM(quantity), 0) FROM cart_items WHERE customer_id = ?";
+        try {
+            PreparedStatement ps = conn.prepareStatement(sql);
+            ps.setInt(1, customerId);
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) {
+                return rs.getInt(1);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return 0;
+    }
+
+    /**
+     * Số dòng sản phẩm trong giỏ (số sản phẩm khác nhau)
+     */
+    public int getCartItemCountByCustomerId(int customerId) {
+        String sql = "SELECT COUNT(*) FROM cart_items WHERE customer_id = ?";
+        try {
+            PreparedStatement ps = conn.prepareStatement(sql);
+            ps.setInt(1, customerId);
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) {
+                return rs.getInt(1);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return 0;
+    }
+
     // --- MAIN TEST ---
     public static void main(String[] args) {
         CartItemDAO dao = new CartItemDAO();

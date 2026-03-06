@@ -69,21 +69,23 @@
                 </div>
             </div>
 
-            <div class="flex flex-wrap sm:flex-nowrap gap-4 mt-auto">
+            <form id="addToCartForm" action="${pageContext.request.contextPath}/cartservlet" method="post" class="flex flex-wrap sm:flex-nowrap gap-4 mt-auto">
+                <input type="hidden" name="action" value="add"/>
+                <input type="hidden" name="variant_id" id="formVariantId" value="${not empty variants ? variants[0].variantId : ''}"/>
                 <div class="flex items-center border border-gray-200 rounded-xl h-14 bg-gray-50 p-1">
-                    <button onclick="updateQuantity(-1)"
+                    <button type="button" onclick="updateQuantity(-1)"
                             class="w-10 h-full flex items-center justify-center text-gray-500 hover:bg-white hover:shadow-sm rounded-lg transition-all text-xl">-</button>
-                    <input type="text" id="qtyInput" value="1"
+                    <input type="text" id="qtyInput" name="quantity" value="1"
                            class="w-12 h-full text-center border-none bg-transparent focus:ring-0 text-gray-900 font-bold pointer-events-none"
                            readonly>
-                        <button onclick="updateQuantity(1)"
+                        <button type="button" onclick="updateQuantity(1)"
                                 class="w-10 h-full flex items-center justify-center text-gray-500 hover:bg-white hover:shadow-sm rounded-lg transition-all text-xl">+</button>
                 </div>
-                <button
-                    class="flex-1 h-14 border-2 border-red-600 text-red-600 font-bold text-lg rounded-xl hover:bg-red-600 hover:text-white transition-colors duration-300 flex items-center justify-center gap-2 shadow-sm">
+                <button type="submit"
+                        class="flex-1 h-14 border-2 border-red-600 text-red-600 font-bold text-lg rounded-xl hover:bg-red-600 hover:text-white transition-colors duration-300 flex items-center justify-center gap-2 shadow-sm">
                     🛒 Thêm vào giỏ
                 </button>
-            </div>
+            </form>
         </div>
     </div>
 
@@ -318,8 +320,11 @@
                                             clickedBtn.className = "variant-btn px-5 py-2.5 border-2 border-red-600 text-red-600 font-bold rounded-xl bg-red-50 transition-all selected";
                                             clickedBtn.dataset.variantId = variantId;
 
-                                            // Update price
+                                            // Update price và variant_id gửi khi thêm vào giỏ
                                             document.getElementById('displayPrice').innerText = price.toLocaleString('vi-VN') + 'đ';
+                                            var formVariant = document.getElementById('formVariantId');
+                                            if (formVariant)
+                                                formVariant.value = variantId;
                                         }
 
                                         // 5. Nút tăng giảm số lượng
@@ -373,4 +378,143 @@
                                             let colors = ["text-gray-500", "text-orange-500", "text-blue-500", "text-green-500", "text-red-500"];
                                             textSpan.className = "text-sm font-medium mt-2 " + colors[rating - 1];
                                         }
+
+                                        // 7. Overlay + vòng xoay khi đang thêm vào giỏ
+                                        var addToCartOverlay = null;
+                                        function showAddToCartLoading() {
+                                            if (!addToCartOverlay) {
+                                                addToCartOverlay = document.createElement('div');
+                                                addToCartOverlay.id = 'addToCartLoadingOverlay';
+                                                addToCartOverlay.className = 'fixed inset-0 z-[9998] hidden flex items-center justify-center bg-black/30';
+                                                addToCartOverlay.innerHTML = '<div class="flex flex-col items-center gap-4 rounded-2xl bg-white px-8 py-6 shadow-xl">' +
+                                                        '<div class="h-12 w-12 border-4 border-gray-200 border-t-red-600 rounded-full animate-spin"></div>' +
+                                                        '<span class="text-sm font-medium text-gray-700">Đang xử lý...</span></div>';
+                                            }
+                                            addToCartOverlay.classList.remove('hidden');
+                                            if (!addToCartOverlay.parentNode)
+                                                document.body.appendChild(addToCartOverlay);
+                                        }
+                                        function hideAddToCartLoading() {
+                                            if (addToCartOverlay)
+                                                addToCartOverlay.classList.add('hidden');
+                                        }
+
+                                        // 8. Toast + cập nhật số giỏ hàng khi thêm từ trang chi tiết
+                                        function showAddToCartToast(message, isError) {
+                                            var old = document.getElementById('toast-add-cart');
+                                            if (old)
+                                                old.remove();
+                                            var wrapper = document.createElement('div');
+                                            wrapper.id = 'toast-add-cart';
+                                            wrapper.className = 'fixed top-4 right-4 z-[9999] min-w-[280px] max-w-sm';
+                                            var cls = isError
+                                                    ? 'flex items-center gap-3 p-4 rounded-xl shadow-lg border border-red-200 bg-red-50 text-red-800'
+                                                    : 'flex items-center gap-3 p-4 rounded-xl shadow-lg border border-green-200 bg-green-50 text-green-800';
+                                            wrapper.innerHTML = '<div class="' + cls + '">' +
+                                                    '<span class="flex-shrink-0">' + (isError ? '<span class="text-red-500 font-bold">!</span>' : '<svg class="w-5 h-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>') + '</span>' +
+                                                    '<span class="font-medium text-sm flex-1">' + message + '</span>' +
+                                                    '<button type="button" class="ml-2 text-sm text-gray-500 hover:text-gray-700">✕</button></div>';
+                                            document.body.appendChild(wrapper);
+                                            wrapper.querySelector('button').onclick = function () {
+                                                wrapper.remove();
+                                            };
+                                            setTimeout(function () {
+                                                if (wrapper.parentNode)
+                                                    wrapper.remove();
+                                            }, 3000);
+                                        }
+                                        function updateNavbarCartCount(delta) {
+                                            var badge = document.getElementById('navbarCartCount');
+                                            if (!badge)
+                                                return;
+                                            var cur = parseInt(badge.textContent, 10) || 0;
+                                            var next = cur + delta;
+                                            badge.textContent = next;
+                                            if (next > 0)
+                                                badge.classList.remove('hidden');
+                                            else
+                                                badge.classList.add('hidden');
+                                        }
+
+                                        function setNavbarCartCount(count) {
+                                            var badge = document.getElementById('navbarCartCount');
+                                            if (!badge)
+                                                return;
+                                            badge.textContent = count;
+                                            if (count > 0)
+                                                badge.classList.remove('hidden');
+                                            else
+                                                badge.classList.add('hidden');
+                                        }
+
+                                        function fetchCartCountAndUpdateBadge() {
+                                            var formEl = document.getElementById('addToCartForm');
+                                            var baseUrl = (formEl && formEl.getAttribute('action')) ? formEl.getAttribute('action') : '';
+                                            if (!baseUrl)
+                                                baseUrl = '<%= request.getContextPath()%>/cartservlet';
+                                            var countUrl = baseUrl.split('?')[0] + '?action=count';
+                                            fetch(countUrl, {method: 'GET', credentials: 'same-origin'})
+                                                    .then(function (r) {
+                                                        return r.ok ? r.json() : null;
+                                                    })
+                                                    .then(function (d) {
+                                                        if (d && typeof d.cartCount === 'number')
+                                                            setNavbarCartCount(d.cartCount);
+                                                    });
+                                        }
+
+                                        document.addEventListener('DOMContentLoaded', function () {
+                                            var form = document.getElementById('addToCartForm');
+                                            if (!form)
+                                                return;
+                                            form.addEventListener('submit', function (e) {
+                                                e.preventDefault();
+                                                showAddToCartLoading();
+                                                var url = form.getAttribute('action');
+                                                url = url + (url.indexOf('?') >= 0 ? '&' : '?') + 'ajax=1';
+                                                var fd = new FormData(form);
+                                                var params = new URLSearchParams();
+                                                fd.forEach(function (value, key) {
+                                                    params.append(key, value);
+                                                });
+                                                params.append('ajax', '1');
+                                                fetch(url, {
+                                                    method: 'POST',
+                                                    credentials: 'same-origin',
+                                                    headers: {
+                                                        'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
+                                                        'X-Requested-With': 'XMLHttpRequest',
+                                                        'Accept': 'application/json'
+                                                    },
+                                                    body: params.toString()
+                                                }).then(function (response) {
+                                                    if (!response.ok)
+                                                        throw new Error('HTTP ' + response.status);
+                                                    var ct = (response.headers.get('content-type') || '').toLowerCase();
+                                                    if (ct.indexOf('application/json') === -1) {
+                                                        showAddToCartToast('Đã thêm vào giỏ hàng. Đang tải lại...', false);
+                                                        setTimeout(function () {
+                                                            window.location.reload();
+                                                        }, 1200);
+                                                        return null;
+                                                    }
+                                                    return response.json();
+                                                }).then(function (data) {
+                                                    if (!data)
+                                                        return;
+                                                    if (data.success === false) {
+                                                        hideAddToCartLoading();
+                                                        showAddToCartToast(data.message || 'Không thể thêm vào giỏ hàng.', true);
+                                                        return;
+                                                    }
+                                                    showAddToCartToast(data.message || 'Đã thêm vào giỏ hàng. Đang tải lại...', false);
+                                                    setTimeout(function () {
+                                                        window.location.reload();
+                                                    }, 1200);
+                                                }).catch(function () {
+                                                    hideAddToCartLoading();
+                                                    showAddToCartToast('Không thể thêm vào giỏ hàng, vui lòng thử lại.', true);
+                                                });
+                                            });
+                                        });
                                 </script>
