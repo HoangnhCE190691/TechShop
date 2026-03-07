@@ -22,7 +22,6 @@ import java.sql.Statement;
  */
 public class OrderDAO extends DBContext {
 
-   
     /**
      * Inserts order and returns the generated order_id; returns 0 on failure.
      */
@@ -212,6 +211,7 @@ public class OrderDAO extends DBContext {
             if (rs.next()) {
                 Order order = new Order();
                 order.setOrderId(rs.getInt("order_id"));
+                order.setCustomerId(rs.getInt("customer_id")); 
                 order.setShippingAddress(rs.getString("shipping_address"));
                 order.setTotalAmount(rs.getBigDecimal("total_amount"));
                 order.setStatus(rs.getString("status"));
@@ -249,6 +249,33 @@ public class OrderDAO extends DBContext {
                 item.put("sku", rs.getString("sku"));
                 item.put("imei", rs.getString("imei"));
                 item.put("price", rs.getBigDecimal("selling_price"));
+                details.add(item);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return details;
+    }
+
+    public List<Map<String, Object>> getOrderDetails(int orderId) {
+        List<Map<String, Object>> details = new ArrayList<>();
+        String sql = "SELECT p.name, pv.sku, ii.imei, oi.selling_price, pi.image_url "
+                + "FROM order_items oi "
+                + "JOIN inventory_items ii ON oi.inventory_id = ii.inventory_id "
+                + "JOIN product_variants pv ON ii.variant_id = pv.variant_id "
+                + "JOIN products p ON pv.product_id = p.product_id "
+                + "LEFT JOIN product_images pi ON p.product_id = pi.product_id AND pi.is_thumbnail = 1 " // Thêm join ảnh thumbnail
+                + "WHERE oi.order_id = ?";
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, orderId);
+            ResultSet rs = ps.executeQuery();
+            while (rs.next()) {
+                Map<String, Object> item = new HashMap<>();
+                item.put("productName", rs.getString("name"));
+                item.put("sku", rs.getString("sku"));
+                item.put("imei", rs.getString("imei"));
+                item.put("price", rs.getBigDecimal("selling_price"));
+                item.put("imageUrl", rs.getString("image_url"));  // Thêm ảnh
                 details.add(item);
             }
         } catch (Exception e) {

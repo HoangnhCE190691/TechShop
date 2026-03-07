@@ -11,33 +11,34 @@
         </div>
 
         <c:set var="currentStatus" value="${empty currentStatus ? 'ALL' : currentStatus}"/>
-
+        <!-- Thanh search -->
+        <div class="bg-white rounded-2xl p-4 mb-6 shadow-sm border border-gray-100">
+            <div class="relative flex-1">
+                <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-400">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                    </svg>
+                </span>
+                <input type="text" id="searchInput"
+                       class="w-full pl-10 pr-4 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500"
+                       placeholder="Tìm kiếm sản phẩm đã đặt...">
+            </div>
+        </div>
         <div class="bg-white rounded-2xl p-2 mb-6 flex overflow-x-auto shadow-sm border border-gray-100 snap-x hide-scrollbar">
+            <!-- "Tất cả đơn" luôn ở đầu -->
             <a href="orderhistorypageservlet"
                class="snap-center flex-shrink-0 px-6 py-2.5 rounded-xl text-sm transition-colors
-                      ${currentStatus == 'ALL' ? 'font-bold text-red-600 bg-red-50' : 'font-semibold text-gray-600 hover:bg-gray-50 hover:text-gray-900'}">
+               ${currentStatus == 'ALL' ? 'font-bold text-red-600 bg-red-50' : 'font-semibold text-gray-600 hover:bg-gray-50 hover:text-gray-900'}">
                 Tất cả đơn
             </a>
-            <a href="orderhistorypageservlet?status=CREATED"
-               class="snap-center flex-shrink-0 px-6 py-2.5 rounded-xl text-sm transition-colors
-                      ${currentStatus == 'CREATED' ? 'font-bold text-red-600 bg-red-50' : 'font-semibold text-gray-600 hover:bg-gray-50 hover:text-gray-900'}">
-                Chờ xác nhận
-            </a>
-            <a href="orderhistorypageservlet?status=SHIPPING"
-               class="snap-center flex-shrink-0 px-6 py-2.5 rounded-xl text-sm transition-colors
-                      ${currentStatus == 'SHIPPING' ? 'font-bold text-red-600 bg-red-50' : 'font-semibold text-gray-600 hover:bg-gray-50 hover:text-gray-900'}">
-                Đang vận chuyển
-            </a>
-            <a href="orderhistorypageservlet?status=COMPLETED"
-               class="snap-center flex-shrink-0 px-6 py-2.5 rounded-xl text-sm transition-colors
-                      ${currentStatus == 'COMPLETED' ? 'font-bold text-red-600 bg-red-50' : 'font-semibold text-gray-600 hover:bg-gray-50 hover:text-gray-900'}">
-                Đã hoàn thành
-            </a>
-            <a href="orderhistorypageservlet?status=CANCELLED"
-               class="snap-center flex-shrink-0 px-6 py-2.5 rounded-xl text-sm transition-colors
-                      ${currentStatus == 'CANCELLED' ? 'font-bold text-red-600 bg-red-50' : 'font-semibold text-gray-600 hover:bg-gray-50 hover:text-gray-900'}">
-                Đã hủy
-            </a>
+            <!-- Duyệt danh sách trạng thái từ DB -->
+            <c:forEach var="status" items="${statusList}">
+                <a href="orderhistorypageservlet?status=${status.statusCode}"
+                   class="snap-center flex-shrink-0 px-6 py-2.5 rounded-xl text-sm transition-colors
+                   ${currentStatus == status.statusCode ? 'font-bold text-red-600 bg-red-50' : 'font-semibold text-gray-600 hover:bg-gray-50 hover:text-gray-900'}">
+                    ${status.statusName}
+                </a>
+            </c:forEach>
         </div>
 
         <div class="space-y-6">
@@ -47,6 +48,7 @@
                     Hiện tại bạn chưa có đơn hàng nào.
                 </div>
             </c:if>
+
 
             <c:forEach var="order" items="${orders}">
                 <c:set var="statusCode" value="${order.status}"/>
@@ -78,10 +80,9 @@
                     </c:otherwise>
                 </c:choose>
 
-                <div class="bg-white border border-gray-100 rounded-3xl p-6 shadow-sm hover:shadow-md transition-shadow">
-                    <div class="flex flex-wrap items-center justify-between border-b border-gray-100 pb-4 mb-4 gap-4">
+                <div class="order-card bg-white border border-gray-100 rounded-3xl p-6 shadow-sm hover:shadow-md transition-shadow">                    <div class="flex flex-wrap items-center justify-between border-b border-gray-100 pb-4 mb-4 gap-4">
                         <div class="flex items-center gap-3">
-                            <span class="font-bold text-gray-900">Mã đơn: #${order.orderId}</span>
+                            <span class="order-id font-bold text-gray-900">Mã đơn: #${order.orderId}</span>
                             <span class="w-1.5 h-1.5 rounded-full bg-gray-300"></span>
                             <span class="text-sm text-gray-500">
                                 <fmt:formatDate value="${order.createdAt}" pattern="dd/MM/yyyy HH:mm"/>
@@ -99,7 +100,7 @@
                                      class="w-full h-full object-contain mix-blend-multiply">
                             </div>
                             <div class="flex-1">
-                                <h3 class="font-bold text-gray-900 text-base line-clamp-1 hover:text-red-600 cursor-pointer transition-colors">
+                                <h3 class="order-name font-bold text-gray-900 text-base line-clamp-1 hover:text-red-600 cursor-pointer transition-colors">
                                     ${order.orderName}
                                 </h3>
                                 <p class="text-sm text-gray-500 mt-1">${order.shippingAddress}</p>
@@ -124,7 +125,7 @@
                                 Hủy đơn hàng
                             </button>
                             <button class="px-5 py-2.5 rounded-xl bg-red-50 text-red-600 font-bold text-sm hover:bg-red-100 transition-colors">
-                                Xem chi tiết
+                                <a href="orderhistorypageservlet?action=orderDetail&id=${order.orderId}" class="block">Xem chi tiết</a>
                             </button>
                         </div>
                     </div>
@@ -145,3 +146,25 @@
         scrollbar-width: none;
     }
 </style>
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const searchInput = document.getElementById('searchInput');
+        const orderRows = document.querySelectorAll('.order-card');
+
+        searchInput.addEventListener('keyup', function () {
+            const searchTerm = searchInput.value.toLowerCase();
+
+            orderRows.forEach(function (row) {
+                const orderName = row.querySelector('.order-name')?.textContent.toLowerCase() || '';
+                const orderId = row.querySelector('.order-id')?.textContent.toLowerCase() || '';
+                const shippingAddress = row.textContent.toLowerCase();
+
+                if (orderName.includes(searchTerm) || orderId.includes(searchTerm) || shippingAddress.includes(searchTerm)) {
+                    row.style.display = '';
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+        });
+    });
+</script>
