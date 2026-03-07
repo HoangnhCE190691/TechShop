@@ -8,12 +8,11 @@
     <div class="max-w-[1200px] mx-auto px-4 py-8 md:py-12">
 
         <h1 class="text-2xl md:text-3xl font-extrabold text-gray-900 mb-8 tracking-tight">Thanh toán & Đặt hàng</h1>
-
         <%-- Thông báo lỗi hết hàng --%>
         <c:if test="${param.error == 'out_of_stock'}">
             <div class="mb-6 flex items-start gap-3 bg-red-50 border border-red-200 text-red-700 rounded-2xl px-5 py-4">
                 <svg class="w-5 h-5 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/>
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/>
                 </svg>
                 <div>
                     <p class="font-bold text-sm">Đặt hàng thất bại — Sản phẩm hết hàng</p>
@@ -26,7 +25,6 @@
                 </div>
             </div>
         </c:if>
-
         <form id="checkoutForm" method="post" action="orderpageservlet" class="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-10">
             <input type="hidden" name="appliedVoucherId" id="appliedVoucherId" value="0">
             <div class="lg:col-span-7 flex flex-col gap-8">
@@ -203,13 +201,12 @@
                     <p class="text-center text-xs text-gray-400 mt-4">Nhấn "Đặt hàng" đồng nghĩa với việc bạn đồng ý tuân theo <a href="#" class="text-blue-500 underline">Điều khoản</a> của chúng tôi.</p>
                 </div>
             </div>
-           
 
         </form>
     </div>
 </div>
 
-<!--<div id="successModal" class="fixed inset-0 z-50 flex items-center justify-center hidden opacity-0 transition-opacity duration-300">
+<div id="successModal" class="fixed inset-0 z-50 flex items-center justify-center hidden opacity-0 transition-opacity duration-300">
     <div class="absolute inset-0 bg-black/50 backdrop-blur-sm"></div>
 
     <div class="relative bg-white rounded-3xl shadow-2xl p-8 md:p-10 max-w-sm w-full mx-4 text-center transform scale-95 transition-transform duration-300" id="modalContent">
@@ -221,17 +218,17 @@
 
         <h3 class="text-2xl font-black text-gray-900 mb-2">Thanh toán thành công!</h3>
         <p class="text-gray-500 text-sm mb-8 leading-relaxed">
-            Cảm ơn bạn đã mua sắm. Đơn hàng <b>#ORD-2026VN</b> của bạn đã được ghi nhận và đang được chuẩn bị.
+            Cảm ơn bạn đã mua sắm. Đơn hàng <b>#${newOrderId}</b> của bạn đã được ghi nhận và đang được chuẩn bị.
         </p>
 
-        <button onclick="closeModalAndRedirect()" class="w-full bg-gray-900 text-white font-bold h-12 rounded-xl hover:bg-gray-800 transition-colors">
+        <button onclick="closeModalAndRedirect('userservlet?action=homePage')" class="w-full bg-gray-900 text-white font-bold h-12 rounded-xl hover:bg-gray-800 transition-colors">
             Tiếp tục mua sắm
         </button>
-        <button onclick="closeModalAndRedirect()" class="w-full mt-3 bg-white text-gray-600 border border-gray-200 font-bold h-12 rounded-xl hover:bg-gray-50 transition-colors">
-            Xem đơn hàng của tôi
+        <button onclick="closeModalAndRedirect('orderhistorypageservlet')" class="w-full mt-3 bg-white text-gray-600 border border-gray-200 font-bold h-12 rounded-xl hover:bg-gray-50 transition-colors">
+            Xem lịch sử đơn hàng
         </button>
     </div>
-</div>-->
+</div>
 
 <script>
 
@@ -349,28 +346,32 @@
         let finalTotal = subTotal - currentDiscount;
         totalDisplay.innerText = formatMoney(finalTotal);
     }
-//    // --- 3. SCRIPT HIỂN THỊ MODAL THÀNH CÔNG ---
-//    const modal = document.getElementById('successModal');
-//    const modalContent = document.getElementById('modalContent');
+    // --- 3. SCRIPT HIỂN THỊ MODAL THÀNH CÔNG ---
+    const modal = document.getElementById('successModal');
+    const modalContent = document.getElementById('modalContent');
 
-//    function showSuccessModal() {
-//        modal.classList.remove('hidden');
-//        setTimeout(() => {
-//            modal.classList.remove('opacity-0');
-//            modalContent.classList.remove('scale-95');
-//            modalContent.classList.add('scale-100');
-//        }, 10);
-//    }
+    function showSuccessModal() {
+        modal.classList.remove('hidden');
+        setTimeout(() => {
+            modal.classList.remove('opacity-0');
+            modalContent.classList.remove('scale-95');
+            modalContent.classList.add('scale-100');
+        }, 10);
+    }
 
-//    function closeModalAndRedirect() {
-//        modal.classList.add('opacity-0');
-//        modalContent.classList.remove('scale-100');
-//        modalContent.classList.add('scale-95');
-//
-//        setTimeout(() => {
-//            modal.classList.add('hidden');
-//            window.location.href = "userservlet?action=homePage";
-//        }, 300);
-//    }
-   
+    function closeModalAndRedirect(targetUrl) {
+        modal.classList.add('opacity-0');
+        modalContent.classList.remove('scale-100');
+        modalContent.classList.add('scale-95');
+
+        setTimeout(() => {
+            modal.classList.add('hidden');
+            window.location.href = targetUrl || "userservlet?action=homePage";
+        }, 300);
+    }
+
+    // Hiện popup khi vừa đặt hàng thành công (redirect với ?orderSuccess=1)
+    if (window.location.search.includes('orderSuccess=1')) {
+        showSuccessModal();
+    }
 </script>

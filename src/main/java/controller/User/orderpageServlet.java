@@ -109,6 +109,14 @@ public class orderpageServlet extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
+        
+        String orderSuccess = request.getParameter("orderSuccess");
+        String orderIdParam = request.getParameter("orderId");
+        if ("1".equals(orderSuccess) && orderIdParam != null) {
+            request.setAttribute("newOrderId", orderIdParam);
+            request.setAttribute("showSuccessModal", true);
+        }
+
         response.setHeader("Cache-Control", "no-store, no-cache, must-revalidate, max-age=0");
         response.setHeader("Pragma", "no-cache");
         int customerId = getCustomerId(request);
@@ -264,7 +272,7 @@ public class orderpageServlet extends HttpServlet {
         // 3. Xóa giỏ hàng sau khi đặt hàng thành công
         cartDao.deleteCartByCustomerId(customerId);
 
-        response.sendRedirect("orderhistorypageservlet");
+        response.sendRedirect("orderpageservlet?orderSuccess=1&orderId=" + orderId);
     }
 
     /**
