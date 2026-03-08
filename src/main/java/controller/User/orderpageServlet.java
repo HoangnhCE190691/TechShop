@@ -18,6 +18,7 @@ import java.math.BigDecimal;
 import java.util.List;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -109,7 +110,13 @@ public class orderpageServlet extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        
+        // 1. Xác thực người dùng
+        int currentUserId = getCurrentUserId(request);
+        if (currentUserId == -1) {
+            response.sendRedirect("userservlet?action=loginPage");
+            return;
+        }
+
         String orderSuccess = request.getParameter("orderSuccess");
         String orderIdParam = request.getParameter("orderId");
         if ("1".equals(orderSuccess) && orderIdParam != null) {
@@ -285,4 +292,22 @@ public class orderpageServlet extends HttpServlet {
         return "Short description";
     }// </editor-fold>
 
+    /**
+     * Lấy userId từ cookie "cookieID". Trả về -1 nếu không tìm thấy hoặc cookie không hợp lệ.
+     */
+    private int getCurrentUserId(HttpServletRequest request) {
+        Cookie[] cookies = request.getCookies();
+        if (cookies != null) {
+            for (Cookie cookie : cookies) {
+                if ("cookieID".equals(cookie.getName())) {
+                    try {
+                        return Integer.parseInt(cookie.getValue());
+                    } catch (NumberFormatException e) {
+                        return -1;
+                    }
+                }
+            }
+        }
+        return -1;
+    }
 }
