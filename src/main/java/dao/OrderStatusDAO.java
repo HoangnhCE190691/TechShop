@@ -129,6 +129,76 @@ public class OrderStatusDAO extends DBContext {
         return 0;
     }
 
+    /**
+     * Kiểm tra Status Code đã tồn tại chưa (dùng cho Add) - không phân biệt chữ hoa/thường.
+     */
+    public boolean isStatusCodeExists(String code) {
+        String sql = "SELECT COUNT(*) FROM order_statuses WHERE UPPER(status_code) = UPPER(?)";
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, code);
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) {
+                return rs.getInt(1) > 0;
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+    /**
+     * Kiểm tra Status Code đã tồn tại cho các ID khác chưa (dùng cho Update) - không phân biệt chữ hoa/thường.
+     */
+    public boolean isStatusCodeExists(String code, int excludeId) {
+        String sql = "SELECT COUNT(*) FROM order_statuses WHERE UPPER(status_code) = UPPER(?) AND status_id <> ?";
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, code);
+            ps.setInt(2, excludeId);
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) {
+                return rs.getInt(1) > 0;
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+    /**
+     * Kiểm tra Status Name đã tồn tại chưa (dùng cho Add) - không phân biệt chữ hoa/thường.
+     */
+    public boolean isStatusNameExists(String name) {
+        String sql = "SELECT COUNT(*) FROM order_statuses WHERE LOWER(status_name) = LOWER(?)";
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, name);
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) {
+                return rs.getInt(1) > 0;
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+    /**
+     * Kiểm tra Status Name đã tồn tại cho các ID khác chưa (dùng cho Update) - không phân biệt chữ hoa/thường.
+     */
+    public boolean isStatusNameExists(String name, int excludeId) {
+        String sql = "SELECT COUNT(*) FROM order_statuses WHERE LOWER(status_name) = LOWER(?) AND status_id <> ?";
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, name);
+            ps.setInt(2, excludeId);
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) {
+                return rs.getInt(1) > 0;
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
     // TEST
     public static void main(String[] args) {
         OrderStatusDAO dao = new OrderStatusDAO();
