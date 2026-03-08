@@ -140,6 +140,41 @@ public class PaymentMethodDAO extends DBContext {
         return 0;
     }
 
+    /**
+     * Kiểm tra tên payment method đã tồn tại chưa (dùng cho Add) - không phân biệt chữ hoa/thường.
+     */
+    public boolean isMethodNameExists(String name) {
+        String sql = "SELECT COUNT(*) FROM payment_methods WHERE LOWER(method_name) = LOWER(?)";
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, name);
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) {
+                return rs.getInt(1) > 0;
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+    /**
+     * Kiểm tra tên payment method đã tồn tại cho các ID khác chưa (dùng cho Update) - không phân biệt chữ hoa/thường.
+     */
+    public boolean isMethodNameExists(String name, int excludeId) {
+        String sql = "SELECT COUNT(*) FROM payment_methods WHERE LOWER(method_name) = LOWER(?) AND method_id <> ?";
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, name);
+            ps.setInt(2, excludeId);
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) {
+                return rs.getInt(1) > 0;
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
 //    //TEST
 //    public static void main(String[] args) {
 //        PaymentMethodDAO dao = new PaymentMethodDAO();
