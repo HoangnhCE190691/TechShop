@@ -96,8 +96,8 @@
                     <div class="space-y-4 mb-6">
                         <div class="flex gap-4 items-center">
                             <div class="w-20 h-20 flex-shrink-0 bg-gray-50 rounded-xl border border-gray-100 p-2">
-                                <img src="https://placehold.co/150x150/ffffff/555555?text=Order" alt="Product"
-                                     class="w-full h-full object-contain mix-blend-multiply">
+                                <img src="${order.productImageUrl != null && order.productImageUrl != '' ? order.productImageUrl : 'https://placehold.co/150x150/ffffff/555555?text=Order'}" 
+                                     alt="Product" class="w-full h-full object-contain mix-blend-multiply">
                             </div>
                             <div class="flex-1">
                                 <h3 class="order-name font-bold text-gray-900 text-base line-clamp-1 hover:text-red-600 cursor-pointer transition-colors">
