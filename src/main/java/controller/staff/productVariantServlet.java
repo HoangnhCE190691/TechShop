@@ -2,6 +2,8 @@ package controller.staff;
 
 import dao.ProductDAO;
 import dao.ProductVariantDAO;
+import dao.VariantSpecValueDAO;
+import dao.SpecificationDefinitionDAO;
 import java.io.IOException;
 import java.io.PrintWriter;
 import jakarta.servlet.ServletException;
@@ -12,22 +14,25 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import java.util.List;
 import model.ProductVariant;
+import model.VariantSpecValue;
+import model.SpecificationDefinition;
+import model.Product;
 
 /**
  *
  * @author CaoTram
  */
-@WebServlet(name = "productVariantServlet", urlPatterns = {"/variantServlet"})
+@WebServlet(name = "productVariantServlet", urlPatterns = { "/variantServlet" })
 public class productVariantServlet extends HttpServlet {
 
     /**
      * Processes requests for both HTTP <code>GET</code> and <code>POST</code>
      * methods.
      *
-     * @param request servlet request
+     * @param request  servlet request
      * @param response servlet response
      * @throws ServletException if a servlet-specific error occurs
-     * @throws IOException if an I/O error occurs
+     * @throws IOException      if an I/O error occurs
      */
     protected void processRequest(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
@@ -46,14 +51,15 @@ public class productVariantServlet extends HttpServlet {
         }
     }
 
-    // <editor-fold defaultstate="collapsed" desc="HttpServlet methods. Click on the + sign on the left to edit the code.">
+    // <editor-fold defaultstate="collapsed" desc="HttpServlet methods. Click on the
+    // + sign on the left to edit the code.">
     /**
      * Handles the HTTP <code>GET</code> method.
      *
-     * @param request servlet request
+     * @param request  servlet request
      * @param response servlet response
      * @throws ServletException if a servlet-specific error occurs
-     * @throws IOException if an I/O error occurs
+     * @throws IOException      if an I/O error occurs
      */
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
@@ -69,17 +75,42 @@ public class productVariantServlet extends HttpServlet {
             switch (action) {
                 case "add":
                     request.setAttribute("products", pdao.getAllProduct());
+                    SpecificationDefinitionDAO sdDaoAdd = new SpecificationDefinitionDAO();
+                    request.setAttribute("allVariantSpecs", sdDaoAdd.getAllVariantSpecs());
                     page = "/pages/ProductVariantManagementPage/addProductVariant.jsp";
                     break;
                 case "edit":
                     int idEdit = Integer.parseInt(request.getParameter("id"));
-                    request.setAttribute("variant", vdao.getVariantById(idEdit));
+                    ProductVariant editVariant = vdao.getVariantById(idEdit);
+                    request.setAttribute("variant", editVariant);
                     request.setAttribute("products", pdao.getAllProduct());
+
+                    // Load current variant spec values
+                    VariantSpecValueDAO vsDao = new VariantSpecValueDAO();
+                    List<VariantSpecValue> currentSpecs = vsDao.getSpecsByVariantId(idEdit);
+                    request.setAttribute("currentVariantSpecs", currentSpecs);
+
+                    // Load variant spec definitions based on product's category
+                    if (editVariant != null) {
+                        Product editProduct = pdao.getProductById(editVariant.getProductId());
+                        if (editProduct != null) {
+                            SpecificationDefinitionDAO sdDao = new SpecificationDefinitionDAO();
+                            List<SpecificationDefinition> variantSpecDefs = sdDao
+                                    .getVariantSpecsByCategoryId(editProduct.getCategoryId());
+                            request.setAttribute("variantSpecDefs", variantSpecDefs);
+                        }
+                    }
+
                     page = "/pages/ProductVariantManagementPage/editProductVariant.jsp";
                     break;
                 case "detail":
                     int idDetail = Integer.parseInt(request.getParameter("id"));
                     request.setAttribute("variant", vdao.getVariantById(idDetail));
+
+                    // Load variant spec values for display
+                    VariantSpecValueDAO vsDetailDao = new VariantSpecValueDAO();
+                    request.setAttribute("detailVariantSpecs", vsDetailDao.getSpecsByVariantId(idDetail));
+
                     page = "/pages/ProductVariantManagementPage/detailProductVariant.jsp";
                     break;
                 case "delete":
@@ -101,10 +132,10 @@ public class productVariantServlet extends HttpServlet {
     /**
      * Handles the HTTP <code>POST</code> method.
      *
-     * @param request servlet request
+     * @param request  servlet request
      * @param response servlet response
      * @throws ServletException if a servlet-specific error occurs
-     * @throws IOException if an I/O error occurs
+     * @throws IOException      if an I/O error occurs
      */
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
@@ -127,7 +158,29 @@ public class productVariantServlet extends HttpServlet {
             }
 
             ProductVariant v = new ProductVariant(0, productId, sku, price, isActive);
-            vdao.insertVariant(v);
+            int newVariantId = vdao.insertVariant(v);
+
+            // Insert variant_spec_values nếu newVariantId > 0
+            if (newVariantId > 0) {
+                VariantSpecValueDAO vsUpdateDao = new VariantSpecValueDAO();
+                java.util.Enumeration<String> paramNames = request.getParameterNames();
+                while (paramNames.hasMoreElements()) {
+                    String paramName = paramNames.nextElement();
+                    if (paramName.startsWith("specValue_")) {
+                        String specIdStr = paramName.substring("specValue_".length());
+                        String specValue = request.getParameter(paramName);
+                        if (specValue != null && !specValue.trim().isEmpty()) {
+                            try {
+                                int specId = Integer.parseInt(specIdStr);
+                                vsUpdateDao.insertVariantSpec(newVariantId, specId, specValue.trim());
+                            } catch (NumberFormatException ex) {
+                                // skip invalid spec id
+                            }
+                        }
+                    }
+                }
+            }
+
             session.setAttribute("msg", "Variant added successfully!");
             session.setAttribute("msgType", "success");
 
@@ -147,6 +200,29 @@ public class productVariantServlet extends HttpServlet {
 
             ProductVariant v = new ProductVariant(id, productId, sku, price, isActive);
             vdao.updateVariant(v);
+
+            // Update variant_spec_values: xóa cũ, insert mới
+            VariantSpecValueDAO vsUpdateDao = new VariantSpecValueDAO();
+            vsUpdateDao.deleteByVariantId(id);
+
+            // Lấy tất cả params có tên bắt đầu bằng "specValue_"
+            java.util.Enumeration<String> paramNames = request.getParameterNames();
+            while (paramNames.hasMoreElements()) {
+                String paramName = paramNames.nextElement();
+                if (paramName.startsWith("specValue_")) {
+                    String specIdStr = paramName.substring("specValue_".length());
+                    String specValue = request.getParameter(paramName);
+                    if (specValue != null && !specValue.trim().isEmpty()) {
+                        try {
+                            int specId = Integer.parseInt(specIdStr);
+                            vsUpdateDao.insertVariantSpec(id, specId, specValue.trim());
+                        } catch (NumberFormatException ex) {
+                            // skip invalid spec id
+                        }
+                    }
+                }
+            }
+
             session.setAttribute("msg", "Variant updated successfully!");
             session.setAttribute("msgType", "success");
 

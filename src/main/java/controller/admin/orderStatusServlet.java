@@ -132,20 +132,73 @@ public class orderStatusServlet extends HttpServlet {
         OrderStatusDAO osdao = new OrderStatusDAO();
 
         if ("add".equals(action)) {
-            String code = request.getParameter("status_code");
-            String name = request.getParameter("status_name");
+            String code = request.getParameter("status_code").trim().toUpperCase();
+            String name = request.getParameter("status_name").trim();
             int step = Integer.parseInt(request.getParameter("step_order"));
             boolean isFinal = "1".equals(request.getParameter("is_final"));
 
+            // Kiểm tra trùng lặp status code
+            if (osdao.isStatusCodeExists(code)) {
+                request.getSession().setAttribute("msg",
+                        "Error: Status code '" + code + "' already exists!");
+                request.getSession().setAttribute("msgType", "danger");
+
+                String page = "/pages/OrderStatusManagementPage/addOrderStatus.jsp";
+                request.setAttribute("contentPage", page);
+                request.getRequestDispatcher("/template/adminTemplate.jsp").forward(request, response);
+                return;
+            }
+
+            // Kiểm tra trùng lặp status name
+            if (osdao.isStatusNameExists(name)) {
+                request.getSession().setAttribute("msg",
+                        "Error: Status name '" + name + "' already exists!");
+                request.getSession().setAttribute("msgType", "danger");
+
+                String page = "/pages/OrderStatusManagementPage/addOrderStatus.jsp";
+                request.setAttribute("contentPage", page);
+                request.getRequestDispatcher("/template/adminTemplate.jsp").forward(request, response);
+                return;
+            }
+
+            // Nếu không trùng, thêm vào DB
             osdao.insertOrderStatus(new OrderStatus(code, name, step, isFinal));
+            request.getSession().setAttribute("msg",
+                    "Order status '" + code + "' added successfully!");
+            request.getSession().setAttribute("msgType", "success");
+            response.sendRedirect("orderStatusServlet?action=all");
+            return;
+
         } else if ("update".equals(action)) {
             int id = Integer.parseInt(request.getParameter("status_id"));
-            String code = request.getParameter("status_code");
-            String name = request.getParameter("status_name");
+            String code = request.getParameter("status_code").trim().toUpperCase();
+            String name = request.getParameter("status_name").trim();
             int step = Integer.parseInt(request.getParameter("step_order"));
             boolean isFinal = "1".equals(request.getParameter("is_final"));
 
+            // Kiểm tra trùng lặp status name (loại trừ bản ghi hiện tại)
+            if (osdao.isStatusNameExists(name, id)) {
+                request.getSession().setAttribute("msg",
+                        "Error: Status name '" + name + "' is already used by another status!");
+                request.getSession().setAttribute("msgType", "danger");
+
+                // FORWARD thay vì REDIRECT - form hiện ngay lập tức
+                String page = "/pages/OrderStatusManagementPage/editOrderStatus.jsp";
+                OrderStatus osEdit = osdao.getOrderStatusById(id);
+                request.setAttribute("status", osEdit);  // Giữ dữ liệu cũ
+                request.setAttribute("contentPage", page);
+                request.getRequestDispatcher("/template/adminTemplate.jsp").forward(request, response);
+                return;
+            }
+
+            // Cập nhật nếu không trùng
             osdao.updateOrderStatus(new OrderStatus(id, code, name, step, isFinal));
+            request.getSession().setAttribute("msg",
+                    "Order status '" + code + "' updated successfully!");
+            request.getSession().setAttribute("msgType", "success");
+            response.sendRedirect("orderStatusServlet?action=all");
+            return;
+
         } else if ("delete".equals(action)) {
             int id = Integer.parseInt(request.getParameter("status_id"));
             int count = osdao.countOrdersByStatusId(id);
@@ -153,7 +206,8 @@ public class orderStatusServlet extends HttpServlet {
             if (count > 0) {
                 // CHẶN HOÀN TOÀN — không xóa, trả về trang confirm với thông báo lỗi
                 OrderStatus os = osdao.getOrderStatusById(id);
-                request.getSession().setAttribute("msg", "Cannot delete: this status is linked to " + count + " order(s). Remove all linked orders first.");
+                request.getSession().setAttribute("msg",
+                        "Cannot delete: this status is linked to " + count + " order(s). Remove all linked orders first.");
                 request.getSession().setAttribute("msgType", "danger");
                 response.sendRedirect("orderStatusServlet?action=delete&id=" + id);
                 return;

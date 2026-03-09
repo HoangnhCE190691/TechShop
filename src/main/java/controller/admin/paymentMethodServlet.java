@@ -111,33 +111,76 @@ public class paymentMethodServlet extends HttpServlet {
         PaymentMethodDAO pdao = new PaymentMethodDAO();
 
         if ("add".equals(action)) {
-            String name = request.getParameter("method_name");
-            String statusRaw = request.getParameter("is_active");
-            boolean status = "1".equals(statusRaw);
-            pdao.insertPaymentMethod(name, status);
-        }
-        if ("update".equals(action)) {
-            int id = Integer.parseInt(request.getParameter("method_id"));
-            String name = request.getParameter("method_name");
+            String name = request.getParameter("method_name").trim();
             boolean status = "1".equals(request.getParameter("is_active"));
 
+            // Kiểm tra trùng lặp
+            if (pdao.isMethodNameExists(name)) {
+                request.getSession().setAttribute("msg",
+                        "Error: Payment method '" + name + "' already exists!");
+                request.getSession().setAttribute("msgType", "danger");
+
+                
+                String page = "/pages/PaymentMethodManagementPage/addPaymentMethod.jsp";
+                request.setAttribute("contentPage", page);
+                request.getRequestDispatcher("/template/adminTemplate.jsp").forward(request, response);
+                return;
+            }
+
+            // Nếu không trùng, thêm vào DB
+            pdao.insertPaymentMethod(name, status);
+            request.getSession().setAttribute("msg",
+                    "Payment method '" + name + "' added successfully!");
+            request.getSession().setAttribute("msgType", "success");
+            response.sendRedirect("paymentMethodServlet?action=all");
+            return;
+        }
+
+        if ("update".equals(action)) {
+            int id = Integer.parseInt(request.getParameter("method_id"));
+            String name = request.getParameter("method_name").trim();
+            boolean status = "1".equals(request.getParameter("is_active"));
+
+            // Kiểm tra trùng lặp (loại trừ bản ghi hiện tại)
+            if (pdao.isMethodNameExists(name, id)) {
+                request.getSession().setAttribute("msg",
+                        "Error: Name '" + name + "' is already used by another method!");
+                request.getSession().setAttribute("msgType", "danger");
+
+                
+                String page = "/pages/PaymentMethodManagementPage/editPaymentMethod.jsp";
+                PaymentMethod pmEdit = pdao.getPaymentMethodById(id);
+                request.setAttribute("payment", pmEdit);
+                request.setAttribute("contentPage", page);
+                request.getRequestDispatcher("/template/adminTemplate.jsp").forward(request, response);
+                return;
+            }
+
+            // Cập nhật
             PaymentMethod pm = new PaymentMethod(id, name, status);
             pdao.updatePaymentMethod(pm);
+            request.getSession().setAttribute("msg",
+                    "Payment method '" + name + "' updated successfully!");
+            request.getSession().setAttribute("msgType", "success");
+            response.sendRedirect("paymentMethodServlet?action=all");
+            return;
+
         } else if ("delete".equals(action)) {
             int id = Integer.parseInt(request.getParameter("method_id"));
             int count = pdao.countOrdersByPaymentMethodId(id);
 
             if (count > 0) {
                 pdao.deactivatePaymentMethod(id);
-                request.getSession().setAttribute("msg", "Payment method is linked to " + count + " order(s). Switched to INACTIVE.");
+                request.getSession().setAttribute("msg",
+                        "Payment method is linked to " + count + " order(s). Switched to INACTIVE.");
             } else {
                 pdao.deletePaymentMethod(id);
-                request.getSession().setAttribute("msg", "Payment method deleted successfully!");
+                request.getSession().setAttribute("msg",
+                        "Payment method deleted successfully!");
             }
             request.getSession().setAttribute("msgType", "success");
+            response.sendRedirect("paymentMethodServlet?action=all");
         }
-
-        response.sendRedirect("paymentMethodServlet?action=all");
     }
 
     /**

@@ -7,6 +7,7 @@ public class SpecificationDefinition {
     private String specName;
     private String unit;
     private boolean isActive;
+    private boolean isVariant;
 
     private String categoryName;
 
@@ -61,6 +62,14 @@ public class SpecificationDefinition {
         this.isActive = isActive;
     }
 
+    public boolean isIsVariant() {
+        return isVariant;
+    }
+
+    public void setIsVariant(boolean isVariant) {
+        this.isVariant = isVariant;
+    }
+
     public String getCategoryName() {
         return categoryName;
     }
@@ -71,7 +80,8 @@ public class SpecificationDefinition {
 
     @Override
     public String toString() {
-        return "SpecificationDefinition{" + "specId=" + specId + ", categoryId=" + categoryId + ", specName=" + specName + ", unit=" + unit + ", isActive=" + isActive + '}';
+        return "SpecificationDefinition{" + "specId=" + specId + ", categoryId=" + categoryId + ", specName=" + specName
+                + ", unit=" + unit + ", isActive=" + isActive + '}';
     }
 
 }

@@ -69,18 +69,25 @@ public class ProductVariantDAO extends DBContext {
     }
 
     // 3. Thêm mới biến thể
-    public void insertVariant(ProductVariant v) {
+    public int insertVariant(ProductVariant v) {
         String sql = "INSERT INTO product_variants (product_id, sku, selling_price, is_active) VALUES (?, ?, ?, ?)";
+        int generatedId = 0;
         try {
-            PreparedStatement ps = conn.prepareStatement(sql);
+            PreparedStatement ps = conn.prepareStatement(sql, PreparedStatement.RETURN_GENERATED_KEYS);
             ps.setInt(1, v.getProductId());
             ps.setString(2, v.getSku());
             ps.setLong(3, v.getSellingPrice());
             ps.setBoolean(4, v.isIsActive());
             ps.executeUpdate();
+            
+            ResultSet rs = ps.getGeneratedKeys();
+            if (rs.next()) {
+                generatedId = rs.getInt(1);
+            }
         } catch (Exception e) {
             e.printStackTrace();
         }
+        return generatedId;
     }
 
     // 4. Cập nhật biến thể

@@ -122,6 +122,7 @@ public class specificationServlet extends HttpServlet {
             s.setSpecName(request.getParameter("specName").trim());
             s.setUnit(request.getParameter("unit"));
             s.setIsActive(true);
+            s.setIsVariant("1".equals(request.getParameter("isVariant")));
 
             sdao.insertSpec(s);
             session.setAttribute("msg", "Specification added successfully!");
@@ -134,6 +135,7 @@ public class specificationServlet extends HttpServlet {
             s.setSpecName(request.getParameter("specName").trim());
             s.setUnit(request.getParameter("unit"));
             s.setIsActive("1".equals(request.getParameter("isActive")));
+            s.setIsVariant("1".equals(request.getParameter("isVariant")));
 
             sdao.updateSpec(s);
             session.setAttribute("msg", "Specification updated successfully!");

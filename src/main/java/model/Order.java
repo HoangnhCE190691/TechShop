@@ -27,6 +27,7 @@ public class Order {
     private String phone;
     private String email;
     private String paymentMethodName;
+    private String productImageUrl;
 
     public Order() {
     }
@@ -166,6 +167,14 @@ public class Order {
 
     public void setPaymentMethodName(String paymentMethodName) {
         this.paymentMethodName = paymentMethodName;
+    }
+
+    public String getProductImageUrl() {
+        return productImageUrl;
+    }
+
+    public void setProductImageUrl(String productImageUrl) {
+        this.productImageUrl = productImageUrl;
     }
 
     @Override

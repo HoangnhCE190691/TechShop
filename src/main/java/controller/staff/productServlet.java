@@ -172,7 +172,7 @@ public class productServlet extends HttpServlet {
             for (Part filePart : request.getParts()) {
                 if ("productImage".equals(filePart.getName()) && filePart.getSize() > 0) {
                     String fileName = Paths.get(filePart.getSubmittedFileName()).getFileName().toString();
-                    String uploadPath = getServletContext().getRealPath("") + File.separator + "assest" + File.separator
+                    String uploadPath = getServletContext().getRealPath("") + File.separator + "assets" + File.separator
                             + "img" + File.separator + "product";
                     File uploadDir = new File(uploadPath);
                     if (!uploadDir.exists()) {
@@ -189,7 +189,7 @@ public class productServlet extends HttpServlet {
                     Product prod = new Product();
                     prod.setProductId(productId);
                     pi.setProduct(prod);
-                    pi.setImageUrl("assest/img/product/" + fileName);
+                    pi.setImageUrl("assets/img/product/" + fileName);
 
                     if (isFirstImage) {
                         pi.setIs_thumbnail((byte) 1);
@@ -269,7 +269,7 @@ public class productServlet extends HttpServlet {
                     imgDao.deleteProductImage(oldImg.getImageID());
                 }
 
-                String uploadPath = getServletContext().getRealPath("") + File.separator + "assest" + File.separator
+                String uploadPath = getServletContext().getRealPath("") + File.separator + "assets" + File.separator
                         + "img" + File.separator + "product";
                 File uploadDir = new File(uploadPath);
                 if (!uploadDir.exists()) {
@@ -290,7 +290,7 @@ public class productServlet extends HttpServlet {
                         prod.setProductId(id);
                         ProductImage pi = new ProductImage();
                         pi.setProduct(prod);
-                        pi.setImageUrl("assest/img/product/" + fileName);
+                        pi.setImageUrl("assets/img/product/" + fileName);
 
                         if (isFirstImage) {
                             pi.setIs_thumbnail((byte) 1);

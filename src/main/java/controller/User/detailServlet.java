@@ -15,11 +15,13 @@ import dao.ProductDAO;
 import dao.ProductImageDAO;
 import dao.ProductVariantDAO;
 import dao.ProductSpecificationValueDAO;
+import dao.VariantSpecValueDAO;
 import jakarta.servlet.http.HttpServlet;
 import model.Product;
 import model.ProductImage;
 import model.ProductVariant;
 import model.ProductSpecificationValues;
+import model.VariantSpecValue;
 import model.Review;
 import dao.ReviewDAO;
 import java.util.List;
@@ -92,6 +94,9 @@ public class detailServlet extends HttpServlet {
                 ProductSpecificationValueDAO specDao = new ProductSpecificationValueDAO();
                 List<ProductSpecificationValues> specs = specDao.getSpecsByProductId(productId);
 
+                VariantSpecValueDAO varSpecDao = new VariantSpecValueDAO();
+                List<VariantSpecValue> variantSpecs = varSpecDao.getSpecsByProductId(productId);
+
                 // Fetch reviews
                 ReviewDAO reviewDao = new ReviewDAO();
                 List<Review> productReviews = reviewDao.getReviewsByProductId(productId);
@@ -148,6 +153,7 @@ public class detailServlet extends HttpServlet {
                 request.setAttribute("images", images);
                 request.setAttribute("variants", variants);
                 request.setAttribute("specs", specs);
+                request.setAttribute("variantSpecs", variantSpecs);
 
                 request.setAttribute("productReviews", productReviews);
                 request.setAttribute("totalReviews", totalReviews);
