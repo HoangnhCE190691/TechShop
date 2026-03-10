@@ -161,7 +161,7 @@
             });
 
             // 4. CẤU HÌNH AI (Đừng quên đổi Key và xóa Key cũ trên Google AI Studio nhé!)
-            const API_KEY = "AIzaSyBtlB8tHj2BdAETRsAv6ThjgoY-AHNbezE";
+            const API_KEY = "CHịu";
             const ai = new GoogleGenAI({apiKey: API_KEY});
 
             const btn = document.getElementById('btn-send');
