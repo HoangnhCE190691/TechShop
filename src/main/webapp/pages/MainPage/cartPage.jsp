@@ -62,8 +62,19 @@
                                     </button>
                                 </form>
 
-                                <div class="w-24 h-24 md:w-32 md:h-32 flex-shrink-0 bg-gray-50 rounded-2xl border border-gray-100 p-2 flex items-center justify-center">
-                                    <span class="text-gray-400 text-sm font-medium text-center px-2"><c:out value="${item.productName}"/></span>
+                                <div class="w-24 h-24 md:w-32 md:h-32 flex-shrink-0 bg-gray-50 rounded-2xl border border-gray-100 p-2 flex items-center justify-center overflow-hidden">
+                                    <c:choose>
+                                        <c:when test="${not empty item.thumbnailUrl}">
+                                            <img src="${pageContext.request.contextPath}/${item.thumbnailUrl}"
+                                                 alt="${item.productName}"
+                                                 class="w-full h-full object-contain">
+                                        </c:when>
+                                        <c:otherwise>
+                                            <img src="${pageContext.request.contextPath}/assets/img/product/iphone-15-blue.jpg"
+                                                 alt="${item.productName}"
+                                                 class="w-full h-full object-contain opacity-70">
+                                        </c:otherwise>
+                                    </c:choose>
                                 </div>
 
                                 <div class="flex-1 w-full">
