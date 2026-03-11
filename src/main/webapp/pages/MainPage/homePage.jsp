@@ -63,7 +63,7 @@
                                 <div
                                     class="relative overflow-hidden mb-4 flex-shrink-0 rounded-lg bg-gray-50 p-2">
                                     <img class="w-full h-44 object-contain group-hover:scale-110 group-hover:-translate-y-2 transition-all duration-500"
-                                         src="${empty p.thumbnailUrl ? '../assets/img/product/samsung-galaxy-s25-green-thumbai-600x600.jpg' : p.thumbnailUrl}"
+                                         src="${empty p.thumbnailUrl ? '../assets/img/product/default.png' : p.thumbnailUrl}"
                                          alt="${p.name}">
                                 </div>
                                 <h3
@@ -95,7 +95,7 @@
                                 <div
                                     class="relative overflow-hidden mb-4 flex-shrink-0 rounded-lg bg-gray-50 p-2">
                                     <img class="w-full h-44 object-contain group-hover:scale-110 group-hover:-translate-y-2 transition-all duration-500"
-                                         src="${empty p.thumbnailUrl ? '../assets/img/product/samsung-galaxy-s25-green-thumbai-600x600.jpg' : p.thumbnailUrl}"
+                                         src="${empty p.thumbnailUrl ? '../assets/img/product/default.png' : p.thumbnailUrl}"
                                          alt="${p.name}">
                                 </div>
                                 <h3
@@ -127,7 +127,7 @@
                                 <div
                                     class="relative overflow-hidden mb-4 flex-shrink-0 rounded-lg bg-gray-50 p-2">
                                     <img class="w-full h-44 object-contain group-hover:scale-110 group-hover:-translate-y-2 transition-all duration-500"
-                                         src="${empty p.thumbnailUrl ? '../assets/img/product/samsung-galaxy-s25-green-thumbai-600x600.jpg' : p.thumbnailUrl}"
+                                         src="${empty p.thumbnailUrl ? '../assets/img/product/default.png' : p.thumbnailUrl}"
                                          alt="${p.name}">
                                 </div>
                                 <h3
@@ -159,7 +159,7 @@
                                 <div
                                     class="relative overflow-hidden mb-4 flex-shrink-0 rounded-lg bg-gray-50 p-2">
                                     <img class="w-full h-44 object-contain group-hover:scale-110 group-hover:-translate-y-2 transition-all duration-500"
-                                         src="${empty p.thumbnailUrl ? '../assets/img/product/samsung-galaxy-s25-green-thumbai-600x600.jpg' : p.thumbnailUrl}"
+                                         src="${empty p.thumbnailUrl ? '../assets/img/product/default.png' : p.thumbnailUrl}"
                                          alt="${p.name}">
                                 </div>
                                 <h3
@@ -245,7 +245,7 @@
                             Trả góp 0%</div>
 
                         <div class="mt-8 mb-4 overflow-hidden rounded-xl bg-gray-50 p-2">
-                            <img src="../assets/img/product/samsung-galaxy-s25-green-thumbai-600x600.jpg" class="w-full h-44 object-contain transition-transform duration-500 group-hover:scale-110">
+                            <img src="../assets/img/product/default.png" class="w-full h-44 object-contain transition-transform duration-500 group-hover:scale-110">
                         </div>
 
                         <h3
@@ -299,7 +299,7 @@
                             Trả góp 0%</div>
 
                         <div class="mt-8 mb-4 overflow-hidden rounded-xl bg-gray-50 p-2">
-                            <img src="${empty p.thumbnailUrl ? '../assets/img/product/samsung-galaxy-s25-green-thumbai-600x600.jpg' : p.thumbnailUrl}"
+                            <img src="${empty p.thumbnailUrl ? '../assets/img/product/default.png' : p.thumbnailUrl}"
                                  class="w-full h-44 object-contain transition-transform duration-500 group-hover:scale-110"
                                  alt="${p.name}">
                         </div>
