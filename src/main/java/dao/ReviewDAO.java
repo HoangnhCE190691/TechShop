@@ -121,6 +121,7 @@ public class ReviewDAO extends DBContext {
 
     public List<Review> getReviewsByProductId(int productId) {
         List<Review> list = new ArrayList<>();
+        // Thêm điều kiện lọc status ở mệnh đề WHERE
         String sql = "SELECT r.*, c.full_name as customer_name, p.name as product_name "
                 + "FROM reviews r "
                 + "JOIN customers c ON r.customer_id = c.customer_id "
@@ -128,7 +129,7 @@ public class ReviewDAO extends DBContext {
                 + "JOIN inventory_items ii ON oi.inventory_id = ii.inventory_id "
                 + "JOIN product_variants pv ON ii.variant_id = pv.variant_id "
                 + "JOIN products p ON pv.product_id = p.product_id "
-                + "WHERE p.product_id = ? "
+                + "WHERE p.product_id = ? AND r.status = 'VISIBLE' " // Chỉ lấy review công khai 
                 + "ORDER BY r.created_at DESC";
         try {
             PreparedStatement ps = conn.prepareStatement(sql);
@@ -138,6 +139,7 @@ public class ReviewDAO extends DBContext {
                 Review r = mapResultSet(rs);
                 r.setCustomerName(rs.getString("customer_name"));
                 r.setProductName(rs.getString("product_name"));
+                r.setStatus(rs.getString("status"));
                 list.add(r);
             }
         } catch (Exception e) {
