@@ -3,8 +3,6 @@
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
 <%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
 
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap"
-      rel="stylesheet">
 <style>
     .detail-container {
         max-width: 1200px;
@@ -139,12 +137,13 @@
     }
 
     .product-name {
-        font-size: 24px;
-        font-weight: 800;
+        font-family: 'Lexend', sans-serif; /* Thay đổi ở đây */
+        font-size: 28px;
+        font-weight: 700; /* Đậm nhưng không quá dày */
         color: #111827;
         margin: 0 0 8px 0;
-        line-height: 1.3;
-        letter-spacing: -0.02em;
+        line-height: 1.2;
+        letter-spacing: -0.01em; /* Thu hẹp khoảng cách chữ một chút nhìn sẽ cao cấp hơn */
     }
 
     .rating-row {
@@ -376,12 +375,15 @@
     }
 
     .section-header {
+        font-family: 'Inter', sans-serif; /* Thay đổi ở đây */
         padding: 16px 24px;
-        font-size: 18px;
-        font-weight: 800;
-        color: #111827;
+        font-size: 16px; /* Giảm nhẹ size xuống nhìn sẽ tinh tế hơn */
+        font-weight: 600; /* Semi-bold: vẫn đậm nhưng thanh thoát */
+        color: #374151;
         border-bottom: 1px solid #f3f4f6;
         background: #fafafa;
+        text-transform: uppercase; /* Viết hoa tiêu đề nhìn sẽ gọn gàng hơn */
+        letter-spacing: 0.02em;
     }
 
     .section-body {
@@ -443,12 +445,15 @@
     }
 
     .reviews-header {
+        font-family: 'Inter', sans-serif; /* Sử dụng font Inter cho đồng bộ với Description */
         padding: 16px 24px;
-        font-size: 18px;
-        font-weight: 800;
+        font-size: 16px;
+        font-weight: 600; /* Độ đậm vừa phải, dễ chịu */
         color: #111827;
         border-bottom: 1px solid #f3f4f6;
         background: #fafafa;
+        text-transform: uppercase; /* Viết hoa để tạo sự phân biệt rõ ràng giữa các phần */
+        letter-spacing: 0.02em;
     }
 
     .reviews-summary {
@@ -505,10 +510,12 @@
     }
 
     .bar-label {
-        width: 40px;
+        width: 65px; /* Tăng từ 40px lên 65px để đủ chỗ cho chữ "stars" */
         font-weight: 700;
         color: #374151;
         text-align: right;
+        white-space: nowrap; /* Ngăn chặn việc tự động xuống dòng */
+        font-size: 13px;
     }
 
     .bar-track {
@@ -804,16 +811,14 @@
 
     <%--=====BREADCRUMB=====--%>
     <nav class="breadcrumb">
-        <a href="${pageContext.request.contextPath}/homepageservlet">Trang chủ</a>
+        <a href="${pageContext.request.contextPath}/homepageservlet">Home</a>
         <span class="sep">/</span>
         <c:if test="${not empty product.categoryName}">
-            <a
-                href="${pageContext.request.contextPath}/productpageservlet?category=${product.categoryId}">${product.categoryName}</a>
+            <a href="${pageContext.request.contextPath}/productpageservlet?category=${product.categoryId}">${product.categoryName}</a>
             <span class="sep">/</span>
         </c:if>
         <c:if test="${not empty product.brandName}">
-            <a
-                href="${pageContext.request.contextPath}/productpageservlet?brand=${product.brandId}">${product.brandName}</a>
+            <a href="${pageContext.request.contextPath}/productpageservlet?brand=${product.brandId}">${product.brandName}</a>
             <span class="sep">/</span>
         </c:if>
         <span class="current">${product.name}</span>
@@ -836,7 +841,7 @@
                     <div onclick="changeImage(this, '${pageContext.request.contextPath}/${img.imageUrl}')"
                          class="thumb-item ${st.first ? 'active' : ''}">
                         <img src="${pageContext.request.contextPath}/${img.imageUrl}"
-                             alt="Ảnh ${st.index + 1}">
+                             alt="Image ${st.index + 1}">
                     </div>
                 </c:forEach>
             </div>
@@ -849,82 +854,65 @@
 
             <div class="rating-row">
                 <span class="rating-score">
-                    <fmt:formatNumber value="${averageRating}" maxFractionDigits="1"
-                                      minFractionDigits="1" />
+                    <fmt:formatNumber value="${averageRating}" maxFractionDigits="1" minFractionDigits="1" />
                 </span>
                 <span class="stars">
                     <c:forEach begin="1" end="5" var="i">
                         <c:choose>
                             <c:when test="${i <= averageRating}">★</c:when>
                             <c:when test="${i - 0.5 <= averageRating}">★</c:when>
-                            <c:otherwise><span style="color:#d1d5db">★</span>
-                            </c:otherwise>
+                            <c:otherwise><span style="color:#d1d5db">★</span></c:otherwise>
                         </c:choose>
                     </c:forEach>
                 </span>
-                <span class="rating-count">(${totalReviews} đánh giá)</span>
+                <span class="rating-count">(${totalReviews} reviews)</span>
                 <span class="dot-sep"></span>
                 <span class="in-stock">
                     <svg width="16" height="16" fill="currentColor" viewBox="0 0 20 20">
-                    <path fill-rule="evenodd"
-                          d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-                          clip-rule="evenodd" />
+                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
                     </svg>
-                    Còn hàng
+                    In Stock
                 </span>
             </div>
 
             <%-- Price Box --%>
             <div class="price-box">
-                <div class="price-label">Giá sản phẩm</div>
+                <div class="price-label">Product Price</div>
                 <div id="displayPrice" class="price-current">
-                    <fmt:formatNumber
-                        value="${not empty variants ? variants[0].sellingPrice : 0}"
-                        type="number" groupingUsed="true" />đ
+                    <fmt:formatNumber value="${not empty variants ? variants[0].sellingPrice : 0}" type="number" groupingUsed="true" />đ
                 </div>
             </div>
 
             <%-- Variant Selection: Storage/Version --%>
-            <div class="variant-section" id="storageSection"
-                 style="display:none;">
-                <div class="variant-label">Phiên bản</div>
+            <div class="variant-section" id="storageSection" style="display:none;">
+                <div class="variant-label">Version</div>
                 <div class="variant-options" id="storageOptions"></div>
             </div>
 
             <%-- Variant Selection: Color --%>
-            <div class="variant-section" id="colorSection"
-                 style="display:none;">
-                <div class="variant-label">Màu sắc</div>
+            <div class="variant-section" id="colorSection" style="display:none;">
+                <div class="variant-label">Color</div>
                 <div class="variant-options" id="colorOptions"></div>
             </div>
 
             <%-- Fallback: If no variant specs, show SKU buttons --%>
-            <div class="variant-section" id="skuSection"
-                 style="display:none;">
-                <div class="variant-label">Phiên bản</div>
+            <div class="variant-section" id="skuSection" style="display:none;">
+                <div class="variant-label">Version</div>
                 <div class="variant-options" id="skuOptions"></div>
             </div>
 
             <%-- Add to cart --%>
-            <form id="addToCartForm"
-                  action="${pageContext.request.contextPath}/cartservlet"
-                  method="post">
+            <form id="addToCartForm" action="${pageContext.request.contextPath}/cartservlet" method="post">
                 <input type="hidden" name="action" value="add" />
-                <input type="hidden" name="variant_id"
-                       id="formVariantId"
-                       value="${not empty variants ? variants[0].variantId : ''}" />
+                <input type="hidden" name="variant_id" id="formVariantId" value="${not empty variants ? variants[0].variantId : ''}" />
                 <div class="cart-row">
                     <div class="qty-control">
-                        <button type="button" class="qty-btn"
-                                onclick="updateQuantity(-1)">−</button>
-                        <input type="text" id="qtyInput"
-                               name="quantity" value="1"
-                               class="qty-input" readonly>
-                        <button type="button" class="qty-btn"
-                                onclick="updateQuantity(1)">+</button>
+                        <button type="button" class="qty-btn" onclick="updateQuantity(-1)">−</button>
+                        <input type="text" id="qtyInput" name="quantity" value="1" class="qty-input" readonly>
+                        <button type="button" class="qty-btn" onclick="updateQuantity(1)">+</button>
                     </div>
                     <button type="submit" class="btn-add-cart">
-                        🛒 Thêm vào giỏ hàng
+                        🛒 Add to Cart
                     </button>
                 </div>
             </form>
@@ -934,34 +922,32 @@
     <%--=====DESCRIPTION + SPECS=====--%>
     <div class="bottom-grid">
         <div class="section-card">
-            <div class="section-header">📝 Mô tả sản phẩm</div>
+            <div class="section-header">📝 Description</div>
             <div class="section-body">
                 <div class="desc-content">
-                    ${product.description != null ? product.description : 'Đang cập nhật mô
-                      tả sản phẩm...'}
+                    ${not empty product.description ? product.description : 'Product description is being updated...'}
                 </div>
             </div>
         </div>
 
         <div class="section-card">
-            <div class="section-header">⚙️ Thông số kỹ thuật</div>
+            <div class="section-header">⚙️ Specifications</div>
             <div class="section-body" style="padding:0;">
                 <div class="spec-table">
-                    <%-- Các thông số biến thể sẽ được render động ở đây bằng JS --%>
+                    <%-- Dynamic variant specs rendered by JS --%>
                     <div id="dynamic-variant-specs"></div>
 
                     <c:if test="${not empty specs}">
                         <c:forEach var="s" items="${specs}">
                             <div class="spec-row">
                                 <div class="spec-name">${s.specName}</div>
-                                <div class="spec-value">${s.specValue} ${(not empty
-                                                          s.unit and s.unit ne '-') ? s.unit : ''}</div>
+                                <div class="spec-value">${s.specValue} ${(not empty s.unit and s.unit ne '-') ? s.unit : ''}</div>
                             </div>
                         </c:forEach>
                     </c:if>
                 </div>
                 <c:if test="${empty specs and empty variantSpecs}">
-                    <div class="no-reviews">Đang cập nhật thông số...</div>
+                    <div class="no-reviews">Updating specifications...</div>
                 </c:if>
             </div>
         </div>
@@ -969,35 +955,32 @@
 
     <%--=====REVIEWS=====--%>
     <div class="reviews-card" id="reviews-section">
-        <div class="reviews-header">⭐ Đánh giá sản phẩm</div>
+        <div class="reviews-header">⭐ Customer Reviews</div>
 
         <div class="reviews-summary">
             <div class="avg-rating">
                 <div class="big-num">
-                    <fmt:formatNumber value="${averageRating}" maxFractionDigits="1"
-                                      minFractionDigits="1" />
+                    <fmt:formatNumber value="${averageRating}" maxFractionDigits="1" minFractionDigits="1" />
                 </div>
                 <div class="avg-stars">
                     <c:forEach begin="1" end="5" var="i">
                         <c:choose>
                             <c:when test="${i <= averageRating}">★</c:when>
                             <c:when test="${i - 0.5 <= averageRating}">★</c:when>
-                            <c:otherwise><span style="color:#d1d5db">★</span>
-                            </c:otherwise>
+                            <c:otherwise><span style="color:#d1d5db">★</span></c:otherwise>
                         </c:choose>
                     </c:forEach>
                 </div>
-                <div class="total-text">Dựa trên ${totalReviews} đánh giá</div>
+                <div class="total-text">Based on ${totalReviews} reviews</div>
             </div>
 
             <div class="bars-col">
                 <c:forEach begin="1" end="5" step="1" var="star">
                     <c:set var="idx" value="${6 - star}" />
                     <div class="bar-row">
-                        <span class="bar-label">${idx} sao</span>
+                        <span class="bar-label"><span style="font-size: 15px;">${idx}</span> stars</span>
                         <div class="bar-track">
-                            <div class="bar-fill"
-                                 style="width: ${starPercentages[idx]}%"></div>
+                            <div class="bar-fill" style="width: ${starPercentages[idx]}%"></div>
                         </div>
                         <span class="bar-pct">${starPercentages[idx]}%</span>
                     </div>
@@ -1007,48 +990,42 @@
             <div style="display:flex;justify-content:center;align-items:center;">
                 <c:choose>
                     <c:when test="${userReview != null}">
-                        <button onclick="openReviewModal(true)"
-                                class="btn-review edit">✍️ Sửa đánh giá</button>
+                        <button onclick="openReviewModal(true)" class="btn-review edit">✍️ Edit Review</button>
                     </c:when>
                     <c:when test="${canReview}">
-                        <button onclick="openReviewModal(false)" class="btn-review">✍️
-                            Viết đánh giá</button>
-                        </c:when>
-                        <c:when test="${empty cookie.cookieID.value}">
-                        <a href="userservlet?action=loginPage"
-                           class="btn-review login">Đăng nhập để đánh giá</a>
+                        <button onclick="openReviewModal(false)" class="btn-review">✍️ Write a Review</button>
+                    </c:when>
+                    <c:when test="${empty cookie.cookieID.value}">
+                        <a href="userservlet?action=loginPage" class="btn-review login">Login to review</a>
                     </c:when>
                     <c:otherwise>
-                        <div style="font-size:13px;color:#9ca3af;text-align:center;">Bạn
-                            cần mua sản phẩm này để đánh giá.</div>
-                        </c:otherwise>
-                    </c:choose>
+                        <div style="font-size:13px;color:#9ca3af;text-align:center;">
+                            You must purchase this product to leave a review.
+                        </div>
+                    </c:otherwise>
+                </c:choose>
             </div>
         </div>
 
         <div class="review-list">
             <c:choose>
                 <c:when test="${empty productReviews}">
-                    <div class="no-reviews">Chưa có đánh giá nào cho sản phẩm này.</div>
+                    <div class="no-reviews">No reviews for this product yet.</div>
                 </c:when>
                 <c:otherwise>
                     <c:forEach var="rev" items="${productReviews}">
                         <div class="review-item">
-                            <div class="review-avatar">${fn:substring(rev.customerName,
-                                                         0, 1)}</div>
+                            <div class="review-avatar">${fn:substring(rev.customerName, 0, 1)}</div>
                             <div class="review-body">
                                 <div class="review-top">
                                     <span class="review-name">${rev.customerName}</span>
-                                    <span
-                                        class="review-date">${rev.formattedDate}</span>
+                                    <span class="review-date">${rev.formattedDate}</span>
                                 </div>
                                 <div class="review-stars">
                                     <c:forEach begin="1" end="5" var="i">
                                         <c:choose>
                                             <c:when test="${i <= rev.rating}">★</c:when>
-                                            <c:otherwise><span
-                                                    style="color:#d1d5db">★</span>
-                                            </c:otherwise>
+                                            <c:otherwise><span style="color:#d1d5db">★</span></c:otherwise>
                                         </c:choose>
                                     </c:forEach>
                                 </div>
@@ -1065,42 +1042,33 @@
     <div id="reviewModal" class="modal-overlay">
         <div class="modal-box">
             <div class="modal-head">
-                <h3 id="modalTitle">Viết đánh giá</h3>
-                <button type="button" onclick="closeReviewModal()"
-                        class="modal-close">✕</button>
+                <h3 id="modalTitle">Write a Review</h3>
+                <button type="button" onclick="closeReviewModal()" class="modal-close">✕</button>
             </div>
             <form action="reviewservlet" method="POST" class="modal-body">
                 <input type="hidden" name="productId" value="${product.productId}">
                 <input type="hidden" name="action" id="reviewAction" value="add">
-                <input type="hidden" name="reviewId" id="reviewId"
-                       value="${userReview != null ? userReview.reviewId : ''}">
-                <input type="hidden" name="rating" id="reviewRating"
-                       value="${userReview != null ? userReview.rating : 5}">
+                <input type="hidden" name="reviewId" id="reviewId" value="${userReview != null ? userReview.reviewId : ''}">
+                <input type="hidden" name="rating" id="reviewRating" value="${userReview != null ? userReview.rating : 5}">
 
                 <div class="modal-stars-wrap">
-                    <div class="modal-stars-label">Chất lượng sản phẩm</div>
+                    <div class="modal-stars-label">Product Quality</div>
                     <div class="modal-stars" id="starContainer">
-                        <c:set var="initialRating"
-                               value="${userReview != null ? userReview.rating : 5}" />
+                        <c:set var="initialRating" value="${userReview != null ? userReview.rating : 5}" />
                         <c:forEach begin="1" end="5" var="i">
-                            <span data-value="${i}" onclick="setRating(${i})"
-                                  class="star-btn ${i <= initialRating ? 'active' : ''}">★</span>
+                            <span data-value="${i}" onclick="setRating(${i})" class="star-btn ${i <= initialRating ? 'active' : ''}">★</span>
                         </c:forEach>
                     </div>
-                    <div id="ratingText" class="modal-rating-text"
-                         style="color:#dc2626;">Tuyệt vời</div>
+                    <div id="ratingText" class="modal-rating-text" style="color:#dc2626;">Excellent</div>
                 </div>
 
-                <label class="modal-textarea-label">Cảm nhận của bạn</label>
-                <textarea name="comment" id="reviewComment" rows="4" required
-                          class="modal-textarea"
-                          placeholder="Hãy chia sẻ trải nghiệm của bạn về sản phẩm này nhé...">${userReview != null ? userReview.comment : ''}</textarea>
+                <label class="modal-textarea-label">Your Feedback</label>
+                <textarea name="comment" id="reviewComment" rows="4" required class="modal-textarea"
+                          placeholder="Tell us about your experience with this product...">${userReview != null ? userReview.comment : ''}</textarea>
 
                 <div class="modal-actions">
-                    <button type="button" onclick="closeReviewModal()"
-                            class="modal-btn cancel">Hủy</button>
-                    <button type="submit" class="modal-btn submit">Gửi đánh
-                        giá</button>
+                    <button type="button" onclick="closeReviewModal()" class="modal-btn cancel">Cancel</button>
+                    <button type="submit" class="modal-btn submit">Submit Review</button>
                 </div>
             </form>
         </div>
@@ -1112,7 +1080,6 @@
 <script src="https://cdn.jsdelivr.net/npm/@fancyapps/ui@5.0/dist/fancybox/fancybox.umd.js"></script>
 <script>
                         // ============ DATA BUILD ============
-                        // Build variants data from server
                         var VARIANTS = {};
     <c:forEach var="v" items="${variants}">
                         VARIANTS[${v.variantId}] = {
@@ -1123,7 +1090,6 @@
                         };
     </c:forEach>
 
-// Build variant spec values
     <c:forEach var="vs" items="${variantSpecs}">
                         if (VARIANTS[${vs.variantId}]) {
                             VARIANTS[${vs.variantId}].specs['${fn:replace(vs.specName, "'", "\\'")}'] = '${fn:replace(vs.specValue, "'", "\\'")}';
@@ -1133,9 +1099,8 @@
                         // ============ VARIANT LOGIC ============
                         var selectedStorage = null;
                         var selectedColor = null;
-                        var selectedVariantId = ${ not empty variants ?variants[0].variantId: 0};
+                        var selectedVariantId = ${not empty variants ? variants[0].variantId : 0};
 
-                        // Analyze variant specs to find grouping dimensions
                         function analyzeVariants() {
                             var specNames = {};
                             for (var vid in VARIANTS) {
@@ -1147,9 +1112,8 @@
                                 }
                             }
 
-                            // Identify which spec is "storage/version" and which is "color"
-                            var colorKeywords = ['màu', 'color', 'màu sắc'];
-                            var storageKeywords = ['dung lượng', 'bộ nhớ', 'storage', 'ram', 'phiên bản', 'rom'];
+                            var colorKeywords = ['color', 'colour', 'màu', 'màu sắc'];
+                            var storageKeywords = ['storage', 'capacity', 'memory', 'ram', 'rom', 'dung lượng', 'phiên bản'];
 
                             var colorSpec = null, storageSpec = null;
                             for (var sn in specNames) {
@@ -1168,7 +1132,6 @@
                                 }
                             }
 
-                            // If we have exactly 2 specs and couldn't identify, just assign
                             var specKeys = Object.keys(specNames);
                             if (specKeys.length === 2) {
                                 if (!storageSpec && !colorSpec) {
@@ -1180,7 +1143,6 @@
                                     colorSpec = specKeys[0] === storageSpec ? specKeys[1] : specKeys[0];
                                 }
                             } else if (specKeys.length === 1) {
-                                // Only one spec dimension
                                 if (colorSpec) {
                                     storageSpec = null;
                                 } else if (storageSpec) {
@@ -1243,14 +1205,13 @@
                             document.getElementById('formVariantId').value = variant.id;
                             document.getElementById('displayPrice').textContent = formatPrice(variant.price);
 
-                            // Cập nhật bảng thông số kỹ thuật (Spec Table)
                             var dynamicContainer = document.getElementById('dynamic-variant-specs');
                             if (dynamicContainer) {
                                 dynamicContainer.innerHTML = '';
                                 for (var sn in variant.specs) {
                                     var row = document.createElement('div');
                                     row.className = 'spec-row';
-                                    row.style.background = '#fff5f5'; // Highlight nhẹ các thông số đang chọn
+                                    row.style.background = '#fff5f5';
                                     row.innerHTML = '<div class="spec-name">' + sn + '</div>' +
                                             '<div class="spec-value" style="color:#dc2626;">' + variant.specs[sn] + '</div>';
                                     dynamicContainer.appendChild(row);
@@ -1263,7 +1224,6 @@
                             var hasSpecs = Object.keys(analysis.specNames).length > 0;
 
                             if (!hasSpecs) {
-                                // Fallback: show SKU buttons
                                 var skuSection = document.getElementById('skuSection');
                                 var skuOptions = document.getElementById('skuOptions');
                                 skuSection.style.display = '';
@@ -1273,7 +1233,6 @@
                                     var btn = document.createElement('div');
                                     btn.className = 'variant-opt' + (first ? ' selected' : '');
                                     btn.textContent = v.sku;
-                                    btn.dataset.variantId = v.id;
                                     btn.onclick = (function (variant) {
                                         return function () {
                                             document.querySelectorAll('#skuOptions .variant-opt').forEach(function (b) {
@@ -1292,7 +1251,6 @@
                             var storageSpec = analysis.storageSpec;
                             var colorSpec = analysis.colorSpec;
 
-                            // Build storage buttons
                             if (storageSpec) {
                                 var storageSection = document.getElementById('storageSection');
                                 var storageOptions = document.getElementById('storageOptions');
@@ -1306,41 +1264,33 @@
                                     var btn = document.createElement('div');
                                     btn.className = 'variant-opt' + (idx === 0 ? ' selected' : '');
                                     btn.textContent = sv;
-                                    btn.dataset.value = sv;
                                     btn.onclick = function () {
                                         document.querySelectorAll('#storageOptions .variant-opt').forEach(function (b) {
                                             b.classList.remove('selected');
                                         });
                                         this.classList.add('selected');
                                         selectedStorage = sv;
-                                        if (colorSpec) {
+                                        if (colorSpec)
                                             buildColorButtons(selectedStorage, storageSpec, colorSpec);
-                                        } else {
-                                            // Only storage, find variant directly
-                                            var variant = findVariant(sv, null, storageSpec, null);
-                                            selectVariantAndUpdate(variant);
-                                        }
+                                        else
+                                            selectVariantAndUpdate(findVariant(sv, null, storageSpec, null));
                                     };
                                     storageOptions.appendChild(btn);
                                 });
                             }
 
-                            // Build color buttons
                             if (colorSpec) {
                                 document.getElementById('colorSection').style.display = '';
                                 document.querySelector('#colorSection .variant-label').textContent = colorSpec;
                                 buildColorButtons(selectedStorage, storageSpec, colorSpec);
                             } else if (storageSpec) {
-                                // Just storage, select first variant
-                                var firstVariant = findVariant(selectedStorage, null, storageSpec, null);
-                                selectVariantAndUpdate(firstVariant);
+                                selectVariantAndUpdate(findVariant(selectedStorage, null, storageSpec, null));
                             }
                         }
 
                         function buildColorButtons(storageVal, storageSpec, colorSpec) {
                             var colorOptions = document.getElementById('colorOptions');
                             colorOptions.innerHTML = '';
-
                             var availableColors = getAvailableColors(storageVal, storageSpec, colorSpec);
                             var colorKeys = Object.keys(availableColors);
                             selectedColor = colorKeys.length > 0 ? colorKeys[0] : null;
@@ -1349,33 +1299,26 @@
                                 var btn = document.createElement('div');
                                 btn.className = 'variant-opt color-opt' + (idx === 0 ? ' selected' : '');
                                 btn.innerHTML = '<span class="color-name">' + colorName + '</span>';
-                                btn.dataset.color = colorName;
                                 btn.onclick = function () {
                                     document.querySelectorAll('#colorOptions .variant-opt').forEach(function (b) {
                                         b.classList.remove('selected');
                                     });
                                     this.classList.add('selected');
                                     selectedColor = colorName;
-                                    var variant = findVariant(storageVal, colorName, storageSpec, colorSpec);
-                                    selectVariantAndUpdate(variant);
+                                    selectVariantAndUpdate(findVariant(storageVal, colorName, storageSpec, colorSpec));
                                 };
                                 colorOptions.appendChild(btn);
                             });
 
-                            // Auto-select first color
-                            if (selectedColor) {
-                                var variant = findVariant(storageVal, selectedColor, storageSpec, colorSpec);
-                                selectVariantAndUpdate(variant);
-                            }
+                            if (selectedColor)
+                                selectVariantAndUpdate(findVariant(storageVal, selectedColor, storageSpec, colorSpec));
                         }
 
-                        // ============ INIT ============
                         document.addEventListener('DOMContentLoaded', function () {
                             Fancybox.bind('[data-fancybox="gallery"]', {hideScrollbar: false});
                             buildVariantUI();
                         });
 
-                        // ============ GALLERY ============
                         function changeImage(thumbEl, imgSrc) {
                             document.getElementById('mainImage').src = imgSrc;
                             document.getElementById('mainImageLink').href = imgSrc;
@@ -1385,7 +1328,6 @@
                             thumbEl.classList.add('active');
                         }
 
-                        // ============ QUANTITY ============
                         function updateQuantity(change) {
                             var input = document.getElementById('qtyInput');
                             var val = parseInt(input.value) + change;
@@ -1393,22 +1335,23 @@
                                 input.value = val;
                         }
 
-                        // ============ REVIEW MODAL ============
                         function openReviewModal(isEdit) {
                             document.getElementById('reviewModal').classList.add('show');
                             document.getElementById('reviewAction').value = isEdit ? 'edit' : 'add';
-                            document.getElementById('modalTitle').textContent = isEdit ? 'Sửa đánh giá của bạn' : 'Viết đánh giá';
+                            document.getElementById('modalTitle').textContent = isEdit ? 'Edit Your Review' : 'Write a Review';
                             setRating(document.getElementById('reviewRating').value);
                         }
+
                         function closeReviewModal() {
                             document.getElementById('reviewModal').classList.remove('show');
                         }
+
                         function setRating(rating) {
                             document.getElementById('reviewRating').value = rating;
                             document.querySelectorAll('.star-btn').forEach(function (s) {
                                 s.classList.toggle('active', parseInt(s.dataset.value) <= rating);
                             });
-                            var texts = ["Tệ", "Không hài lòng", "Bình thường", "Hài lòng", "Tuyệt vời"];
+                            var texts = ["Poor", "Dissatisfied", "Average", "Satisfied", "Excellent"];
                             var colors = ["#6b7280", "#f97316", "#3b82f6", "#16a34a", "#dc2626"];
                             var textEl = document.getElementById('ratingText');
                             textEl.textContent = texts[rating - 1];
@@ -1423,7 +1366,7 @@
                                 addToCartOverlay.style.cssText = 'position:fixed;inset:0;z-index:9998;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,0.3);';
                                 addToCartOverlay.innerHTML = '<div style="display:flex;flex-direction:column;align-items:center;gap:16px;background:#fff;padding:24px 32px;border-radius:16px;box-shadow:0 8px 32px rgba(0,0,0,0.15);">' +
                                         '<div style="width:48px;height:48px;border:4px solid #e5e7eb;border-top-color:#dc2626;border-radius:50%;animation:spin 0.8s linear infinite;"></div>' +
-                                        '<span style="font-size:14px;font-weight:500;color:#374151;">Đang xử lý...</span></div>';
+                                        '<span style="font-size:14px;font-weight:500;color:#374151;">Processing...</span></div>';
                                 var style = document.createElement('style');
                                 style.textContent = '@keyframes spin{to{transform:rotate(360deg)}}';
                                 document.head.appendChild(style);
@@ -1432,6 +1375,7 @@
                             if (!addToCartOverlay.parentNode)
                                 document.body.appendChild(addToCartOverlay);
                         }
+
                         function hideAddToCartLoading() {
                             if (addToCartOverlay)
                                 addToCartOverlay.style.display = 'none';
@@ -1459,29 +1403,6 @@
                             }, 3000);
                         }
 
-                        function updateNavbarCartCount(delta) {
-                            var badge = document.getElementById('navbarCartCount');
-                            if (!badge)
-                                return;
-                            var cur = parseInt(badge.textContent, 10) || 0;
-                            var next = cur + delta;
-                            badge.textContent = next;
-                            if (next > 0)
-                                badge.classList.remove('hidden');
-                            else
-                                badge.classList.add('hidden');
-                        }
-                        function setNavbarCartCount(count) {
-                            var badge = document.getElementById('navbarCartCount');
-                            if (!badge)
-                                return;
-                            badge.textContent = count;
-                            if (count > 0)
-                                badge.classList.remove('hidden');
-                            else
-                                badge.classList.add('hidden');
-                        }
-
                         document.addEventListener('DOMContentLoaded', function () {
                             var form = document.getElementById('addToCartForm');
                             if (!form)
@@ -1489,13 +1410,8 @@
                             form.addEventListener('submit', function (e) {
                                 e.preventDefault();
                                 showAddToCartLoading();
-                                var url = form.getAttribute('action');
-                                url = url + (url.indexOf('?') >= 0 ? '&' : '?') + 'ajax=1';
-                                var fd = new FormData(form);
-                                var params = new URLSearchParams();
-                                fd.forEach(function (value, key) {
-                                    params.append(key, value);
-                                });
+                                var url = form.getAttribute('action') + (form.getAttribute('action').indexOf('?') >= 0 ? '&' : '?') + 'ajax=1';
+                                var params = new URLSearchParams(new FormData(form));
                                 params.append('ajax', '1');
                                 fetch(url, {
                                     method: 'POST', credentials: 'same-origin',
@@ -1506,7 +1422,7 @@
                                         throw new Error('HTTP ' + response.status);
                                     var ct = (response.headers.get('content-type') || '').toLowerCase();
                                     if (ct.indexOf('application/json') === -1) {
-                                        showAddToCartToast('Đã thêm vào giỏ hàng. Đang tải lại...', false);
+                                        showAddToCartToast('Added to cart. Reloading...', false);
                                         setTimeout(function () {
                                             window.location.reload();
                                         }, 1200);
@@ -1518,16 +1434,16 @@
                                         return;
                                     if (data.success === false) {
                                         hideAddToCartLoading();
-                                        showAddToCartToast(data.message || 'Không thể thêm vào giỏ hàng.', true);
+                                        showAddToCartToast(data.message || 'Could not add to cart.', true);
                                         return;
                                     }
-                                    showAddToCartToast(data.message || 'Đã thêm vào giỏ hàng. Đang tải lại...', false);
+                                    showAddToCartToast(data.message || 'Added to cart. Reloading...', false);
                                     setTimeout(function () {
                                         window.location.reload();
                                     }, 1200);
                                 }).catch(function () {
                                     hideAddToCartLoading();
-                                    showAddToCartToast('Không thể thêm vào giỏ hàng, vui lòng thử lại.', true);
+                                    showAddToCartToast('Could not add to cart, please try again.', true);
                                 });
                             });
                         });
