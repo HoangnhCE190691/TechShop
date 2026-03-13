@@ -41,7 +41,7 @@
 
 <div class="bg-white rounded-xl shadow-lg p-5">
 
-    <!-- Search + Add -->
+    <!-- Search -->
     <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-5">
 
         <form class="w-full md:w-1/2" action="staffservlet" method="GET">
@@ -50,7 +50,7 @@
             <div class="relative">
                 <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-400">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
                     </svg>
                 </span>
                 <input type="text"
@@ -66,11 +66,6 @@
                 </c:if>
             </div>
         </form>
-
-        <a href="inventory?action=add"
-           class="inline-flex items-center justify-center px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 focus:ring-4 focus:ring-blue-300 transition-colors">
-            + Add Inventory Item
-        </a>
 
     </div>
 

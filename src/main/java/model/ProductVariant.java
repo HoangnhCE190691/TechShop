@@ -13,6 +13,9 @@ public class ProductVariant {
     private boolean isActive;
 
     private String productName;
+    // Thêm thông tin hiển thị cho màn nhập hàng
+    private String categoryName;
+    private String brandName;
 
     public ProductVariant() {
     }
@@ -72,5 +75,21 @@ public class ProductVariant {
 
     public void setProductName(String productName) {
         this.productName = productName;
+    }
+
+    public String getCategoryName() {
+        return categoryName;
+    }
+
+    public void setCategoryName(String categoryName) {
+        this.categoryName = categoryName;
+    }
+
+    public String getBrandName() {
+        return brandName;
+    }
+
+    public void setBrandName(String brandName) {
+        this.brandName = brandName;
     }
 }

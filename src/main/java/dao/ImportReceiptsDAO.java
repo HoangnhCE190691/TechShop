@@ -61,18 +61,25 @@ public class ImportReceiptsDAO extends DBContext {
         return null;
     }
 
-    // 3. INSERT
-    public void insertReceipt(ImportReceipts p) {
+    // 3. INSERT (returns generated receipt_id, or 0 on failure)
+    public int insertReceiptReturnId(ImportReceipts p) {
         String sql = "INSERT INTO import_receipts (supplier_id, employee_id, total_cost) VALUES (?, ?, ?)";
         try {
-            PreparedStatement ps = conn.prepareStatement(sql);
+            PreparedStatement ps = conn.prepareStatement(sql, PreparedStatement.RETURN_GENERATED_KEYS);
             ps.setInt(1, p.getSupplier_id());
             ps.setInt(2, p.getEmployee_id());
             ps.setDouble(3, p.getTotal_cost());
             ps.executeUpdate();
+            ResultSet rs = ps.getGeneratedKeys();
+            if (rs.next()) return rs.getInt(1);
         } catch (Exception e) {
             e.printStackTrace();
         }
+        return 0;
+    }
+
+    public void insertReceipt(ImportReceipts p) {
+        insertReceiptReturnId(p);
     }
 
     // 4. UPDATE
@@ -90,15 +97,16 @@ public class ImportReceiptsDAO extends DBContext {
         }
     }
 
-    // 5. DELETE
-    public void deleteReceipt(int id) {
+    // 5. DELETE - trả về true nếu xóa thành công, false nếu lỗi (ví dụ dính khóa ngoại)
+    public boolean deleteReceipt(int id) {
         String sql = "DELETE FROM import_receipts WHERE receipt_id = ?";
         try {
             PreparedStatement ps = conn.prepareStatement(sql);
             ps.setInt(1, id);
-            ps.executeUpdate();
+            return ps.executeUpdate() > 0;
         } catch (Exception e) {
             e.printStackTrace();
+            return false;
         }
     }
 

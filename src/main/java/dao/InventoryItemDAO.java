@@ -22,12 +22,17 @@ public class InventoryItemDAO extends DBContext {
     public List<InventoryItem> getAllInventory() {
         List<InventoryItem> list = new ArrayList<>();
         String sql = """
-                     SELECT ii.*, p.name AS product_name
-                     FROM inventory_items ii
-                     LEFT JOIN product_variants pv ON ii.variant_id = pv.variant_id
-                     LEFT JOIN products p ON pv.product_id = p.product_id
-                     ORDER BY ii.inventory_id DESC
-                     """;
+            SELECT ii.*,
+                   p.name       AS product_name,
+                   c.full_name  AS buyer_name
+            FROM inventory_items ii
+            LEFT JOIN product_variants pv ON ii.variant_id = pv.variant_id
+            LEFT JOIN products p         ON pv.product_id = p.product_id
+            LEFT JOIN order_items oi     ON oi.inventory_id = ii.inventory_id
+            LEFT JOIN orders o           ON o.order_id = oi.order_id
+            LEFT JOIN customers c        ON c.customer_id = o.customer_id
+            ORDER BY ii.inventory_id DESC
+            """;
         try {
             PreparedStatement ps = conn.prepareStatement(sql);
             ResultSet rs = ps.executeQuery();
@@ -49,17 +54,24 @@ public class InventoryItemDAO extends DBContext {
         }
 
         String sql = """
-                     SELECT ii.*, p.name AS product_name
-                     FROM inventory_items ii
-                     LEFT JOIN product_variants pv ON ii.variant_id = pv.variant_id
-                     LEFT JOIN products p ON pv.product_id = p.product_id
-                     WHERE CAST(ii.inventory_id AS NVARCHAR(50)) LIKE ?
-                        OR CAST(ii.variant_id AS NVARCHAR(50)) LIKE ?
-                        OR ii.imei LIKE ?
-                        OR UPPER(ISNULL(ii.status,'')) LIKE ?
-                        OR LOWER(ISNULL(p.name,'')) LIKE ?
-                     ORDER BY ii.inventory_id DESC
-                     """;
+            SELECT ii.*,
+                   p.name      AS product_name,
+                   c.full_name AS buyer_name
+            FROM inventory_items ii
+            LEFT JOIN product_variants pv ON ii.variant_id = pv.variant_id
+            LEFT JOIN products p         ON pv.product_id = p.product_id
+            LEFT JOIN order_items oi     ON oi.inventory_id = ii.inventory_id
+            LEFT JOIN orders o           ON o.order_id = oi.order_id
+            LEFT JOIN customers c        ON c.customer_id = o.customer_id
+            WHERE CAST(ii.inventory_id AS NVARCHAR(50)) LIKE ?
+               OR CAST(ii.variant_id AS NVARCHAR(50)) LIKE ?
+               OR ii.imei LIKE ?
+               OR UPPER(ISNULL(ii.status,'')) LIKE ?
+               OR LOWER(ISNULL(p.name,'')) LIKE ?
+               OR LOWER(ISNULL(c.full_name,'')) LIKE ?
+               OR LOWER(ISNULL(pv.sku,'')) LIKE ?
+            ORDER BY ii.inventory_id DESC
+            """;
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
             String like = "%" + k + "%";
             String likeUpper = "%" + k.toUpperCase() + "%";
@@ -69,7 +81,9 @@ public class InventoryItemDAO extends DBContext {
             ps.setString(2, like);
             ps.setString(3, like);
             ps.setString(4, likeUpper);
-            ps.setString(5, productNameLike);
+            ps.setString(5, productNameLike); // product name
+            ps.setString(6, productNameLike); // buyer name
+            ps.setString(7, productNameLike); // sku (cho phép gõ 1 phần)
             try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
                     list.add(mapRow(rs));
@@ -93,7 +107,11 @@ public class InventoryItemDAO extends DBContext {
         try {
             item.setProductName(rs.getString("product_name"));
         } catch (Exception ignored) {
-            /* cột product_name không có khi SELECT * từ 1 bảng */ }
+            /* cột product_name có thể không tồn tại trong một số truy vấn */ }
+        try {
+            item.setBuyerName(rs.getString("buyer_name"));
+        } catch (Exception ignored) {
+            /* cột buyer_name có thể không tồn tại hoặc null nếu chưa bán */ }
         return item;
     }
 
@@ -181,6 +199,43 @@ public class InventoryItemDAO extends DBContext {
     }
 
     /**
+     * Xóa toàn bộ inventory_items gắn với 1 receipt_item_id (dùng khi xóa dòng phiếu nhập).
+     */
+    public int deleteByReceiptItemId(int receiptItemId) {
+        String sql = "DELETE FROM inventory_items WHERE receipt_item_id = ?";
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, receiptItemId);
+            return ps.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return 0;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return 0;
+        }
+    }
+
+    /**
+     * Kiểm tra xem receipt_item_id có inventory nào KHÔNG còn IN_STOCK hay không.
+     * Trả về true nếu có ít nhất 1 bản ghi khác IN_STOCK (đã bán / reserved...).
+     */
+    public boolean hasNonInStockByReceiptItemId(int receiptItemId) {
+        String sql = "SELECT TOP 1 1 FROM inventory_items WHERE receipt_item_id = ? AND status <> 'IN_STOCK'";
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, receiptItemId);
+            try (ResultSet rs = ps.executeQuery()) {
+                return rs.next();
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return true; // an toàn: nếu lỗi thì coi như có ràng buộc, không cho xóa
+        } catch (Exception e) {
+            e.printStackTrace();
+            return true;
+        }
+    }
+
+    /**
      * Lấy danh sách inventory_id còn tồn (IN_STOCK) theo variant_id, giới hạn số lượng. Dùng khi tạo đơn hàng để gán sản phẩm từ kho vào order_items.
      */
     public List<Integer> getAvailableInventoryIdsByVariantId(int variantId, int limit) {
@@ -197,6 +252,24 @@ public class InventoryItemDAO extends DBContext {
             e.printStackTrace();
         }
         return list;
+    }
+
+    /**
+     * Đếm số lượng tồn kho hiện tại (IN_STOCK) theo variant_id.
+     */
+    public int countAvailableByVariantId(int variantId) {
+        String sql = "SELECT COUNT(*) FROM inventory_items WHERE variant_id = ? AND status = 'IN_STOCK'";
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, variantId);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt(1);
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return 0;
     }
 
     /**

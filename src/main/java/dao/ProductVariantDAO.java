@@ -9,12 +9,17 @@ import utils.DBContext;
 
 public class ProductVariantDAO extends DBContext {
 
-    // 1. Lấy tất cả biến thể (JOIN với bảng products để lấy tên sản phẩm)
+    // 1. Lấy tất cả biến thể (JOIN với bảng products, categories, brands để lấy tên hiển thị)
     public List<ProductVariant> getAllVariant() {
         List<ProductVariant> list = new ArrayList<>();
-        String sql = "SELECT pv.*, p.name AS product_name "
+        String sql = "SELECT pv.*, "
+                + "       p.name AS product_name, "
+                + "       c.category_name, "
+                + "       b.brand_name "
                 + "FROM product_variants pv "
                 + "JOIN products p ON pv.product_id = p.product_id "
+                + "LEFT JOIN categories c ON p.category_id = c.category_id "
+                + "LEFT JOIN brands b ON p.brand_id = b.brand_id "
                 + "ORDER BY pv.variant_id DESC";
         try {
             PreparedStatement ps = conn.prepareStatement(sql);
@@ -30,9 +35,14 @@ public class ProductVariantDAO extends DBContext {
 
     // 2. Lấy biến thể theo ID
     public ProductVariant getVariantById(int id) {
-        String sql = "SELECT pv.*, p.name AS product_name "
+        String sql = "SELECT pv.*, "
+                + "       p.name AS product_name, "
+                + "       c.category_name, "
+                + "       b.brand_name "
                 + "FROM product_variants pv "
                 + "JOIN products p ON pv.product_id = p.product_id "
+                + "LEFT JOIN categories c ON p.category_id = c.category_id "
+                + "LEFT JOIN brands b ON p.brand_id = b.brand_id "
                 + "WHERE pv.variant_id = ?";
         try {
             PreparedStatement ps = conn.prepareStatement(sql);
@@ -50,9 +60,14 @@ public class ProductVariantDAO extends DBContext {
     // 2.1. Lấy danh sách biến thể theo ID sản phẩm
     public List<ProductVariant> getVariantsByProductId(int productId) {
         List<ProductVariant> list = new ArrayList<>();
-        String sql = "SELECT pv.*, p.name AS product_name "
+        String sql = "SELECT pv.*, "
+                + "       p.name AS product_name, "
+                + "       c.category_name, "
+                + "       b.brand_name "
                 + "FROM product_variants pv "
                 + "JOIN products p ON pv.product_id = p.product_id "
+                + "LEFT JOIN categories c ON p.category_id = c.category_id "
+                + "LEFT JOIN brands b ON p.brand_id = b.brand_id "
                 + "WHERE pv.product_id = ? AND pv.is_active = 1 "
                 + "ORDER BY pv.selling_price ASC";
         try {
@@ -169,6 +184,8 @@ public class ProductVariantDAO extends DBContext {
         v.setSellingPrice(rs.getLong("selling_price"));
         v.setIsActive(rs.getBoolean("is_active"));
         v.setProductName(rs.getString("product_name"));
+        v.setCategoryName(rs.getString("category_name"));
+        v.setBrandName(rs.getString("brand_name"));
         return v;
     }
 }

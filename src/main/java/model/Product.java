@@ -25,6 +25,8 @@ public class Product {
     // Thêm các thuộc tính hiển thị UI
     private Double minPrice;
     private String thumbnailUrl;
+    // Tổng tồn kho hiện tại (dùng cho màn nhập hàng)
+    private Integer stockQuantity;
 
     public Double getMinPrice() {
         return minPrice;
@@ -40,6 +42,14 @@ public class Product {
 
     public void setThumbnailUrl(String thumbnailUrl) {
         this.thumbnailUrl = thumbnailUrl;
+    }
+
+    public Integer getStockQuantity() {
+        return stockQuantity;
+    }
+
+    public void setStockQuantity(Integer stockQuantity) {
+        this.stockQuantity = stockQuantity;
     }
 
     public String getCategoryName() {

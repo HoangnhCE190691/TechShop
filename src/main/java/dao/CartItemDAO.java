@@ -87,7 +87,7 @@ public class CartItemDAO extends DBContext {
 
     // 4. INSERT (Thêm vào giỏ)
     // Lưu ý: customer_id và variant_id không được trùng cặp đã có
-    public void insertCartItem(CartItem item) {
+    public boolean insertCartItem(CartItem item) {
         String sql = "INSERT INTO cart_items (customer_id, variant_id, quantity) VALUES (?, ?, ?)";
         try {
             PreparedStatement ps = conn.prepareStatement(sql);
@@ -95,23 +95,25 @@ public class CartItemDAO extends DBContext {
             ps.setInt(2, item.getVariant_id());
             ps.setInt(3, item.getQuantity());
             // created_at tự động lấy GETDATE() bên SQL
-            ps.executeUpdate();
+            return ps.executeUpdate() > 0;
         } catch (Exception e) {
             e.printStackTrace();
         }
+        return false;
     }
 
     // 5. UPDATE (Sửa số lượng)
-    public void updateCartItem(CartItem item) {
+    public boolean updateCartItem(CartItem item) {
         String sql = "UPDATE cart_items SET quantity = ? WHERE cart_item_id = ?";
         try {
             PreparedStatement ps = conn.prepareStatement(sql);
             ps.setInt(1, item.getQuantity());
             ps.setInt(2, item.getCart_item_id());
-            ps.executeUpdate();
+            return ps.executeUpdate() > 0;
         } catch (Exception e) {
             e.printStackTrace();
         }
+        return false;
     }
 
     // 6. DELETE (Xóa khỏi giỏ)

@@ -1,6 +1,9 @@
 package controller.User;
 
 import dao.CartItemDAO;
+import dao.CustomerDAO;
+import dao.InventoryItemDAO;
+import dao.ProductVariantDAO;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
@@ -8,6 +11,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import model.CartItem;
 import model.CartItemDisplay;
+import model.ProductVariant;
 
 import java.io.IOException;
 import java.util.List;
@@ -66,6 +70,10 @@ public class cartServlet extends HttpServlet {
         response.setDateHeader("Expires", 0);
 
         int customerId = getCustomerId(request);
+        if (customerId > 0 && new CustomerDAO().getCustomerById(customerId) == null) {
+            request.getSession().removeAttribute("customerId");
+            customerId = -1;
+        }
         List<CartItemDisplay> listCart = new java.util.ArrayList<>();
         if (customerId > 0) {
             CartItemDAO cartDao = new CartItemDAO();
@@ -113,6 +121,18 @@ public class cartServlet extends HttpServlet {
                 }
                 return;
             }
+            if (new CustomerDAO().getCustomerById(customerId) == null) {
+                request.getSession().removeAttribute("customerId");
+                String msg = "Phiên đăng nhập không còn hợp lệ sau khi dữ liệu đã thay đổi. Vui lòng đăng nhập lại.";
+                if (isAjax) {
+                    sendJson(response, false, 0, 0, msg);
+                } else {
+                    request.getSession().setAttribute("msg", msg);
+                    request.getSession().setAttribute("msgType", "danger");
+                    response.sendRedirect(request.getContextPath() + "/userservlet?action=loginPage");
+                }
+                return;
+            }
 
             String vParam = request.getParameter("variant_id");
             String qParam = request.getParameter("quantity");
@@ -144,13 +164,49 @@ public class cartServlet extends HttpServlet {
 
             CartItemDAO cartDao = new CartItemDAO();
             CartItem existing = cartDao.getByCustomerAndVariant(customerId, variantId);
-            if (existing != null) {
-                existing.setQuantity(existing.getQuantity() + quantity);
-                cartDao.updateCartItem(existing);
-            } else {
-                CartItem newItem = new CartItem(0, customerId, variantId, quantity, null);
-                cartDao.insertCartItem(newItem);
+
+            // Kiểm tra tồn kho để không cho giỏ vượt quá số lượng còn trong kho
+            InventoryItemDAO invDao = new InventoryItemDAO();
+            int available = invDao.countAvailableByVariantId(variantId);
+            if (available <= 0) {
+                String msg = "Sản phẩm hiện đã hết hàng. Vui lòng chọn sản phẩm khác.";
+                if (isAjax) {
+                    sendJson(response, false, 0, 0, msg);
+                } else {
+                    request.getSession().setAttribute("msg", msg);
+                    request.getSession().setAttribute("msgType", "danger");
+                    response.sendRedirect(request.getContextPath() + "/cartservlet");
+                }
+                return;
             }
+
+            int currentQty = (existing != null) ? existing.getQuantity() : 0;
+            int targetQty = currentQty + quantity;
+            if (targetQty > available) {
+                targetQty = available; // không cho vượt quá tồn kho
+            }
+
+            boolean saved;
+            if (existing != null) {
+                existing.setQuantity(targetQty);
+                saved = cartDao.updateCartItem(existing);
+            } else {
+                CartItem newItem = new CartItem(0, customerId, variantId, targetQty, null);
+                saved = cartDao.insertCartItem(newItem);
+            }
+
+            if (!saved) {
+                String msg = "Không thể thêm sản phẩm vào giỏ hàng. Vui lòng thử lại.";
+                if (isAjax) {
+                    sendJson(response, false, 0, 0, msg);
+                } else {
+                    request.getSession().setAttribute("msg", msg);
+                    request.getSession().setAttribute("msgType", "danger");
+                    response.sendRedirect(request.getContextPath() + "/cartservlet");
+                }
+                return;
+            }
+
             if (isAjax) {
                 long totalAmount = 0;
                 List<CartItemDisplay> list = cartDao.getCartDisplayByCustomerId(customerId);
@@ -159,10 +215,25 @@ public class cartServlet extends HttpServlet {
                     totalAmount += d.getSubtotal();
                 }
                 request.getSession().setAttribute("cartCount", cartCountAjax);
-                sendJson(response, true, totalAmount, cartCountAjax, "Đã thêm vào giỏ hàng.");
+
+                String addMsg;
+                if (quantity > available || currentQty + quantity > available) {
+                    addMsg = "Đã thêm vào giỏ hàng với số lượng tối đa hiện còn trong kho (" + targetQty + " sản phẩm).";
+                } else {
+                    addMsg = "Đã thêm vào giỏ hàng.";
+                }
+
+                sendJson(response, true, totalAmount, cartCountAjax, addMsg);
             } else {
-                request.getSession().setAttribute("msg", "Đã thêm vào giỏ hàng.");
-                request.getSession().setAttribute("msgType", "success");
+                String addMsg;
+                if (quantity > available || currentQty + quantity > available) {
+                    addMsg = "Đã thêm vào giỏ với số lượng tối đa hiện còn trong kho (" + targetQty + " sản phẩm).";
+                    request.getSession().setAttribute("msgType", "danger");
+                } else {
+                    addMsg = "Đã thêm vào giỏ hàng.";
+                    request.getSession().setAttribute("msgType", "success");
+                }
+                request.getSession().setAttribute("msg", addMsg);
                 response.sendRedirect(request.getContextPath() + "/cartservlet");
             }
             return;
@@ -178,6 +249,15 @@ public class cartServlet extends HttpServlet {
                 }
                 return;
             }
+            if (new CustomerDAO().getCustomerById(customerId) == null) {
+                request.getSession().removeAttribute("customerId");
+                if (isAjax) {
+                    sendJson(response, false, 0, 0, "Phiên đăng nhập không còn hợp lệ. Vui lòng đăng nhập lại.");
+                } else {
+                    response.sendRedirect(request.getContextPath() + "/userservlet?action=loginPage");
+                }
+                return;
+            }
             CartItemDAO cartDao = new CartItemDAO();
             String idParam = request.getParameter("cart_item_id");
             String qParam = request.getParameter("quantity");
@@ -188,8 +268,51 @@ public class cartServlet extends HttpServlet {
                     if (quantity >= 1) {
                         CartItem item = cartDao.getCartItemById(cartItemId);
                         if (item != null && item.getCustomer_id() == customerId) {
-                            item.setQuantity(quantity);
-                            cartDao.updateCartItem(item);
+
+                            // Kiểm tra tồn kho trước khi cập nhật số lượng
+                            InventoryItemDAO invDao = new InventoryItemDAO();
+                            int available = invDao.countAvailableByVariantId(item.getVariant_id());
+
+                            if (isAjax) {
+                                // Với AJAX: nếu không đủ hàng thì giữ nguyên quantity cũ và trả lỗi để JS hiển thị thông báo + revert UI
+                                if (available <= 0 || quantity > available) {
+                                    ProductVariantDAO pvDao = new ProductVariantDAO();
+                                    ProductVariant v = pvDao.getVariantById(item.getVariant_id());
+                                    String productName = (v != null && v.getProductName() != null) ? v.getProductName() : "sản phẩm";
+                                    String errorMsg = "Sản phẩm \"" + productName + "\" hiện không đủ số lượng trong kho. Vui lòng điều chỉnh giỏ hàng hoặc liên hệ cửa hàng.";
+                                    sendJson(response, false, 0, 0, errorMsg);
+                                    return;
+                                }
+                                // Đủ hàng -> cập nhật đúng quantity user chọn
+                                item.setQuantity(quantity);
+                                if (!cartDao.updateCartItem(item)) {
+                                    sendJson(response, false, 0, 0, "Không thể cập nhật giỏ hàng. Vui lòng thử lại.");
+                                    return;
+                                }
+                            } else {
+                                // Không phải AJAX (submit thường): tự động chỉnh quantity để khớp tồn kho và dùng toast
+                                if (available <= 0) {
+                                    cartDao.deleteCartItem(cartItemId);
+                                    request.getSession().setAttribute("msg", "Sản phẩm trong giỏ đã hết hàng, hệ thống đã xóa khỏi giỏ.");
+                                    request.getSession().setAttribute("msgType", "danger");
+                                } else {
+                                    int newQty = quantity;
+                                    if (quantity > available) {
+                                        newQty = available; // tự chỉnh về mức tối đa còn trong kho
+                                        ProductVariantDAO pvDao = new ProductVariantDAO();
+                                        ProductVariant v = pvDao.getVariantById(item.getVariant_id());
+                                        String productName = (v != null && v.getProductName() != null) ? v.getProductName() : "sản phẩm";
+                                        String warnMsg = "Sản phẩm \"" + productName + "\" hiện chỉ còn " + available + " trong kho, hệ thống đã tự điều chỉnh số lượng trong giỏ về " + available + ".";
+                                        request.getSession().setAttribute("msg", warnMsg);
+                                        request.getSession().setAttribute("msgType", "danger");
+                                    }
+                                    item.setQuantity(newQty);
+                                    if (!cartDao.updateCartItem(item)) {
+                                        request.getSession().setAttribute("msg", "Không thể cập nhật giỏ hàng. Vui lòng thử lại.");
+                                        request.getSession().setAttribute("msgType", "danger");
+                                    }
+                                }
+                            }
                         }
                     }
                 } catch (NumberFormatException ignored) {
@@ -214,6 +337,11 @@ public class cartServlet extends HttpServlet {
             int customerId = getCustomerId(request);
             if (customerId <= 0) {
                 response.sendRedirect(request.getContextPath() + "/cartservlet");
+                return;
+            }
+            if (new CustomerDAO().getCustomerById(customerId) == null) {
+                request.getSession().removeAttribute("customerId");
+                response.sendRedirect(request.getContextPath() + "/userservlet?action=loginPage");
                 return;
             }
             String idParam = request.getParameter("cart_item_id");

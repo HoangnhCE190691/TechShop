@@ -37,6 +37,40 @@ public class ProductDAO extends DBContext {
         return list;
     }
 
+    /**
+     * Lấy tất cả sản phẩm kèm tổng tồn kho hiện tại (IN_STOCK) để dùng cho màn Import Receipt Item.
+     */
+    public List<Product> getAllProductWithStock() {
+        List<Product> list = new ArrayList<>();
+        String sql = """
+            SELECT p.*,
+                   c.category_name,
+                   b.brand_name,
+                   COUNT(CASE WHEN ii.status = 'IN_STOCK' THEN 1 END) AS stock_quantity
+            FROM products p
+            LEFT JOIN categories c      ON p.category_id = c.category_id
+            LEFT JOIN brands b          ON p.brand_id = b.brand_id
+            LEFT JOIN product_variants pv ON p.product_id = pv.product_id
+            LEFT JOIN inventory_items ii  ON pv.variant_id = ii.variant_id
+            GROUP BY p.product_id, p.name, p.category_id, p.brand_id, p.description, p.status,
+                     p.created_at, p.created_by, p.updated_by, p.updated_at,
+                     c.category_name, b.brand_name
+            ORDER BY p.product_id DESC
+            """;
+        try (PreparedStatement ps = conn.prepareStatement(sql);
+                ResultSet rs = ps.executeQuery()) {
+            while (rs.next()) {
+                Product p = mapResultSetToProduct(rs);
+                p.setCategoryName(rs.getString("category_name"));
+                p.setBrandName(rs.getString("brand_name"));
+                list.add(p);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return list;
+    }
+
     // 2. Lấy sản phẩm theo ID
     public Product getProductById(int id) {
         // SỬA: Phải JOIN với bảng categories và brands để lấy tên hiển thị
@@ -335,6 +369,9 @@ public class ProductDAO extends DBContext {
             }
             if (colName.equalsIgnoreCase("thumbnail_url")) {
                 p.setThumbnailUrl(rs.getString("thumbnail_url"));
+            }
+            if (colName.equalsIgnoreCase("stock_quantity")) {
+                p.setStockQuantity(rs.getInt("stock_quantity"));
             }
         }
 

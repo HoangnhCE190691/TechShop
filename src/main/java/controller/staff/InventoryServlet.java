@@ -36,6 +36,14 @@ public class InventoryServlet extends HttpServlet {
 
         switch (action) {
             case "add" -> {
+                String receiptItemIdStr = request.getParameter("receipt_item_id");
+                if (receiptItemIdStr != null && !receiptItemIdStr.isBlank()) {
+                    try {
+                        int receiptItemId = Integer.parseInt(receiptItemIdStr);
+                        request.setAttribute("receiptItem", new ImportReceiptItemDAO().getItemById(receiptItemId));
+                    } catch (NumberFormatException ignored) {
+                    }
+                }
                 request.setAttribute("listVariants", new ProductVariantDAO().getAllVariant());
                 request.setAttribute("contentPage", "/pages/InventoryManagementPage/addInventory.jsp");
                 request.getRequestDispatcher("/template/staffTemplate.jsp").forward(request, response);
@@ -94,17 +102,23 @@ public class InventoryServlet extends HttpServlet {
 
     private void handleAdd(HttpServletRequest request, HttpServletResponse response) throws IOException {
         String variantIdStr = request.getParameter("variant_id");
+        String receiptItemIdStr = request.getParameter("receipt_item_id");
         String imei = request.getParameter("imei");
         String importPriceStr = request.getParameter("import_price");
         String status = request.getParameter("status");
 
         try {
             int variantId = Integer.parseInt(variantIdStr != null ? variantIdStr : "0");
-            int receiptItemId = new ImportReceiptItemDAO().getFirstReceiptItemId();
-            if (receiptItemId == 0) {
-                setMsg(request.getSession(), "No receipt item available. Create an import receipt first.", "danger");
-                response.sendRedirect(request.getContextPath() + "/staffservlet?action=inventoryManagement");
-                return;
+            int receiptItemId;
+            if (receiptItemIdStr != null && !receiptItemIdStr.isBlank()) {
+                receiptItemId = Integer.parseInt(receiptItemIdStr);
+            } else {
+                receiptItemId = new ImportReceiptItemDAO().getFirstReceiptItemId();
+                if (receiptItemId == 0) {
+                    setMsg(request.getSession(), "No receipt item available. Create an import receipt first.", "danger");
+                    response.sendRedirect(request.getContextPath() + "/staffservlet?action=inventoryManagement");
+                    return;
+                }
             }
             double importPrice = Double.parseDouble(importPriceStr != null ? importPriceStr : "0");
             if (imei == null || imei.trim().isEmpty()) {

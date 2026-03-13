@@ -18,6 +18,8 @@ public class InventoryItem {
     private String status;
     /** Tên sản phẩm (từ JOIN với product_variants + products), dùng cho hiển thị. */
     private String productName;
+    /** Tên người mua (JOIN từ orders + customers), có thể null nếu chưa bán. */
+    private String buyerName;
 
     public InventoryItem() {
     }
@@ -85,6 +87,14 @@ public class InventoryItem {
 
     public void setProductName(String productName) {
         this.productName = productName;
+    }
+
+    public String getBuyerName() {
+        return buyerName;
+    }
+
+    public void setBuyerName(String buyerName) {
+        this.buyerName = buyerName;
     }
 
     @Override
