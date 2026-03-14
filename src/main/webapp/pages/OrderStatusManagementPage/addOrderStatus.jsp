@@ -42,20 +42,25 @@
         <h2 class="text-2xl font-bold text-gray-800">Add New Order Status</h2>
         <a href="adminservlet?action=orderStatusManagement" class="text-blue-600 hover:underline text-sm">← Back to list</a>
     </div>
+    <div class="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg text-sm text-blue-700">
+        <p class="font-bold mb-1">💡 Suggested flow:</p>
+        <p>(1) PENDING → (2) SHIPPING → (3) SHIPPED <span class="text-green-600 font-semibold">[Final]</span> → (4) CANCELLED <span class="text-red-600 font-semibold">[Final]</span></p>
+        <p class="mt-1 text-xs text-blue-500">Final stage statuses cannot be changed further. CANCELLED must use exactly the status code <span class="font-mono font-bold">CANCELLED</span>.</p>
+    </div>
 
     <form action="orderStatusServlet" method="POST" class="space-y-5">
         <input type="hidden" name="action" value="add">
 
         <div>
             <label class="block text-sm font-semibold text-gray-700 mb-1">Status Code</label>
-            <input type="text" name="status_code" placeholder="e.g., PENDING, SHIPPED..." 
+            <input type="text" name="status_code" placeholder="e.g., PENDING, SHIPPING, SHIPPED, CANCELLED" 
                    required class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none">
             <p class="text-xs text-gray-500 mt-1">Unique identifier for logic processing (uppercase recommended).</p>
         </div>
 
         <div>
             <label class="block text-sm font-semibold text-gray-700 mb-1">Display Name</label>
-            <input type="text" name="status_name" placeholder="e.g., Đang chờ xử lý" 
+            <input type="text" name="status_name" placeholder="e.g., PENDING, SHIPPING, SHIPPED, CANCELLED" 
                    required class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none">
         </div>
 

@@ -56,32 +56,40 @@
             </tr>
         </thead>
         <tbody>
-            <c:forEach items="${listdata}" var="s">
-                <tr class="border-b hover:bg-gray-50 transition">
-                    <td class="p-4 font-bold text-blue-600">#${s.stepOrder}</td>
-                    <td class="p-4 font-mono text-sm">${s.statusCode}</td>
-                    <td class="p-4">${s.statusName}</td>
-                    <td class="p-4">
-                        <c:choose>
-                            <c:when test="${s.isFinal}">
-                                <span class="bg-green-100 text-green-700 px-2 py-1 rounded text-xs font-bold">FINAL STAGE</span>
-                            </c:when>
-                            <c:otherwise>
-                                <span class="bg-gray-100 text-gray-600 px-2 py-1 rounded text-xs">Processing</span>
-                            </c:otherwise>
-                        </c:choose>
-                    </td>
-                    <td class="p-4">
-                        <div class="flex items-center gap-4 text-sm font-medium whitespace-nowrap">
-                        <a href="orderStatusServlet?action=edit&id=${s.statusId}" class="text-blue-600 hover:text-blue-800 hover:underline">Edit</a>
-                        <a href="orderStatusServlet?action=delete&id=${s.statusId}"
-                           class="text-red-600 hover:text-red-800 hover:underline">
-                            Delete
-                        </a>
-                        </div>
-                    </td>
-                </tr>
-            </c:forEach>
+            <c:choose>
+                <c:when test="${empty listdata}">
+                    <tr>
+                        <td colspan="5" class="p-8 text-center text-gray-400 italic">
+                            No order statuses found. Suggested Statuses flow: PENDING, SHIPPING, SHIPPED, CANCELLED
+                        </td>
+                    </tr>
+                </c:when>
+                <c:otherwise>
+                    <c:forEach items="${listdata}" var="s">
+                        <tr class="border-b hover:bg-gray-50 transition">
+                            <td class="p-4 font-bold text-blue-600">#${s.stepOrder}</td>
+                            <td class="p-4 font-mono text-sm">${s.statusCode}</td>
+                            <td class="p-4">${s.statusName}</td>
+                            <td class="p-4">
+                                <c:choose>
+                                    <c:when test="${s.isFinal}">
+                                        <span class="bg-green-100 text-green-700 px-2 py-1 rounded text-xs font-bold">FINAL STAGE</span>
+                                    </c:when>
+                                    <c:otherwise>
+                                        <span class="bg-gray-100 text-gray-600 px-2 py-1 rounded text-xs">Processing</span>
+                                    </c:otherwise>
+                                </c:choose>
+                            </td>
+                            <td class="p-4">
+                                <div class="flex items-center gap-4 text-sm font-medium whitespace-nowrap">
+                                    <a href="orderStatusServlet?action=edit&id=${s.statusId}" class="text-blue-600 hover:text-blue-800 hover:underline">Edit</a>
+                                    <a href="orderStatusServlet?action=delete&id=${s.statusId}" class="text-red-600 hover:text-red-800 hover:underline">Delete</a>
+                                </div>
+                            </td>
+                        </tr>
+                    </c:forEach>
+                </c:otherwise>
+            </c:choose>
         </tbody>
     </table>
 </div>

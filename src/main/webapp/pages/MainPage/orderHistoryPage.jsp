@@ -65,7 +65,7 @@
                                value="px-3 py-1 bg-blue-100 text-blue-700 text-xs font-bold rounded-lg flex items-center gap-1.5 uppercase tracking-wide"/>
                         <c:set var="badgeText" value="Đang vận chuyển"/>
                     </c:when>
-                    <c:when test="${statusCode == 'COMPLETED' || statusCode == 'DELIVERED'}">
+                    <c:when test="${statusCode == 'SHIPPED' || statusCode == 'DELIVERED'}">
                         <c:set var="badgeClass"
                                value="px-3 py-1 bg-green-100 text-green-700 text-xs font-bold rounded-lg flex items-center gap-1.5 uppercase tracking-wide"/>
                         <c:set var="badgeText" value="Giao hàng thành công"/>

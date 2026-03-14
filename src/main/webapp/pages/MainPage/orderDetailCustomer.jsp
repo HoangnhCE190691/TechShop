@@ -40,9 +40,9 @@
             <table class="w-full text-left border-collapse">
                 <thead>
                     <tr class="border-b-2 border-gray-100">
-                        <th class="py-3 font-bold text-gray-700">Ảnh sản phẩm</th>  <!-- Thêm cột ảnh -->
+                        <th class="py-3 font-bold text-gray-700">Ảnh sản phẩm</th>  
                         <th class="py-3 font-bold text-gray-700">Tên sản phẩm</th>
-                        <th class="py-3 font-bold text-gray-700">IMEI / Serial</th>
+<!--                        <th class="py-3 font-bold text-gray-700">IMEI / Serial</th>-->
                         <th class="py-3 text-right font-bold text-gray-700">Giá</th>
                     </tr>
                 </thead>
@@ -57,7 +57,7 @@
                             <div class="font-medium">${item.productName}</div>
                             <div class="text-xs text-gray-400">SKU: ${item.sku}</div>
                         </td>
-                        <td class="py-4 font-mono text-sm text-blue-600">${item.imei}</td>
+<!--                        <td class="py-4 font-mono text-sm text-blue-600">${item.imei}</td>-->
                         <td class="py-4 text-right font-bold text-red-500">
                     <fmt:formatNumber value="${item.price}" type="number" pattern="#,###"/>đ
                     </td>

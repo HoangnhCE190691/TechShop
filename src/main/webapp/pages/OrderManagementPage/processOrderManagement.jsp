@@ -82,9 +82,26 @@
                             </span>
                         </td>
                         <td class="px-6 py-4 text-center">
-                            <span class="px-3 py-1 rounded-full text-xs font-bold uppercase bg-indigo-100 text-indigo-700 border border-indigo-200">
-                                ${o.status}
-                            </span>
+                            <%-- Lookup status name + color tu statusList --%>
+                            <c:set var="badgeClass" value="px-3 py-1 rounded-full text-xs font-bold uppercase bg-yellow-100 text-yellow-700 border border-yellow-200"/>
+                            <c:set var="badgeName" value="${o.status}"/>
+                            <c:forEach items="${statusList}" var="st">
+                                <c:if test="${st.code == o.status}">
+                                    <c:set var="badgeName" value="${st.name}"/>
+                                    <c:choose>
+                                        <c:when test="${st.code == 'CANCELLED'}">
+                                            <c:set var="badgeClass" value="px-3 py-1 rounded-full text-xs font-bold uppercase bg-gray-100 text-gray-600 border border-gray-200"/>
+                                        </c:when>
+                                        <c:when test="${st.isFinal == 'true'}">
+                                            <c:set var="badgeClass" value="px-3 py-1 rounded-full text-xs font-bold uppercase bg-green-100 text-green-700 border border-green-200"/>
+                                        </c:when>
+                                        <c:otherwise>
+                                            <c:set var="badgeClass" value="px-3 py-1 rounded-full text-xs font-bold uppercase bg-blue-100 text-blue-700 border border-blue-200"/>
+                                        </c:otherwise>
+                                    </c:choose>
+                                </c:if>
+                            </c:forEach>
+                            <span class="${badgeClass}">${badgeName}</span>
                         </td>
                         <td class="px-6 py-4 text-center space-y-1">
                             <a href="orderStaffServlet?action=orderDetail&id=${o.orderId}" class="block bg-gray-800 text-white text-[10px] py-1 rounded hover:bg-black transition">View</a>
@@ -92,6 +109,14 @@
                         </td>
                     </tr>
                 </c:forEach>
+                <%-- Empty state khi khong co don nao --%>
+                <c:if test="${empty orderList}">
+                    <tr>
+                        <td colspan="6" class="px-6 py-10 text-center text-gray-400 italic font-medium">
+                            No orders found.
+                        </td>
+                    </tr>
+                </c:if>
             </tbody>
         </table>
     </div>
@@ -147,7 +172,7 @@
                 // Cập nhật số lượng
                 visibleCount.innerText = hasResultCount;
 
-                // Hiển thị thông báo "No Results" như mẫu của bạn
+                // Hiển thị thông báo "No Results" 
                 let noResultRow = document.getElementById('noResultRow');
                 if (hasResultCount === 0) {
                     if (!noResultRow) {
