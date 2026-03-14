@@ -215,6 +215,7 @@ public class orderpageServlet extends HttpServlet {
 
         model.Voucher appliedVoucher = null;
         double discount = 0;
+        
         if (voucherId > 0) {
             VoucherDAO vdao = new VoucherDAO();
             appliedVoucher = vdao.getVoucherById(voucherId);

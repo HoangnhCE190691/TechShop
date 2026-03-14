@@ -96,9 +96,9 @@ public class employeeServlet extends HttpServlet {
 
                     // Xét điều kiện để gửi thông báo
                     if (isDeleted) {
-                        request.setAttribute("successMessage", "Đã xóa nhân viên thành công!");
+                        request.setAttribute("successMessage", "Employee removed successfully!");
                     } else {
-                        request.setAttribute("errorMessage", "Xóa thất bại! Nhân viên này đang dính líu đến dữ liệu khác trong hệ thống nên không thể xóa.");
+                        request.setAttribute("errorMessage", "Deletion failed! This employee is involved with other data in the system and therefore cannot delete it.");
                     }
 
                     page = "/pages/EmployeeManagementPage/employeeManagement.jsp";

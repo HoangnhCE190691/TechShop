@@ -5,9 +5,9 @@
     <nav class="bg-white border-b border-gray-200">
         <div class="flex flex-wrap justify-between items-center mx-auto max-w-screen-xl p-4 gap-4">
 
-            <a href="https://flowbite.com" class="flex items-center space-x-3 shrink-0">
+            <a href="userservlet?action=homePage" class="flex items-center space-x-3 shrink-0">
                 <img src="https://flowbite.com/docs/images/logo.svg" class="h-8" alt="Flowbite Logo" />
-                <span class="self-center text-xl font-bold text-gray-900 whitespace-nowrap">Flowbite</span>
+                <span class="self-center text-xl font-bold text-gray-900 whitespace-nowrap">TechShop</span>
             </a>
 
             <div class="flex-1 max-w-lg mx-auto hidden md:block relative">
@@ -25,7 +25,7 @@
                     <input type="search" id="search-input" name="keyword"
                            value="${not empty keyword ? keyword : ''}"
                            class="block w-full p-2.5 ps-10 text-sm text-gray-900 border border-gray-300 rounded-lg bg-gray-50 focus:ring-blue-500 focus:border-blue-500"
-                           placeholder="Tìm kiếm sản phẩm..." required autocomplete="off">
+                           placeholder="Searching product..." required autocomplete="off">
                 </form>
 
                 <!-- Box Dropdown Search AJAX -->
@@ -111,27 +111,23 @@
 
                             <div
                                 class="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 border border-gray-100">
-                                
-                                <a href="userservlet?action=userDashboard&id=${cookie.cookieID.value}"
-                                   class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Thông
-                                    tin tài khoản</a>
+                                <c:if test="${cookie.cookieRole.value eq 'customer' }">
+                                    <a href="userservlet?action=userDashboard&id=${cookie.cookieID.value}"
+                                       class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">account information</a>
+                                </c:if>
                                 <a href="orderhistorypageservlet"
-                                   class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Lịch sử
-                                    đơn hàng</a>
+                                   class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Order history</a>
                                 <div class="border-t border-gray-100 my-1"></div>
-                                <c:if test="${cookie.cookieRole.value eq 'ADMIN' }">
+                                <c:if test="${cookie.cookieRole.value eq 'Admin' }">
                                     <a href="adminservlet?action=dashboard"
-                                       class="block px-4 py-2 text-sm text-blue-600 hover:bg-gray-100 font-medium">Quản
-                                        lý hệ thống</a>
-                                    </c:if>
-                                    <c:if test="${ cookie.cookieRole.value eq 'STAFF'}">
+                                       class="block px-4 py-2 text-sm text-blue-600 hover:bg-gray-100 font-medium">System Management</a>
+                                </c:if>
+                                <c:if test="${ cookie.cookieRole.value eq 'Staff'}">
                                     <a href="staffservlet?action=dashboard"
-                                       class="block px-4 py-2 text-sm text-blue-600 hover:bg-gray-100 font-medium">Quản
-                                        lý hệ thống</a>
-                                    </c:if>
+                                       class="block px-4 py-2 text-sm text-blue-600 hover:bg-gray-100 font-medium">System Management</a>
+                                </c:if>
                                 <a href="logoutservlet"
-                                   class="block px-4 py-2 text-sm text-red-600 hover:bg-gray-50">Đăng
-                                    xuất</a>
+                                   class="block px-4 py-2 text-sm text-red-600 hover:bg-gray-50">Logout</a>
                             </div>
                         </div>
 
@@ -141,12 +137,12 @@
                     <c:otherwise>
                         <a href="userservlet?action=loginPage"
                            class="text-sm font-medium text-gray-700 hover:text-blue-600 transition-colors">
-                            Đăng nhập
+                            Login
                         </a>
 
                         <a href="userservlet?action=registerPage"
                            class="text-white bg-blue-600 hover:bg-blue-700 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-4 py-2 transition-colors focus:outline-none ml-2">
-                            Đăng kí
+                            Register
                         </a>
                     </c:otherwise>
                 </c:choose>
@@ -162,14 +158,13 @@
 
                 <li>
                     <a href="userservlet?action=homePage"
-                       class="text-gray-900 hover:text-blue-600 transition-colors" aria-current="page">Trang
-                        chủ</a>
+                       class="text-gray-900 hover:text-blue-600 transition-colors" aria-current="page">Home Page</a>
                 </li>
 
                 <li class="relative group">
                     <a href="productpageservlet"
                        class="flex items-center text-gray-900 hover:text-blue-600 focus:outline-none transition-colors">
-                        Sản phẩm
+                        Product
                         <!--                        <svg class="w-2.5 h-2.5 ms-2 transition-transform duration-200 group-hover:rotate-180" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 10 6">
                                             <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 1 4 4 4-4"/>
                                         </svg>-->
@@ -188,8 +183,7 @@
                                 </div>-->
                 </li>
 
-                <li><a href="Infomationservlet" class="text-gray-900 hover:text-blue-600 transition-colors">Công
-                        ty</a></li>
+                <li><a href="Infomationservlet" class="text-gray-900 hover:text-blue-600 transition-colors">Company</a></li>
                 <li><a href="contactservlet"
                        class="text-gray-900 hover:text-blue-600 transition-colors">Contact</a></li>
             </ul>

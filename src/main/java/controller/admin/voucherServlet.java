@@ -110,9 +110,9 @@ public class voucherServlet extends HttpServlet {
 
                     // Gửi thông báo tương ứng
                     if (isDeleted) {
-                        request.setAttribute("successMessage", "Đã xóa mã giảm giá (Voucher) thành công!");
+                        request.setAttribute("successMessage", "The discount code (voucher) has been successfully deleted!");
                     } else {
-                        request.setAttribute("errorMessage", "Xóa thất bại! Voucher này đã được áp dụng trong đơn hàng nên không thể xóa.");
+                        request.setAttribute("errorMessage", "Cancellation failed! This voucher has already been applied to the order and cannot be removed.");
                     }
 
                     page = "/pages/VoucherManagementPage/voucherManagement.jsp";
@@ -166,7 +166,7 @@ public class voucherServlet extends HttpServlet {
 
                     // Thêm check an toàn cho số lượng và phần trăm để tránh lỗi 500
                     if (discountPercentStr == null || discountPercentStr.isEmpty() || totalQuantityStr == null || totalQuantityStr.isEmpty()) {
-                        errorCode = "Vui lòng nhập đầy đủ các trường bắt buộc!"; // Hoặc một biến error chung
+                        errorCode = "Please fill in all required fields!"; // Hoặc một biến error chung
                     }
 
                     if (errorCode.isEmpty() && errorValidTo.isEmpty() && errorMaxDiscountAmount.isEmpty()) {

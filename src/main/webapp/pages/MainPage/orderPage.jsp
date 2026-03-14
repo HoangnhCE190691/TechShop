@@ -40,7 +40,7 @@
                             <%-- TRƯỜNG HỢP 1: Danh sách rỗng (Chưa có địa chỉ nào) --%>
                             <c:when test="${empty listaddress}">
                                 <div class="col-span-1 md:col-span-2">
-                                    <a href="addresssuserservlet?action=add" class="relative block w-full border-2 border-dashed border-gray-300 bg-gray-50 rounded-2xl p-8 hover:bg-gray-100 hover:border-red-400 transition-all text-center group cursor-pointer">
+                                    <a href="addresssuserservlet?action=addIncart" class="relative block w-full border-2 border-dashed border-gray-300 bg-gray-50 rounded-2xl p-8 hover:bg-gray-100 hover:border-red-400 transition-all text-center group cursor-pointer">
                                         <svg class="mx-auto h-10 w-10 text-gray-400 group-hover:text-red-500 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
                                         <h3 class="mt-2 text-base font-bold text-gray-900">Chưa có địa chỉ giao hàng</h3>
                                         <p class="mt-1 text-sm text-gray-500">Bấm vào đây để thêm địa chỉ mới nhé.</p>

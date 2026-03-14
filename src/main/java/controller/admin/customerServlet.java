@@ -92,10 +92,10 @@ public class customerServlet extends HttpServlet {
 
                     if (!isDeleted) {
                         // Nếu xóa thất bại
-                        request.setAttribute("errorMessage", "Xóa thất bại! Khách hàng này đang có dữ liệu liên quan (địa chỉ, đơn hàng...) nên không thể xóa.");
+                        request.setAttribute("errorMessage", "Deletion failed! This customer has related data (address, order details, etc.) so it cannot be deleted.");
                     } else {
                         // Nêu xóa thành công (bạn có thể thêm để thông báo cho rõ ràng)
-                        request.setAttribute("successMessage", "Đã xóa khách hàng thành công!");
+                        request.setAttribute("successMessage", "Customer successfully deleted!");
                     }
 
                     page = "/pages/CustomerManagementPage/customerManagement.jsp";

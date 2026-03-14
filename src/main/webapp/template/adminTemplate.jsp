@@ -19,7 +19,7 @@
         <aside id="separator-sidebar" class="fixed top-0 left-0 z-40 w-64 h-screen transition-transform -translate-x-full sm:translate-x-0" aria-label="Sidebar">
             <div class="h-full px-3 py-4 overflow-y-auto bg-white border-r border-gray-200">
                 <div class="flex items-center ps-2.5 mb-5">
-                    <span class="self-center text-xl font-semibold whitespace-nowrap text-blue-600">TechShop Admin</span>
+                    <a href="userservlet?action=homePage" class="self-center text-xl font-semibold whitespace-nowrap text-blue-600">TechShop Admin</a>
                 </div>
 
                 <ul class="space-y-2 font-medium">

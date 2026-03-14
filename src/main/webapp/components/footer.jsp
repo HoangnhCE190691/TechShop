@@ -2,9 +2,9 @@
     <div class="mx-auto w-full max-w-screen-xl p-4 py-6 lg:py-8">
         <div class="md:flex md:justify-between">
           <div class="mb-6 md:mb-0">
-              <a href="https://flowbite.com/" class="flex items-center">
+              <a href="userservlet?action=homePage" class="flex items-center">
                   <img src="https://flowbite.com/docs/images/logo.svg" class="h-7 me-3" alt="FlowBite Logo" />
-                  <span class="text-heading self-center text-2xl font-semibold whitespace-nowrap">Flowbite</span>
+                  <span class="text-heading self-center text-2xl font-semibold whitespace-nowrap">TeckShop</span>
               </a>
           </div>
           <div class="grid grid-cols-2 gap-8 sm:gap-6 sm:grid-cols-3">

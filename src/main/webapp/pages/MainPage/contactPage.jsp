@@ -1,22 +1,20 @@
 <%@page contentType="text/html" pageEncoding="UTF-8"%>
 
-
 <body class="bg-[#f4f6f8] font-sans text-gray-800">
 
-   
     <div class="max-w-[1200px] mx-auto px-4 pb-16">
         
         <div class="text-center mb-10 mt-4">
-            <h1 class="text-3xl md:text-4xl font-bold text-gray-900 mb-4">Liên Hệ Với Chúng Tôi</h1>
+            <h1 class="text-3xl md:text-4xl font-bold text-gray-900 mb-4">Contact Us</h1>
             <p class="text-gray-500 max-w-2xl mx-auto">
-                Nếu bạn có bất kỳ câu hỏi nào về sản phẩm, dịch vụ hoặc cần hỗ trợ, đừng ngần ngại gửi tin nhắn. Chúng tôi sẽ phản hồi bạn trong thời gian sớm nhất!
+                If you have any questions about our products, services, or need support, don't hesitate to send us a message. We will get back to you as soon as possible!
             </p>
         </div>
 
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
             
             <div class="bg-white p-6 md:p-8 rounded-2xl shadow-sm border border-gray-100 flex flex-col h-full">
-                <h2 class="text-2xl font-bold text-gray-800 mb-6 border-b pb-4">Thông Tin Liên Hệ</h2>
+                <h2 class="text-2xl font-bold text-gray-800 mb-6 border-b pb-4">Contact Information</h2>
                 
                 <div class="space-y-6 mb-8 flex-grow">
                     <div class="flex items-start gap-4">
@@ -24,8 +22,8 @@
                             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.243-4.243a8 8 0 1111.314 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
                         </div>
                         <div>
-                            <h3 class="font-bold text-gray-900 text-lg">Địa chỉ</h3>
-                            <p class="text-gray-600 mt-1 leading-relaxed">xxx<br>TP. xxx</p>
+                            <h3 class="font-bold text-gray-900 text-lg">Address</h3>
+                            <p class="text-gray-600 mt-1 leading-relaxed">333<br>City.Cần Thơ</p>
                         </div>
                     </div>
 
@@ -35,8 +33,8 @@
                         </div>
                         <div>
                             <h3 class="font-bold text-gray-900 text-lg">Hotline</h3>
-                            <p class="text-gray-600 mt-1">xxx</p>
-                            <p class="text-gray-600">xxx</p>
+                            <p class="text-gray-600 mt-1">0903224113</p>
+                            <p class="text-gray-600">0911722444</p>
                         </div>
                     </div>
 
@@ -46,7 +44,7 @@
                         </div>
                         <div>
                             <h3 class="font-bold text-gray-900 text-lg">Email</h3>
-                            <p class="text-gray-600 mt-1">xxx</p>
+                            <p class="text-gray-600 mt-1">techshop@gmail.com</p>
                         </div>
                     </div>
                 </div>
@@ -57,50 +55,50 @@
             </div>
 
             <div class="bg-white p-6 md:p-8 rounded-2xl shadow-sm border border-gray-100 h-full">
-                <h2 class="text-2xl font-bold text-gray-800 mb-6 border-b pb-4">Gửi Yêu Cầu Cho Chúng Tôi</h2>
+                <h2 class="text-2xl font-bold text-gray-800 mb-6 border-b pb-4">Send Us Your Inquiry</h2>
                 
                 <form action="contactservlet" method="POST" class="space-y-5">
                     
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
                         <div>
-                            <label for="fullName" class="block text-sm font-semibold text-gray-700 mb-2">Họ và tên <span class="text-red-500">*</span></label>
-                            <input type="text" id="fullName" name="fullName" required placeholder="Nhập họ và tên của bạn" 
+                            <label for="fullName" class="block text-sm font-semibold text-gray-700 mb-2">Full Name <span class="text-red-500">*</span></label>
+                            <input type="text" id="fullName" name="fullName" required placeholder="Enter your full name" 
                                    class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all bg-gray-50 focus:bg-white">
                         </div>
                         <div>
-                            <label for="phone" class="block text-sm font-semibold text-gray-700 mb-2">Số điện thoại <span class="text-red-500">*</span></label>
-                            <input type="tel" id="phone" name="phone" required placeholder="Nhập số điện thoại" 
+                            <label for="phone" class="block text-sm font-semibold text-gray-700 mb-2">Phone Number <span class="text-red-500">*</span></label>
+                            <input type="tel" id="phone" name="phone" required placeholder="Enter your phone number" 
                                    class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all bg-gray-50 focus:bg-white">
                         </div>
                     </div>
 
                     <div>
                         <label for="email" class="block text-sm font-semibold text-gray-700 mb-2">Email</label>
-                        <input type="email" id="email" name="email" placeholder="Nhập địa chỉ email (không bắt buộc)" 
+                        <input type="email" id="email" name="email" placeholder="Enter your email (optional)" 
                                class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all bg-gray-50 focus:bg-white">
                     </div>
 
                     <div>
-                        <label for="subject" class="block text-sm font-semibold text-gray-700 mb-2">Chủ đề <span class="text-red-500">*</span></label>
+                        <label for="subject" class="block text-sm font-semibold text-gray-700 mb-2">Subject <span class="text-red-500">*</span></label>
                         <select id="subject" name="subject" required 
                                 class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all bg-gray-50 focus:bg-white appearance-none cursor-pointer">
-                            <option value="" disabled selected>-- Chọn chủ đề cần hỗ trợ --</option>
-                            <option value="TuVan">Tư vấn mua hàng</option>
-                            <option value="BaoHanh">Hỗ trợ kỹ thuật & Bảo hành</option>
-                            <option value="KhieuNai">Góp ý & Khiếu nại</option>
-                            <option value="Khac">Vấn đề khác</option>
+                            <option value="" disabled selected>-- Select a support topic --</option>
+                            <option value="TuVan">Sales Consultation</option>
+                            <option value="BaoHanh">Technical Support & Warranty</option>
+                            <option value="KhieuNai">Feedback & Complaints</option>
+                            <option value="Khac">Other Issues</option>
                         </select>
                     </div>
 
                     <div>
-                        <label for="message" class="block text-sm font-semibold text-gray-700 mb-2">Nội dung <span class="text-red-500">*</span></label>
-                        <textarea id="message" name="message" rows="5" required placeholder="Nhập chi tiết yêu cầu của bạn..." 
+                        <label for="message" class="block text-sm font-semibold text-gray-700 mb-2">Message Content <span class="text-red-500">*</span></label>
+                        <textarea id="message" name="message" rows="5" required placeholder="Describe your request in detail..." 
                                   class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all bg-gray-50 focus:bg-white resize-y"></textarea>
                     </div>
 
                     <button type="submit" 
                             class="w-full bg-blue-600 text-white font-bold text-lg py-3.5 rounded-lg hover:bg-blue-700 hover:shadow-lg transform hover:-translate-y-0.5 transition-all duration-200">
-                        Gửi Tin Nhắn
+                        Send 
                     </button>
                     
                 </form>

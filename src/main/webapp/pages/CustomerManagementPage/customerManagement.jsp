@@ -17,7 +17,7 @@
                 <input name="action" value="search" hidden>
                 <input type="text" name="name" 
                        class="w-full pl-10 pr-4 py-2 text-sm border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                       placeholder="Tìm kiếm theo tên">
+                       placeholder="Search by name">
             </div>
             <button type="submit" class="hidden"></button>
         </form>
@@ -111,7 +111,7 @@
                 <c:if test="${empty listdata}">
                     <tr>
                         <td colspan="6" class="px-4 py-10 text-center text-gray-500">
-                            Không tìm thấy dữ liệu khách hàng nào.
+                         No customer data was found.
                         </td>
                     </tr>
                 </c:if>
@@ -122,15 +122,15 @@
     <!-- Pagination -->
     <div class="flex flex-col md:flex-row justify-between items-center gap-3 mt-5">
         <p class="text-sm text-gray-500">
-            Hiển thị <span class="font-semibold text-gray-900">1–10</span> / 
-            <span class="font-semibold text-gray-900">100</span> kết quả
+            Display<span class="font-semibold text-gray-900">1–10</span> / 
+            <span class="font-semibold text-gray-900">100</span> result
         </p>
 
         <div class="inline-flex rounded-lg shadow-sm">
-            <a href="#" class="px-3 py-2 text-sm border rounded-l-lg hover:bg-gray-100">Trước</a>
+            <a href="#" class="px-3 py-2 text-sm border rounded-l-lg hover:bg-gray-100">Before</a>
             <a href="#" class="px-3 py-2 text-sm border bg-blue-50 text-blue-600 font-semibold">1</a>
             <a href="#" class="px-3 py-2 text-sm border hover:bg-gray-100">2</a>
-            <a href="#" class="px-3 py-2 text-sm border rounded-r-lg hover:bg-gray-100">Sau</a>
+            <a href="#" class="px-3 py-2 text-sm border rounded-r-lg hover:bg-gray-100">After</a>
         </div>
     </div>
 </div>

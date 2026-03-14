@@ -26,7 +26,7 @@
 
     <div class="w-full my-8 bg-white p-6 rounded-2xl shadow-sm">
         <h3 class="text-2xl md:text-3xl font-bold mb-6 text-gray-800 flex items-center gap-2">
-            <span class="text-yellow-400">⭐</span> Sản phẩm giá không rẻ
+            <span class="text-yellow-400">⭐</span> Product
         </h3>
 
         <div class="ant-tabs ant-tabs-top">
@@ -335,7 +335,7 @@
     <div
         class="w-full max-w-[1200px] mx-auto my-12 bg-white p-6 rounded-2xl shadow-sm border border-red-50">
         <h2 class="text-2xl font-bold text-gray-800 uppercase mb-6 flex items-center gap-2">
-            <span class="text-red-500 text-3xl">🎁</span> Món quà công nghệ
+            <span class="text-red-500 text-3xl">🎁</span> A tech gift
         </h2>
 
         <div class="grid grid-cols-1 lg:grid-cols-4 lg:grid-rows-3 gap-4 lg:h-[600px]">

@@ -4,8 +4,8 @@
 <div class="max-w-4xl mx-auto py-10 px-4 sm:px-6 lg:px-8">
     <div class="bg-white shadow-xl rounded-lg overflow-hidden">
         <div class="bg-gradient-to-r from-blue-600 to-indigo-700 px-6 py-8 text-white">
-            <h1 class="text-2xl font-bold">Chỉnh sửa thông tin cá nhân</h1>
-            <p class="text-blue-100 mt-2">Cập nhật thông tin tài khoản của bạn để nhận dịch vụ tốt nhất.</p>
+            <h1 class="text-2xl font-bold">Edit Personal Information</h1>
+            <p class="text-blue-100 mt-2">Update your account details to receive the best service.</p>
         </div>
 
         <form action="userdashboardservlet" method="POST" class="p-8 space-y-6">
@@ -13,21 +13,21 @@
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div class="col-span-2 sm:col-span-1">
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Họ và tên</label>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Full Name</label>
                     <input type="text" name="fullname" value="${customer.fullname}" 
                            class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500 transition shadow-sm"
                            required>
                 </div>
 
                 <div class="col-span-2 sm:col-span-1">
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Tên đăng nhập (Không thể đổi)</label>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Username (Cannot be changed)</label>
                     <input type="text" value="${customer.userName}" 
                            class="w-full px-4 py-2 bg-gray-100 border border-gray-200 rounded-md text-gray-500 cursor-not-allowed"
                            readonly>
                 </div>
 
                 <div class="col-span-2 sm:col-span-1">
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Email</label>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Email Address</label>
                     <input type="email" name="email" value="${customer.email}" 
                            class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500 transition shadow-sm"
                            required>
@@ -37,23 +37,24 @@
                 </div>
 
                 <div class="col-span-2 sm:col-span-1">
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Số điện thoại</label>
-                    <input type="tel" name="phoneNumber" value="${customer.phoneNumber}"  pattern="^0(3|5|7|8|9)[0-9]{8}$"  title="Số điện thoại phải bắt đầu bằng 0, theo sau là 3, 5, 7, 8, 9 và đủ 10 chữ số." 
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Phone Number</label>
+                    <input type="tel" name="phoneNumber" value="${customer.phoneNumber}" 
+                           pattern="^0(3|5|7|8|9)[0-9]{8}$" 
+                           title="Phone number must start with 0, followed by 3, 5, 7, 8, or 9 and have exactly 10 digits." 
                            class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500 transition shadow-sm"
                            required>
                     <c:if test="${not empty errorPhone}">
                         <p class="mt-1 text-xs text-red-600 font-medium">${errorPhone}</p>
                     </c:if>
                 </div>
-
             </div>
 
             <div class="pt-6 border-t border-gray-200 flex items-center justify-end gap-4">
                 <a href="userdashboardservlet" class="px-6 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50 transition">
-                    Hủy bỏ
+                    Cancel
                 </a>
-                <button type="submit" class="cursor-pointer  px-6 py-2 bg-blue-600 border border-transparent rounded-md shadow-sm text-sm font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition">
-                    Lưu thay đổi
+                <button type="submit" class="cursor-pointer px-6 py-2 bg-blue-600 border border-transparent rounded-md shadow-sm text-sm font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition">
+                    Save Changes
                 </button>
             </div>
         </form>
