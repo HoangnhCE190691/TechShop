@@ -87,7 +87,7 @@ public class OrderDAO extends DBContext {
 
     public List<Order> getAllOrdersWithFullInfo() {
         List<Order> list = new ArrayList<>();
-        String sql = "SELECT o.*, c.full_name, "
+        String sql = "SELECT o.*, c.full_name, v.code AS code, "
                 + "(SELECT TOP 1 p.name FROM order_items oi "
                 + " JOIN inventory_items ii ON oi.inventory_id = ii.inventory_id "
                 + " JOIN product_variants pv ON ii.variant_id = pv.variant_id "
@@ -107,7 +107,7 @@ public class OrderDAO extends DBContext {
                 if (!rs.wasNull()) {
                     voucher = new Voucher();
                     voucher.setVoucherId(vId);
-                    voucher.setCode(rs.getString("voucher_code"));
+                    voucher.setCode(rs.getString("code"));
                 }
 
                 Order o = new Order(
@@ -142,7 +142,7 @@ public class OrderDAO extends DBContext {
     // ===== READ BY CUSTOMER (for user order history) =====
     public List<Order> getOrdersByCustomerWithSummary(int customerId) {
         List<Order> list = new ArrayList<>();
-        String sql = "SELECT o.*, c.full_name, "
+        String sql = "SELECT o.*, c.full_name, v.code as voucher_code, "
                 + "(SELECT TOP 1 p.name FROM order_items oi "
                 + " JOIN inventory_items ii ON oi.inventory_id = ii.inventory_id "
                 + " JOIN product_variants pv ON ii.variant_id = pv.variant_id "
@@ -157,6 +157,7 @@ public class OrderDAO extends DBContext {
                 + "(SELECT COUNT(*) FROM order_items WHERE order_id = o.order_id) as total_items "
                 + "FROM orders o "
                 + "JOIN customers c ON o.customer_id = c.customer_id "
+                + "LEFT JOIN vouchers v ON o.voucher_id = v.voucher_id "
                 + "WHERE o.customer_id = ? "
                 + "ORDER BY o.created_at DESC";
         try (PreparedStatement ps = conn.prepareStatement(sql)) {

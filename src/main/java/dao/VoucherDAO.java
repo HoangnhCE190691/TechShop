@@ -160,6 +160,19 @@ public class VoucherDAO extends DBContext {
         }
         return list;
     }
+    // ===== INCREMENT USED QUANTITY =====
+
+    public boolean incrementUsedQuantity(int voucherId) {
+        String sql = "UPDATE vouchers SET used_quantity = used_quantity + 1 WHERE voucher_id = ?";
+        try {
+            PreparedStatement ps = conn.prepareStatement(sql);
+            ps.setInt(1, voucherId);
+            return ps.executeUpdate() > 0;
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
 
     // ===== TEST MAIN =====
     public static void main(String[] args) {

@@ -278,7 +278,11 @@ public class orderpageServlet extends HttpServlet {
 
         // 3. Xóa giỏ hàng sau khi đặt hàng thành công
         cartDao.deleteCartByCustomerId(customerId);
-
+        // 4. Cập nhật số lượng voucher đã sử dụng
+        if (appliedVoucher != null) {
+            VoucherDAO vdao = new VoucherDAO();
+            vdao.incrementUsedQuantity(appliedVoucher.getVoucherId());
+        }
         response.sendRedirect("orderpageservlet?orderSuccess=1&orderId=" + orderId);
     }
 
