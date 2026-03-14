@@ -88,8 +88,14 @@ public class orderStaffServlet extends HttpServlet {
                 case "editOrderPage":
                     int idEdit = Integer.parseInt(request.getParameter("id"));
                     Order orderToEdit = odao.getOrderById(idEdit);
+                    String nextStatus = odao.getNextStatus(orderToEdit.getStatus());
+                    String cancelledCode = odao.getCancelledStatusCode();
+                    String nextOfNext = (nextStatus != null) ? odao.getNextStatus(nextStatus) : "";
+
                     request.setAttribute("order", orderToEdit);
-                    request.setAttribute("statusList", statusList);
+                    request.setAttribute("nextStatus", nextStatus != null ? nextStatus : "");
+                    request.setAttribute("cancelledCode", cancelledCode);
+                    request.setAttribute("nextOfNext", nextOfNext != null ? nextOfNext : "");
                     page = "/pages/OrderManagementPage/editOrder.jsp";
                     break;
             }

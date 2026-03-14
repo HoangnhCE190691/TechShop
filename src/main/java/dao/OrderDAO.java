@@ -294,19 +294,54 @@ public class OrderDAO extends DBContext {
     //get all order status
     public List<Map<String, String>> getAllOrderStatuses() {
         List<Map<String, String>> statusList = new ArrayList<>();
-        String sql = "SELECT status_code, status_name FROM order_statuses ORDER BY step_order";
+        String sql = "SELECT status_code, status_name, is_final FROM order_statuses ORDER BY step_order";
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
             ResultSet rs = ps.executeQuery();
             while (rs.next()) {
                 Map<String, String> status = new HashMap<>();
                 status.put("code", rs.getString("status_code"));
                 status.put("name", rs.getNString("status_name"));
+                status.put("isFinal", String.valueOf(rs.getBoolean("is_final")));
                 statusList.add(status);
             }
         } catch (Exception e) {
             e.printStackTrace();
         }
         return statusList;
+    }
+// Lấy status tiếp theo (step_order lớn hơn 1 bậc, không phải CANCELLED/final cancel)
+
+    public String getNextStatus(String currentCode) {
+        String sql = """
+        SELECT TOP 1 status_code FROM order_statuses
+        WHERE step_order > (SELECT step_order FROM order_statuses WHERE UPPER(status_code) = UPPER(?))
+        AND UPPER(status_code) != 'CANCELLED'
+        ORDER BY step_order ASC
+    """;
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, currentCode);
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) {
+                return rs.getString("status_code");
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null; // null = đang ở final, không có next
+    }
+
+// Lấy code của status CANCELLED (hoặc is_final=true và là cancel)
+    public String getCancelledStatusCode() {
+        String sql = "SELECT TOP 1 status_code FROM order_statuses WHERE UPPER(status_code) = 'CANCELLED'";
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) {
+                return rs.getString("status_code");
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return "CANCELLED";
     }
 
     // ===== Update Order =====
