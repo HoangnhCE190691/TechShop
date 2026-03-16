@@ -115,41 +115,41 @@ public class EmployeesDAO extends DBContext {
         return null;
     }
     // 17.3 Modify Employee Record
-    
-    public List<Employees> searchByName(String name) {
-    List<Employees> list = new ArrayList<>();
-    RoleDAO rdao = new RoleDAO();
-    // Sử dụng LIKE để tìm kiếm gần đúng
-    String sql = "SELECT * FROM employees WHERE full_name LIKE ?";
-    
-    try {
-        PreparedStatement ps = conn.prepareStatement(sql);
-        // Gán tham số dạng %tên%
-        ps.setNString(1, "%" + name + "%");
-        
-        ResultSet rs = ps.executeQuery();
-        while (rs.next()) {
-            int employeesId = rs.getInt("employee_id");
-            String username = rs.getString("username");
-            String password = rs.getString("password_hash");
-            String fullname = rs.getString("full_name");
-            String email = rs.getString("email");
-            String phone = rs.getString("phone_number");
-            int roleId = rs.getInt("role_id");
-            String status = rs.getString("status");
-            LocalDateTime createdAt = rs.getTimestamp("created_at").toLocalDateTime();
 
-            // Khởi tạo đối tượng nhân viên
-            Employees employees = new Employees(employeesId, username, password, fullname, 
-                                                email, phone, rdao.getRoleById(roleId), 
-                                                status, createdAt);
-            list.add(employees);
+    public List<Employees> searchByName(String name) {
+        List<Employees> list = new ArrayList<>();
+        RoleDAO rdao = new RoleDAO();
+        // Sử dụng LIKE để tìm kiếm gần đúng
+        String sql = "SELECT * FROM employees WHERE full_name LIKE ?";
+
+        try {
+            PreparedStatement ps = conn.prepareStatement(sql);
+            // Gán tham số dạng %tên%
+            ps.setNString(1, "%" + name + "%");
+
+            ResultSet rs = ps.executeQuery();
+            while (rs.next()) {
+                int employeesId = rs.getInt("employee_id");
+                String username = rs.getString("username");
+                String password = rs.getString("password_hash");
+                String fullname = rs.getString("full_name");
+                String email = rs.getString("email");
+                String phone = rs.getString("phone_number");
+                int roleId = rs.getInt("role_id");
+                String status = rs.getString("status");
+                LocalDateTime createdAt = rs.getTimestamp("created_at").toLocalDateTime();
+
+                // Khởi tạo đối tượng nhân viên
+                Employees employees = new Employees(employeesId, username, password, fullname,
+                        email, phone, rdao.getRoleById(roleId),
+                        status, createdAt);
+                list.add(employees);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
         }
-    } catch (Exception e) {
-        e.printStackTrace();
+        return list;
     }
-    return list;
-}
 
     public boolean updateEmployee(Employees e) {
         // Câu lệnh SQL cập nhật các trường thông tin dựa trên employee_id
@@ -181,6 +181,47 @@ public class EmployeesDAO extends DBContext {
             ex.printStackTrace();
         }
         return false;
+    }
+
+    private Employees mapResultSetToEmployee(ResultSet rs, RoleDAO dAO) throws Exception {
+        int employeesId = rs.getInt("employee_id");
+        String username = rs.getString("username");
+        String password = rs.getString("password_hash");
+        String fullname = rs.getString("full_name");
+        String email = rs.getString("email");
+        String phone = rs.getString("phone_number");
+        int roleId = rs.getInt("role_id");
+        String status = rs.getString("status");
+
+        LocalDateTime createdAt = null;
+        if (rs.getTimestamp("created_at") != null) {
+            createdAt = rs.getTimestamp("created_at").toLocalDateTime();
+        }
+
+        return new Employees(employeesId, username, password, fullname, email, phone,
+                dAO.getRoleById(roleId), status, createdAt);
+    }
+
+    public List<Employees> getEmployeesByYear(int year) {
+        RoleDAO dAO = new RoleDAO();
+        List<Employees> list = new ArrayList<>();
+        // Thêm điều kiện WHERE YEAR(...) vào câu lệnh JOIN
+        String sql = "SELECT employees.*, roles.* "
+                + "FROM roles INNER JOIN employees ON roles.role_id = employees.role_id "
+                + "WHERE YEAR(employees.created_at) = ?";
+
+        try {
+            PreparedStatement ps = conn.prepareStatement(sql);
+            ps.setInt(1, year); // Truyền năm vào tham số thứ nhất
+            ResultSet rs = ps.executeQuery();
+
+            while (rs.next()) {
+                list.add(mapResultSetToEmployee(rs, dAO));
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return list;
     }
 
     public void insertEmployee(Employees e) {
@@ -275,6 +316,7 @@ public class EmployeesDAO extends DBContext {
         return u;
     }
 // --- 1. Hàm Update Thông Tin Nhân Viên (Không bao gồm Password) ---
+
     public boolean updateEmployeeNoPassword(Employees e) {
         String sql = "UPDATE employees SET "
                 + "full_name = ?, "
@@ -286,7 +328,7 @@ public class EmployeesDAO extends DBContext {
         try {
             PreparedStatement ps = conn.prepareStatement(sql);
 
-            ps.setNString(1, e.getFullName()); 
+            ps.setNString(1, e.getFullName());
             ps.setString(2, e.getEmail());
             ps.setString(3, e.getPhoneNumber());
             ps.setInt(4, e.getEmployeeId());
@@ -306,7 +348,7 @@ public class EmployeesDAO extends DBContext {
         String sql = "UPDATE employees SET password_hash = ? WHERE employee_id = ?";
         try {
             PreparedStatement ps = conn.prepareStatement(sql);
-            
+
             ps.setString(1, hashedNewPassword);
             ps.setInt(2, employeeId);
 
@@ -316,21 +358,21 @@ public class EmployeesDAO extends DBContext {
         }
         return false;
     }
-    
+
     // Test Main
     public static void main(String[] args) {
         EmployeesDAO dao = new EmployeesDAO();
-         RoleDAO aO = new RoleDAO();
+        RoleDAO aO = new RoleDAO();
 //        System.out.println("--- 1. TEST READ ---");
 //        dao.getAllEmployeeses().forEach(System.out::println);
 
 // 2. Khởi tạo Employee với các giá trị thực tế để test
-         String username = "test_staff_" + System.currentTimeMillis() % 1000; // Tạo username không trùng
-         String passwordHash = "123456"; // Mật khẩu mẫu
-         String fullName = "Nguyen Van Test";
-         String email = username + "@phonestore.com";
-         String phoneNumber = "0912345678";
-         String status = "ACTIVE";
+        String username = "test_staff_" + System.currentTimeMillis() % 1000; // Tạo username không trùng
+        String passwordHash = "123456"; // Mật khẩu mẫu
+        String fullName = "Nguyen Van Test";
+        String email = username + "@phonestore.com";
+        String phoneNumber = "0912345678";
+        String status = "ACTIVE";
 
         System.out.println(dao.login("test_staff_241", "123456"));
 

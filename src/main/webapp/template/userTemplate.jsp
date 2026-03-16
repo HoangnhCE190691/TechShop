@@ -88,7 +88,7 @@
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
             </svg>
         </button>
-
+        
         <div id="ai-chat-box" class="hidden fixed bottom-24 right-6 w-80 md:w-96 h-[500px] bg-white rounded-2xl shadow-2xl flex flex-col z-[60] border border-gray-100 overflow-hidden">
             <div class="bg-red-600 p-4 text-white flex justify-between items-center">
                 <div class="flex items-center gap-2">
@@ -160,7 +160,7 @@
             // 3. KHỞI TẠO AI (Có try-catch chống sập do thiếu Key)
             let ai = null;
             try {
-                const API_KEY = "hihi"; // Hãy đổi lại Key thật của bạn ở đây
+                const API_KEY = "AIzaSyBSaJQ11g9X3ee1SjapkZHWa3QOPbX8L0U"; // Hãy đổi lại Key thật của bạn ở đây
                 ai = new GoogleGenAI({apiKey: API_KEY});
             } catch (error) {
                 console.error("Lỗi khởi tạo AI:", error);
