@@ -15,7 +15,7 @@
             <div class="relative flex-1">
                 <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-400">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
                     </svg>
                 </span>
                 <input type="text" id="searchInput"
@@ -55,6 +55,11 @@
                 <c:choose>
                     <c:when test="${statusCode == 'CREATED' || statusCode == 'PENDING'}">
                         <c:set var="badgeText" value="Awaiting Confirmation"/>
+                    </c:when>
+                    <c:when test="${statusCode == 'APPROVED'}">
+                        <c:set var="badgeClass"
+                               value="px-3 py-1 bg-purple-100 text-purple-700 text-xs font-bold rounded-lg flex items-center gap-1.5 uppercase tracking-wide"/>
+                        <c:set var="badgeText" value="Approved"/>
                     </c:when>
                     <c:when test="${statusCode == 'SHIPPING' || statusCode == 'DELIVERING'}">
                         <c:set var="badgeClass"
@@ -118,9 +123,32 @@
                             </span>
                         </div>
                         <div class="flex gap-3">
-                            <button class="px-5 py-2.5 rounded-xl border border-gray-200 text-gray-400 font-bold text-sm cursor-not-allowed">
-                                Cancel Order
-                            </button>
+                            <%-- Chỉ cho hủy khi là bước đầu (PENDING) và chưa PAID --%>
+                            <c:forEach var="s" items="${statusList}">
+                                <c:if test="${s.statusCode == order.status && s.stepOrder == 1}">
+                                    <c:set var="canCancel" value="true"/>
+                                </c:if>
+                            </c:forEach>
+
+                            <c:choose>
+                                <c:when test="${canCancel && order.paymentStatus != 'PAID'}">
+                                    <form method="post" action="orderhistorypageservlet"
+                                          onsubmit="return confirm('Are you sure you want to cancel order #${order.orderId}?')">
+                                        <input type="hidden" name="action" value="cancelOrder">
+                                        <input type="hidden" name="orderId" value="${order.orderId}">
+                                        <button type="submit"
+                                                class="px-5 py-2.5 rounded-xl border border-red-200 text-red-500 font-bold text-sm hover:bg-red-50 transition-colors">
+                                            Cancel Order
+                                        </button>
+                                    </form>
+                                </c:when>
+                                <c:otherwise>
+                                    <button disabled
+                                            class="px-5 py-2.5 rounded-xl border border-gray-200 text-gray-400 font-bold text-sm cursor-not-allowed">
+                                        Cancel Order
+                                    </button>
+                                </c:otherwise>
+                            </c:choose>
                             <button class="px-5 py-2.5 rounded-xl bg-red-50 text-red-600 font-bold text-sm hover:bg-red-100 transition-colors">
                                 <a href="orderhistorypageservlet?action=orderDetail&id=${order.orderId}" class="block">View Details</a>
                             </button>

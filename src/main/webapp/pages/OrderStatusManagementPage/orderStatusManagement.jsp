@@ -60,7 +60,7 @@
                 <c:when test="${empty listdata}">
                     <tr>
                         <td colspan="5" class="p-8 text-center text-gray-400 italic">
-                            No order statuses found. Suggested Statuses flow: PENDING, SHIPPING, SHIPPED, CANCELLED
+                            No order statuses found. Suggested Statuses flow: PENDING, APPROVED, SHIPPING, SHIPPED, CANCELLED
                         </td>
                     </tr>
                 </c:when>

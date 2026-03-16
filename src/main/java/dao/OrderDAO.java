@@ -284,7 +284,7 @@ public class OrderDAO extends DBContext {
                 Map<String, Object> item = new HashMap<>();
                 item.put("productName", rs.getString("name"));
                 item.put("sku", rs.getString("sku"));
-                item.put("quantity", rs.getInt("quantity"));   
+                item.put("quantity", rs.getInt("quantity"));
                 item.put("price", rs.getBigDecimal("selling_price"));
                 item.put("imageUrl", rs.getString("image_url"));
                 details.add(item);
@@ -387,6 +387,22 @@ public class OrderDAO extends DBContext {
         }
     }
 
+    public void updateInventoryStatusByOrderId(int orderId, String inventoryStatus) {
+        String sql = """
+        UPDATE inventory_items SET status = ?
+        WHERE inventory_id IN (
+            SELECT inventory_id FROM order_items WHERE order_id = ?
+        )
+    """;
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, inventoryStatus);
+            ps.setInt(2, orderId);
+            ps.executeUpdate();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
     public void cancelUnpaidOrder(int orderId) {
         // 1. Hoàn lại inventory về IN_STOCK
         String sqlInventory = """
@@ -422,6 +438,51 @@ public class OrderDAO extends DBContext {
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+
+    public boolean cancelOrderByCustomer(int orderId, int customerId) {
+        // Kiểm tra đơn thuộc customer và đang ở bước đầu tiên
+        String sqlCheck = """
+        SELECT o.order_id FROM orders o
+        JOIN order_statuses os ON UPPER(o.status) = UPPER(os.status_code)
+        WHERE o.order_id = ? AND o.customer_id = ?
+        AND os.step_order = (SELECT MIN(step_order) FROM order_statuses)
+        AND o.payment_status = 'UNPAID'
+    """;
+        try {
+            PreparedStatement ps = conn.prepareStatement(sqlCheck);
+            ps.setInt(1, orderId);
+            ps.setInt(2, customerId);
+            ResultSet rs = ps.executeQuery();
+            if (!rs.next()) {
+                return false; // không hợp lệ
+            }
+            // Hoàn inventory
+            String sqlInv = """
+            UPDATE inventory_items SET status = 'IN_STOCK'
+            WHERE inventory_id IN (
+                SELECT inventory_id FROM order_items WHERE order_id = ?
+            )
+        """;
+            PreparedStatement ps2 = conn.prepareStatement(sqlInv);
+            ps2.setInt(1, orderId);
+            ps2.executeUpdate();
+
+            // Lấy status_code của CANCELLED
+            String cancelledCode = getCancelledStatusCode();
+
+            // Cập nhật status đơn thành CANCELLED
+            String sqlUpdate = "UPDATE orders SET status = ? WHERE order_id = ?";
+            PreparedStatement ps3 = conn.prepareStatement(sqlUpdate);
+            ps3.setString(1, cancelledCode);
+            ps3.setInt(2, orderId);
+            ps3.executeUpdate();
+
+            return true;
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return false;
     }
 
     //Test

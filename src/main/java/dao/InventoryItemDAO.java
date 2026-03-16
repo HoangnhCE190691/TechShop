@@ -238,21 +238,32 @@ public class InventoryItemDAO extends DBContext {
     /**
      * Lấy danh sách inventory_id còn tồn (IN_STOCK) theo variant_id, giới hạn số lượng. Dùng khi tạo đơn hàng để gán sản phẩm từ kho vào order_items.
      */
-    public List<Integer> getAvailableInventoryIdsByVariantId(int variantId, int limit) {
-        List<Integer> list = new ArrayList<>();
-        String sql = "SELECT TOP (?) inventory_id FROM inventory_items WHERE variant_id = ? AND status = 'IN_STOCK' ORDER BY inventory_id";
-        try (PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setInt(1, limit);
-            ps.setInt(2, variantId);
-            ResultSet rs = ps.executeQuery();
-            while (rs.next()) {
-                list.add(rs.getInt("inventory_id"));
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
+   public List<Integer> getAvailableInventoryIdsByVariantId(int variantId, int limit) {
+    List<Integer> list = new ArrayList<>();
+    String sql = """
+        SELECT TOP (?) ii.inventory_id
+        FROM inventory_items ii
+        WHERE ii.variant_id = ?
+        AND ii.status = 'IN_STOCK'
+        AND ii.inventory_id NOT IN (
+            SELECT oi.inventory_id FROM order_items oi
+            JOIN orders o ON oi.order_id = o.order_id
+            WHERE UPPER(o.status) != 'CANCELLED'
+        )
+        ORDER BY ii.inventory_id
+    """;
+    try (PreparedStatement ps = conn.prepareStatement(sql)) {
+        ps.setInt(1, limit);
+        ps.setInt(2, variantId);
+        ResultSet rs = ps.executeQuery();
+        while (rs.next()) {
+            list.add(rs.getInt("inventory_id"));
         }
-        return list;
+    } catch (Exception e) {
+        e.printStackTrace();
     }
+    return list;
+}
 
     /**
      * Đếm số lượng tồn kho hiện tại (IN_STOCK) theo variant_id.

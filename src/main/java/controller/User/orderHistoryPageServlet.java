@@ -97,7 +97,27 @@ public class orderHistoryPageServlet extends HttpServlet {
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        processRequest(request, response);
+        int currentUserId = getCurrentUserId(request);
+        if (currentUserId == -1) {
+            response.sendRedirect("userservlet?action=loginPage");
+            return;
+        }
+
+        String action = request.getParameter("action");
+        if ("cancelOrder".equals(action)) {
+            int orderId = Integer.parseInt(request.getParameter("orderId"));
+            OrderDAO orderDao = new OrderDAO();
+            boolean success = orderDao.cancelOrderByCustomer(orderId, currentUserId);
+
+            if (success) {
+                request.getSession().setAttribute("msg", "Order #" + orderId + " has been cancelled.");
+                request.getSession().setAttribute("msgType", "success");
+            } else {
+                request.getSession().setAttribute("msg", "Cannot cancel this order.");
+                request.getSession().setAttribute("msgType", "danger");
+            }
+        }
+        response.sendRedirect("orderhistorypageservlet");
     }
 
     /**

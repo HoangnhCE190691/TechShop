@@ -127,10 +127,23 @@ public class orderStaffServlet extends HttpServlet {
             String status = request.getParameter("status");
             String paymentStatus = request.getParameter("paymentStatus");
 
+            // Lấy status hiện tại trước khi update
+            Order currentOrder = odao.getOrderById(orderId);
+            String oldStatus = currentOrder != null ? currentOrder.getStatus() : "";
+
             boolean success = odao.updateOrderFull(orderId, address, status, paymentStatus);
 
             if (success) {
-                session.setAttribute("msg", "Update order success !");
+                // Nếu chuyển sang SHIPPED → set inventory SOLD
+                String cancelledCode = odao.getCancelledStatusCode();
+                if (!oldStatus.equalsIgnoreCase(status)) {
+                    if (status.equalsIgnoreCase("SHIPPED")) {
+                        odao.updateInventoryStatusByOrderId(orderId, "SOLD");
+                    } else if (status.equalsIgnoreCase(cancelledCode)) {
+                        odao.updateInventoryStatusByOrderId(orderId, "IN_STOCK");
+                    }
+                }
+                session.setAttribute("msg", "Update order success!");
                 session.setAttribute("msgType", "success");
             }
             response.sendRedirect("orderStaffServlet?action=all");

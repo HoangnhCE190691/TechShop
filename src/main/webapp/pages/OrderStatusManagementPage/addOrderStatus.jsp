@@ -44,7 +44,7 @@
     </div>
     <div class="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg text-sm text-blue-700">
         <p class="font-bold mb-1">💡 Suggested flow:</p>
-        <p>(1) PENDING → (2) SHIPPING → (3) SHIPPED <span class="text-green-600 font-semibold">[Final]</span> → (4) CANCELLED <span class="text-red-600 font-semibold">[Final]</span></p>
+        <p>(1) PENDING → (2) APPROVED → (3) SHIPPING → (4) SHIPPED <span class="text-green-600 font-semibold">[Final]</span> → (5) CANCELLED <span class="text-red-600 font-semibold">[Final]</span></p>
         <p class="mt-1 text-xs text-blue-500">Final stage statuses cannot be changed further. CANCELLED must use exactly the status code <span class="font-mono font-bold">CANCELLED</span>.</p>
     </div>
 
