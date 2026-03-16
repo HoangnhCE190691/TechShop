@@ -20,6 +20,40 @@ import utils.DBContext;
  */
 public class CustomerDAO extends DBContext {
 
+    public List<Customer> getCustomersByMonth(int month) {
+        List<Customer> list = new ArrayList<>();
+        // Sử dụng MONTH(created_at) để lọc theo tháng truyền vào
+        String sql = "SELECT * FROM customers WHERE MONTH(created_at) = ?";
+
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, month); // Gán giá trị tháng vào dấu ?
+            ResultSet rs = ps.executeQuery();
+            while (rs.next()) {
+                list.add(mapResultSetToCustomer(rs));
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return list;
+    }
+
+    public List<Customer> getCustomersByYear(int year) {
+        List<Customer> list = new ArrayList<>();
+        // Sử dụng YEAR(created_at) để lọc theo năm truyền vào
+        String sql = "SELECT * FROM customers WHERE YEAR(created_at) = ?";
+
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, year); // Gán giá trị năm vào dấu ?
+            ResultSet rs = ps.executeQuery();
+            while (rs.next()) {
+                list.add(mapResultSetToCustomer(rs));
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return list;
+    }
+
     public List<Customer> getAllCustomer() {
         List<Customer> list = new ArrayList<>();
         String sql = "SELECT customers.*\n"
@@ -200,28 +234,30 @@ public class CustomerDAO extends DBContext {
         return u;
 
     }
-public List<Customer> searchByName(String name) {
-    List<Customer> list = new ArrayList<>();
-    // Câu lệnh SQL với toán tử LIKE để tìm kiếm gần đúng
-    String sql = "SELECT * FROM customers WHERE full_name LIKE ?";
-    
-    try {
-        PreparedStatement ps = conn.prepareStatement(sql);
-        
-        // Thêm dấu % vào trước và sau từ khóa
-        // Ví dụ: name = "Minh" -> sẽ tìm "%Minh%"
-        ps.setNString(1, "%" + name + "%");
-        
-        ResultSet rs = ps.executeQuery();
-        while (rs.next()) {
-            // Tái sử dụng hàm mapResultSetToCustomer bạn đã viết
-            list.add(mapResultSetToCustomer(rs));
+
+    public List<Customer> searchByName(String name) {
+        List<Customer> list = new ArrayList<>();
+        // Câu lệnh SQL với toán tử LIKE để tìm kiếm gần đúng
+        String sql = "SELECT * FROM customers WHERE full_name LIKE ?";
+
+        try {
+            PreparedStatement ps = conn.prepareStatement(sql);
+
+            // Thêm dấu % vào trước và sau từ khóa
+            // Ví dụ: name = "Minh" -> sẽ tìm "%Minh%"
+            ps.setNString(1, "%" + name + "%");
+
+            ResultSet rs = ps.executeQuery();
+            while (rs.next()) {
+                // Tái sử dụng hàm mapResultSetToCustomer bạn đã viết
+                list.add(mapResultSetToCustomer(rs));
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
         }
-    } catch (Exception e) {
-        e.printStackTrace();
+        return list;
     }
-    return list;
-}
+
     public static void main(String[] args) {
         CustomerDAO a = new CustomerDAO();
         a.getAllCustomer();

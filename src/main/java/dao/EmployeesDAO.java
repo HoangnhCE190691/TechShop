@@ -41,6 +41,28 @@ public class EmployeesDAO extends DBContext {
         return list;
     }
 
+    public List<Employees> getEmployeesByMonth(int month) {
+        RoleDAO dAO = new RoleDAO();
+        List<Employees> list = new ArrayList<>();
+        // Thêm điều kiện WHERE MONTH(...) vào câu lệnh JOIN
+        String sql = "SELECT employees.*, roles.* "
+                + "FROM roles INNER JOIN employees ON roles.role_id = employees.role_id "
+                + "WHERE MONTH(employees.created_at) = ?";
+
+        try {
+            PreparedStatement ps = conn.prepareStatement(sql);
+            ps.setInt(1, month); // Truyền tháng vào tham số thứ nhất
+            ResultSet rs = ps.executeQuery();
+
+            while (rs.next()) {
+                list.add(mapResultSetToEmployee(rs, dAO));
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return list;
+    }
+
     // 17.5 Hard Delete Employee Record
     public boolean deleteEmployee(int id) {
         // Câu lệnh SQL xóa vĩnh viễn dựa trên ID

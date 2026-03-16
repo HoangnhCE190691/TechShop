@@ -22,6 +22,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.util.List;
 import model.Employees;
+import model.Voucher;
 
 /**
  *
@@ -75,15 +76,35 @@ public class adminServlet extends HttpServlet {
 
         // 2. Lấy tham số 'action' từ URL (ví dụ: adminservlet?action=dashboard)
         String action = request.getParameter("action");
-        String page = "/pages/DashboardPage/dashboardPage.jsp"; // Trang mặc định khi mới vào
+        String page = "/pages/DashboardPage/adminDashboard.jsp"; // Trang mặc định khi mới vào
 
         List<?> listData = null; // Dấu <?> cho phép gán bất kỳ List nào (Customer, Employee...)
+
+        if (action == null) {
+            action = "";
+        }
 
         // 3. Logic điều hướng (Switch-case sẽ sạch sẽ hơn if-else)
         if (action != null) {
             switch (action) {
                 case "dashboard":
-                    page = "/pages/DashboardPage/dashboardPage.jsp";
+                    page = "/pages/DashboardPage/adminDashboard.jsp";
+
+                    request.setAttribute("listDataCustomer", new CustomerDAO().getCustomersByYear(2026));
+                    request.setAttribute("listDataEmployee", new EmployeesDAO().getEmployeesByYear(2026));
+
+                    List<Voucher> listV = new VoucherDAO().getVouchersByYear(2026);
+
+                    long activeV = listV.stream().filter(v -> v.getStatus().equalsIgnoreCase("Active")).count();
+                    long lockedV = listV.stream().filter(v -> v.getStatus().equalsIgnoreCase("Locked")).count();
+                    long expiredV = listV.stream().filter(v -> v.getStatus().equalsIgnoreCase("Expired")).count();
+
+                    request.setAttribute("activeV", activeV);
+                    request.setAttribute("lockedV", lockedV);
+                    request.setAttribute("expiredV", expiredV);
+
+                    request.setAttribute("listDataVoucher", listV);
+
                     break;
                 case "customerManagement":
                     page = "/pages/CustomerManagementPage/customerManagement.jsp";
@@ -103,6 +124,7 @@ public class adminServlet extends HttpServlet {
                     BrandDAO bdao = new BrandDAO();
                     listData = bdao.getAllBrand();
                     break;
+
                 case "specificationValueManagement":
                     ProductSpecificationValueDAO svdao = new ProductSpecificationValueDAO();
                     listData = svdao.getAllProductSpecs();
@@ -133,6 +155,52 @@ public class adminServlet extends HttpServlet {
                     OrderStatusDAO osdao = new OrderStatusDAO();
                     listData = osdao.getAllOrderStatuses();
                     break;
+                case "searchByMonth":
+                    String month = request.getParameter("month");
+
+                    if (Integer.parseInt(month) == -1) {
+                        request.setAttribute("listDataCustomer", new CustomerDAO().getCustomersByYear(2026));
+                        request.setAttribute("listDataEmployee", new EmployeesDAO().getEmployeesByYear(2026));
+
+                        List<Voucher> listVD = new VoucherDAO().getVouchersByYear(2026);
+
+                        long activeVD = listVD.stream().filter(v -> v.getStatus().equalsIgnoreCase("Active")).count();
+                        long lockedVD = listVD.stream().filter(v -> v.getStatus().equalsIgnoreCase("Locked")).count();
+                        long expiredVD = listVD.stream().filter(v -> v.getStatus().equalsIgnoreCase("Expired")).count();
+
+                        request.setAttribute("activeV", activeVD);
+                        request.setAttribute("lockedV", lockedVD);
+                        request.setAttribute("expiredV", expiredVD);
+
+                        request.setAttribute("listDataVoucher", listVD);
+                    } else {
+                        request.setAttribute("listDataCustomer", new CustomerDAO().getCustomersByMonth(Integer.parseInt(month)));
+                        request.setAttribute("listDataEmployee", new EmployeesDAO().getEmployeesByMonth(Integer.parseInt(month)));
+
+                        List<Voucher> listVM = new VoucherDAO().getVouchersByMonth(Integer.parseInt(month));
+
+// Đếm trạng thái Voucher
+                        long activeVM = listVM.stream().filter(v -> v.getStatus().equalsIgnoreCase("Active")).count();
+                        long lockedVM = listVM.stream().filter(v -> v.getStatus().equalsIgnoreCase("Locked")).count();
+                        long expiredVM = listVM.stream().filter(v -> v.getStatus().equalsIgnoreCase("Expired")).count();
+
+// Đếm loại nhân viêns
+                        request.setAttribute("activeV", activeVM);
+                        request.setAttribute("lockedV", lockedVM);
+                        request.setAttribute("expiredV", expiredVM);
+
+// Đẩy dữ liệu sang JSP
+                        request.setAttribute("listDataVoucher", listVM);
+                    }
+
+                    page = "/pages/DashboardPage/adminDashboard.jsp";
+
+                    break;
+                case "searchByYear":
+                    page = "/pages/OrderStatusManagementPage/orderStatusManagement.jsp";
+
+                    page = "/pages/DashboardPage/adminDashboard.jsp";
+                    break;
                 case "profile":
                     int currentUserId = -1;
                     jakarta.servlet.http.Cookie[] cookies = request.getCookies();
@@ -160,7 +228,23 @@ public class adminServlet extends HttpServlet {
                     request.setAttribute("employee", e);
                     break;
                 default:
-                    page = "/pages/DashboardPage/dashboardPage.jsp";
+
+                    request.setAttribute("listDataCustomer", new CustomerDAO().getCustomersByYear(2026));
+                    request.setAttribute("listDataEmployee", new EmployeesDAO().getEmployeesByYear(2026));
+
+                    List<Voucher> listVC = new VoucherDAO().getVouchersByYear(2026);
+
+                    long activeVC = listVC.stream().filter(v -> v.getStatus().equalsIgnoreCase("Active")).count();
+                    long lockedVC = listVC.stream().filter(v -> v.getStatus().equalsIgnoreCase("Locked")).count();
+                    long expiredVC = listVC.stream().filter(v -> v.getStatus().equalsIgnoreCase("Expired")).count();
+
+                    request.setAttribute("activeV", activeVC);
+                    request.setAttribute("lockedV", lockedVC);
+                    request.setAttribute("expiredV", expiredVC);
+
+                    request.setAttribute("listDataVoucher", listVC);
+
+                    page = "/pages/DashboardPage/adminDashboard.jsp";
             }
         }
 

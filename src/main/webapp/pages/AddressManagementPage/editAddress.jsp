@@ -7,7 +7,7 @@
             <a href="userservlet?action=addressBook" class="text-gray-400 hover:text-blue-600 transition-colors">
                 <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
             </a>
-            <h3 class="text-lg leading-6 font-medium text-gray-900">Cập Nhật Địa Chỉ</h3>
+            <h3 class="text-lg leading-6 font-medium text-gray-900">Update Address</h3>
         </div>
     </div>
 
@@ -21,7 +21,7 @@
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
-                    <label for="nameReceiver" class="block text-sm font-medium text-gray-700 mb-1">Tên người nhận <span class="text-red-500">*</span></label>
+                    <label for="nameReceiver" class="block text-sm font-medium text-gray-700 mb-1">Recipient's name <span class="text-red-500">*</span></label>
                     <input type="text" name="nameReceiver" id="nameReceiver" required 
                            value="${nameReceiver}"
                            class="w-full px-4 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none transition-colors"
@@ -29,9 +29,9 @@
                 </div>
 
                 <div>
-                    <label for="phoneReceiver" class="block text-sm font-medium text-gray-700 mb-1">Số điện thoại <span class="text-red-500">*</span></label>
+                    <label for="phoneReceiver" class="block text-sm font-medium text-gray-700 mb-1">Phone number <span class="text-red-500">*</span></label>
                     <input type="tel" name="phoneReceiver" id="phoneReceiver" required pattern="^0(3|5|7|8|9)[0-9]{8}$"  
-                           title="Số điện thoại phải bắt đầu bằng 0, theo sau là 3, 5, 7, 8, 9 và đủ 10 chữ số."
+                           title="Phone numbers must start with 0, followed by 3, 5, 7, 8, 9, and must have 10 digits.."
                            value="${phoneReceiver}"
                            class="w-full px-4 py-2 text-sm border ${not empty errorPhone ? 'border-red-500' : 'border-gray-300'} rounded-lg focus:ring-2 focus:ring-blue-500 outline-none transition-colors"
                            placeholder="VD: 0912345678">
@@ -42,28 +42,28 @@
             </div>
 
             <div class="border-t border-gray-100 pt-5 mt-2">
-                <h4 class="text-sm font-medium text-gray-900 mb-4">Chi tiết địa chỉ <span class="text-red-500">*</span></h4>
+                <h4 class="text-sm font-medium text-gray-900 mb-4">Address details <span class="text-red-500">*</span></h4>
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                     <div>
-                        <label for="province" class="block text-sm text-gray-700 mb-1">Tỉnh/Thành phố</label>
+                        <label for="province" class="block text-sm text-gray-700 mb-1">Province/City</label>
                         <select name="province" id="province" required
                                 class="w-full px-4 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none bg-white">
-                            <option value="">Chọn Tỉnh/Thành</option>
+                            <option value="">Select Province/City</option>
                         </select>
                     </div>
 
                     <div>
-                        <label for="ward" class="block text-sm text-gray-700 mb-1">Phường/Xã/Thị trấn</label>
+                        <label for="ward" class="block text-sm text-gray-700 mb-1">Ward/Commune/Town</label>
                         <select name="ward" id="ward" required disabled
                                 class="w-full px-4 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none bg-gray-50 disabled:opacity-60 transition-all">
-                            <option value="">Chọn Phường/Xã</option>
+                            <option value="">Select Ward/Commune</option>
                         </select>
                     </div>
                 </div>
 
                 <div>
-                    <label for="street" class="block text-sm text-gray-700 mb-1">Số nhà, Tên đường</label>
+                    <label for="street" class="block text-sm text-gray-700 mb-1">House number, Street name</label>
                     <input type="text" name="street" id="street" required
                            value="${street}"
                            class="w-full px-4 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
@@ -77,11 +77,11 @@
                        class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded cursor-pointer hover:ring-2 transition-all">
 
                 <label for="isDefault" class="ml-2 block text-sm text-gray-900 cursor-pointer">
-                    Đặt làm địa chỉ mặc định 
+                    Set as default address
 
                     <c:if test="${!(isCurrentDefault == true || isCurrentDefault == 'true')}">
                         <span class="text-xs text-gray-500 italic ml-1">
-                            (Địa chỉ mặc định cũ sẽ tự động bị thay thế)
+                                (The old default address will be automatically replaced)
                         </span>
                     </c:if>
                 </label>
@@ -90,11 +90,11 @@
             <div class="flex items-center justify-end gap-3 pt-4 border-t border-gray-100">
                 <a href="userdashboardservlet" 
                    class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition">
-                    Hủy
+                 Cancel
                 </a>
                 <button type="submit" 
                         class="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition shadow-sm">
-                    Cập Nhật Địa Chỉ </button>
+                   Update Address </button>
             </div>
         </form>
     </div>

@@ -43,6 +43,40 @@ public class VoucherDAO extends DBContext {
         return list;
     }
 
+    public List<Voucher> getVouchersByMonth(int month) {
+        List<Voucher> list = new ArrayList<>();
+        // Câu lệnh SQL lọc theo tháng của cột valid_from
+        String sql = "SELECT * FROM vouchers WHERE MONTH(valid_from) = ?";
+
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, month);
+            ResultSet rs = ps.executeQuery();
+            while (rs.next()) {
+                list.add(mapResultSetToVoucher(rs));
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return list;
+    }
+
+    public List<Voucher> getVouchersByYear(int year) {
+        List<Voucher> list = new ArrayList<>();
+        // Câu lệnh SQL lọc theo năm của cột valid_from
+        String sql = "SELECT * FROM vouchers WHERE YEAR(valid_from) = ?";
+
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, year);
+            ResultSet rs = ps.executeQuery();
+            while (rs.next()) {
+                list.add(mapResultSetToVoucher(rs));
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return list;
+    }
+
     // ===== GET BY ID =====
     public Voucher getVoucherById(int id) {
         String sql = "SELECT * FROM vouchers WHERE voucher_id= ?";

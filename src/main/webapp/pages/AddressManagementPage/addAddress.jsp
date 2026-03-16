@@ -126,7 +126,7 @@
                     provincesData = Object.values(provinces);
                     wardsData = Object.values(wards);
 
-                    provinceSelect.innerHTML = '<option value="">Chọn Tỉnh/Thành</option>';
+                    provinceSelect.innerHTML = '<option value="">Select Province/City</option>';
                     provincesData.sort((a, b) => a.name.localeCompare(b.name)).forEach(p => {
                         let opt = document.createElement('option');
                         opt.value = p.code;

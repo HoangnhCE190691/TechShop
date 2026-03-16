@@ -215,15 +215,9 @@ public class userDashboardServlet extends HttpServlet {
                     // LƯU Ý BẢO MẬT CỰC QUAN TRỌNG: 
                     // Nhớ đảm bảo trong hàm cdao.changePassword() bạn ĐÃ MÃ HÓA (MD5) cái newPass này rồi nhé!
                     // Nếu DAO chưa mã hóa, bạn phải tự hash ở đây: cdao.changePassword(currentUserId, cdao.hashMD5(newPass))
-                    boolean success = cdao.changePassword(currentUserId, newPass);
+                    cdao.changePassword(currentUserId, newPass);
+                    response.sendRedirect("userdashboardservlet");
 
-                    if (success) {
-                        // Đổi pass thành công -> Về trang chủ hoặc log out bắt đăng nhập lại
-                        response.sendRedirect("userdashboardservlet");
-                    } else {
-                        // Update DB thất bại vì lý do nào đó
-                        response.sendRedirect("userdashboardservlet?action=changepassword");
-                    }
                 } else {
                     // Có lỗi -> Báo lỗi trên màn hình
                     request.setAttribute("errorNewPass", errorNewPass);

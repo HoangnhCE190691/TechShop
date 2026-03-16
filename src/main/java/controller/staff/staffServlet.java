@@ -81,7 +81,7 @@ public class staffServlet extends HttpServlet {
 
         // 2. Lấy tham số 'action' từ URL (ví dụ: adminservlet?action=dashboard)
         String action = request.getParameter("action");
-        String page = "/pages/dashboardPage.jsp"; // Trang mặc định khi mới vào
+        String page = "/pages/staffDashboard.jsp"; // Trang mặc định khi mới vào
         if (action == null || action.trim().isEmpty()) {
             action = "dashboard";
         }
@@ -90,7 +90,14 @@ public class staffServlet extends HttpServlet {
         if (action != null) {
             switch (action) {
                 case "dashboard":
-                    page = "/pages/DashboardPage/dashboardPage.jsp";
+                    page = "/pages/DashboardPage/staffDashboard.jsp";
+                    
+                    
+                    
+                    
+                    
+                    
+                    
                     break;
                 // Trong switch (action) của Servlet:
 
@@ -254,7 +261,7 @@ public class staffServlet extends HttpServlet {
                     break;   
 
                 default:
-                    page = "/pages/DashboardPage/dashboardPage.jsp";
+                    page = "/pages/DashboardPage/staffDashboard.jsp";
             }
         }
 
