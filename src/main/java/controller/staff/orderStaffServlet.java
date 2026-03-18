@@ -82,7 +82,7 @@ public class orderStaffServlet extends HttpServlet {
                     String cancelledStatusCode = odao.getCancelledStatusCode();
                     List<Map<String, Object>> items;
                     if (order != null && cancelledStatusCode != null && cancelledStatusCode.equalsIgnoreCase(order.getStatus())) {
-                        items = odao.getCancelledOrderDetails(idDetail);
+                        items = odao.getCancelledOrderDetailsWithIMEI(idDetail);
                     } else {
                         items = odao.getOrderDetailsWithIMEI(idDetail);
                     }

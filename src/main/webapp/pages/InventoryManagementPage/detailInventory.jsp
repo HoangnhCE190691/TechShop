@@ -14,7 +14,7 @@
 
 <c:if test="${not empty inventoryItem}">
     <div class="max-w-2xl mx-auto bg-white p-8 rounded-2xl shadow-xl border border-gray-100 mt-6">
-        
+
         <h2 class="text-2xl font-bold mb-6 text-gray-800 uppercase tracking-wide">
             Inventory Item Detail
         </h2>
@@ -22,7 +22,7 @@
         <div class="space-y-6">
 
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                
+
                 <div>
                     <label class="block mb-2 text-sm font-medium text-gray-700">
                         Inventory ID

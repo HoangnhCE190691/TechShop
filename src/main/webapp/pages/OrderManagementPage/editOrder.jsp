@@ -40,7 +40,7 @@
                 </div>
                 <c:choose>
                     <c:when test="${empty nextStatus && order.status == cancelledCode}">
-                        <p class="text-xs text-gray-400 italic">This order has been cancelled.</p>
+                        <p class="text-xs text-gray-400 italic">This order was cancelled.</p>
                     </c:when>
                     <c:when test="${empty nextStatus}">
                         <p class="text-xs text-gray-400 italic">This order is completed. No further status changes.</p>
