@@ -76,10 +76,10 @@
         <%-- THÔNG BÁO LOGIC XÓA --%>
         <div class="mt-6">
             <c:choose>
-                <c:when test="${orderCount > 0}">
+                <c:when test="${orderCount > 0 || inventoryCount > 0}">
                     <div class="p-4 bg-orange-50 border-l-4 border-orange-500 text-orange-700 text-sm text-left">
                         <p class="font-bold mb-1 text-base">⚠️ System Note:</p>
-                        This product has <strong>${orderCount} orders</strong> in the system. 
+                        This product has <strong>${orderCount} orders</strong>, <strong>${inventoryCount} items</strong> in the system. 
                         To protect data integrity, it will be <strong>hidden (Set to INACTIVE)</strong> instead of permanent deletion.
                     </div>
                 </c:when>
@@ -103,7 +103,7 @@
         </a>
 
         <c:choose>
-            <c:when test="${orderCount > 0}">
+            <c:when test="${orderCount > 0 || inventoryCount > 0}">
                 <button type="submit" class="px-10 py-2.5 bg-orange-600 text-white font-bold rounded-lg hover:bg-orange-700 shadow-lg shadow-orange-100 transition-all transform hover:-translate-y-0.5 flex items-center gap-2">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 9v6m4-6v6m7-3a9 9 0 11-18 0 9 9 0 0118 0z" />

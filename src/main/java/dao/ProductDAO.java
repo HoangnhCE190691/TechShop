@@ -182,14 +182,50 @@ public class ProductDAO extends DBContext {
     }
 
     // 7. Xóa cứng
-    public void deleteProduct(int id) {
-        String sql = "DELETE FROM products WHERE product_id = ?";
+    public boolean deleteProduct(int id) {
         try {
-            PreparedStatement ps = conn.prepareStatement(sql);
-            ps.setInt(1, id);
-            ps.executeUpdate();
+            // Bật chế độ Transaction để đảm bảo xóa sạch hoặc không xóa gì cả
+            conn.setAutoCommit(false);
+
+            // 1. Xóa ảnh sản phẩm
+            String sqlImg = "DELETE FROM product_images WHERE product_id = ?";
+            PreparedStatement psImg = conn.prepareStatement(sqlImg);
+            psImg.setInt(1, id);
+            psImg.executeUpdate();
+
+            // 2. Xóa thông số kỹ thuật
+            String sqlSpec = "DELETE FROM product_spec_values WHERE product_id = ?";
+            PreparedStatement psSpec = conn.prepareStatement(sqlSpec);
+            psSpec.setInt(1, id);
+            psSpec.executeUpdate();
+
+            // 3. Xóa các biến thể (Variants)
+            // Lưu ý: bảng variant_spec_values của bạn đã có ON DELETE CASCADE nên nó sẽ tự mất theo variant
+            String sqlVar = "DELETE FROM product_variants WHERE product_id = ?";
+            PreparedStatement psVar = conn.prepareStatement(sqlVar);
+            psVar.setInt(1, id);
+            psVar.executeUpdate();
+
+            // 4. Cuối cùng mới xóa sản phẩm chính
+            String sqlProd = "DELETE FROM products WHERE product_id = ?";
+            PreparedStatement psProd = conn.prepareStatement(sqlProd);
+            psProd.setInt(1, id);
+            int result = psProd.executeUpdate();
+
+            conn.commit(); // Xác nhận xóa tất cả
+            return result > 0;
         } catch (Exception e) {
+            try {
+                conn.rollback();
+            } catch (Exception ex) {
+            } // Nếu lỗi thì trả lại dữ liệu cũ
             e.printStackTrace();
+            return false;
+        } finally {
+            try {
+                conn.setAutoCommit(true);
+            } catch (Exception ex) {
+            }
         }
     }
 
@@ -353,6 +389,22 @@ public class ProductDAO extends DBContext {
         }
     }
 
+    public int countProductInInventory(int productId) {
+        String sql = "SELECT COUNT(*) FROM inventory_items ii "
+                + "JOIN product_variants pv ON ii.variant_id = pv.variant_id "
+                + "WHERE pv.product_id = ?";
+        try {
+            PreparedStatement ps = conn.prepareStatement(sql);
+            ps.setInt(1, productId);
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) {
+                return rs.getInt(1);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return 0;
+    }
     private Product mapResultSetToProduct(ResultSet rs) throws Exception {
         Product p = new Product();
         p.setProductId(rs.getInt("product_id"));

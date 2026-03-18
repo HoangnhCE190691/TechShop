@@ -63,8 +63,6 @@
                                         <span
                                             class="text-sm font-bold text-gray-700 group-hover:text-orange-600 transition-colors">General
                                             Spec</span>
-                                        <span class="text-[10px] text-gray-400 font-medium italic">Thông số kỹ thuật
-                                            chung</span>
                                     </div>
                                 </label>
                                 <label
@@ -75,8 +73,6 @@
                                         <span
                                             class="text-sm font-bold text-gray-700 group-hover:text-purple-600 transition-colors">Variant
                                             Spec</span>
-                                        <span class="text-[10px] text-gray-400 font-medium italic">Dùng để tạo biến
-                                            thể</span>
                                     </div>
                                 </label>
                             </div>

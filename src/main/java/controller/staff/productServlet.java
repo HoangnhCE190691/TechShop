@@ -114,6 +114,7 @@ public class productServlet extends HttpServlet {
                     int idDel = Integer.parseInt(request.getParameter("id"));
                     request.setAttribute("product", pdao.getProductById(idDel));
                     request.setAttribute("orderCount", pdao.countProductInOrderDetails(idDel));
+                    request.setAttribute("inventoryCount", pdao.countProductInInventory(idDel));
                     page = "/pages/ProductManagementPage/deleteProduct.jsp";
                     break;
                 case "all":
@@ -162,42 +163,61 @@ public class productServlet extends HttpServlet {
             p.setCategoryId(categoryId);
             p.setBrandId(brandId);
             p.setDescription(description);
-            p.setStatus(status);
+            p.setStatus("INACTIVE");
             p.setCreatedBy((Integer) session.getAttribute("userId"));
 
+            //  Logic xử lý sau khi insert sản phẩm thành công
             int productId = pdao.insertProduct(p);
 
-            // Handle multiple image upload
-            boolean isFirstImage = true;
-            for (Part filePart : request.getParts()) {
-                if ("productImage".equals(filePart.getName()) && filePart.getSize() > 0) {
-                    String fileName = Paths.get(filePart.getSubmittedFileName()).getFileName().toString();
-                    String uploadPath = getServletContext().getRealPath("") + File.separator + "assets" + File.separator
-                            + "img" + File.separator + "product";
-                    File uploadDir = new File(uploadPath);
-                    if (!uploadDir.exists()) {
-                        uploadDir.mkdir();
-                    }
+// Kiểm tra xem người dùng có thực sự upload ảnh nào không
+            boolean hasAnyImage = false;
+            for (Part part : request.getParts()) {
+                if ("productImage".equals(part.getName()) && part.getSize() > 0) {
+                    hasAnyImage = true;
+                    break;
+                }
+            }
 
-                    long timestamp = System.currentTimeMillis();
-                    fileName = timestamp + "_" + fileName; // Đề phòng trùng lặp tên file
-                    String filePath = uploadPath + File.separator + fileName;
-                    filePart.write(filePath);
+            ProductImageDAO imgDao = new ProductImageDAO();
 
-                    ProductImageDAO imgDao = new ProductImageDAO();
-                    ProductImage pi = new ProductImage();
-                    Product prod = new Product();
-                    prod.setProductId(productId);
-                    pi.setProduct(prod);
-                    pi.setImageUrl("assets/img/product/" + fileName);
+            if (!hasAnyImage) {
+                // TRƯỜNG HỢP 1: KHÔNG CÓ ẢNH -> Gán ảnh mặc định 
+                ProductImage pi = new ProductImage();
+                Product prod = new Product();
+                prod.setProductId(productId);
+                pi.setProduct(prod);
+                // Đảm bảo bạn đã có file này trong thư mục assets/img/product/
+                pi.setImageUrl("assets/img/product/default.png");
+                pi.setIs_thumbnail((byte) 1);
+                imgDao.addProductImage(pi);
+            } else {
+                // TRƯỜNG HỢP 2: CÓ ẢNH -> Xử lý upload như bình thường 
+                boolean isFirstImage = true;
+                String uploadPath = getServletContext().getRealPath("") + File.separator + "assets" + File.separator
+                        + "img" + File.separator + "product";
+                File uploadDir = new File(uploadPath);
+                if (!uploadDir.exists()) {
+                    uploadDir.mkdirs(); // Sửa thành mkdirs() để tạo đầy đủ cây thư mục
+                }
 
-                    if (isFirstImage) {
-                        pi.setIs_thumbnail((byte) 1);
+                for (Part filePart : request.getParts()) {
+                    if ("productImage".equals(filePart.getName()) && filePart.getSize() > 0) {
+                        String fileName = Paths.get(filePart.getSubmittedFileName()).getFileName().toString();
+                        long timestamp = System.currentTimeMillis();
+                        fileName = timestamp + "_" + fileName;
+
+                        filePart.write(uploadPath + File.separator + fileName);
+
+                        ProductImage pi = new ProductImage();
+                        Product prod = new Product();
+                        prod.setProductId(productId);
+                        pi.setProduct(prod);
+                        pi.setImageUrl("assets/img/product/" + fileName);
+                        pi.setIs_thumbnail(isFirstImage ? (byte) 1 : (byte) 0);
                         isFirstImage = false;
-                    } else {
-                        pi.setIs_thumbnail((byte) 0);
+
+                        imgDao.addProductImage(pi);
                     }
-                    imgDao.addProductImage(pi);
                 }
             }
 
@@ -230,7 +250,8 @@ public class productServlet extends HttpServlet {
             }
 
             if (!isImageChanged && cur.getName().equals(name) && cur.getCategoryId() == categoryId
-                    && cur.getBrandId() == brandId && cur.getStatus().equals(status)
+                    && cur.getBrandId() == brandId
+                    && (cur.getStatus() != null && cur.getStatus().equals(status)) // Kiểm tra null trước
                     && (cur.getDescription() == null ? description == null
                     : cur.getDescription().equals(description))) {
 
@@ -311,16 +332,30 @@ public class productServlet extends HttpServlet {
 
         } else if ("delete".equals(action)) {
             int id = Integer.parseInt(request.getParameter("productId"));
-            if (pdao.countProductInOrderDetails(id) > 0) {
-                pdao.softDeleteProduct(id);
-                session.setAttribute("msg", "Product has orders. Set to INACTIVE.");
-            } else {
-                pdao.deleteProduct(id);
-                session.setAttribute("msg", "Product deleted successfully!");
-            }
-            session.setAttribute("msgType", "success");
-        }
 
+            // Kiểm tra cả đơn hàng và tồn kho
+            int orderCount = pdao.countProductInOrderDetails(id);
+            int inventoryCount = pdao.countProductInInventory(id);
+
+            if (orderCount > 0 || inventoryCount > 0) {
+                // Nếu đã từng nhập kho hoặc đã bán, chỉ được phép ẨN (Soft Delete)
+                pdao.softDeleteProduct(id);
+
+                String reason = (orderCount > 0) ? "sales history" : "inventory records";
+                session.setAttribute("msg", "Product has " + reason + ". It has been DEACTIVATED to preserve data.");
+                session.setAttribute("msgType", "warning");
+            } else {
+                // Chỉ xóa vĩnh viễn nếu sản phẩm "sạch" hoàn toàn (vừa tạo xong chưa làm gì)
+                boolean isDeleted = pdao.deleteProduct(id);
+                if (isDeleted) {
+                    session.setAttribute("msg", "Product has been permanently deleted successfully!");
+                    session.setAttribute("msgType", "success");
+                } else {
+                    session.setAttribute("msg", "Error: System constraints prevented deletion.");
+                    session.setAttribute("msgType", "danger");
+                }
+            }
+        }
         response.sendRedirect("productServlet?action=all");
     }
 

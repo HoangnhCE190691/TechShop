@@ -112,38 +112,15 @@
                         </div>
                     </div>
 
-                    <%-- Status --%>
-                    <div>
-                        <label
-                            class="text-xs font-bold text-gray-400 uppercase tracking-widest">Initial
-                            Status</label>
-                        <div class="mt-2 flex gap-4">
-                            <label class="flex items-center gap-2 cursor-pointer group">
-                                <input type="radio" name="status" value="Active" checked
-                                       class="w-4 h-4 text-blue-600 focus:ring-blue-500">
-                                <span
-                                    class="text-sm font-bold text-green-600 bg-green-50 px-3 py-0.5 rounded-full border border-green-100">ACTIVE</span>
-                            </label>
-                            <label class="flex items-center gap-2 cursor-pointer group">
-                                <input type="radio" name="status" value="Inactive"
-                                       class="w-4 h-4 text-red-600 focus:ring-red-500">
-                                <span
-                                    class="text-sm font-bold text-red-600 bg-red-50 px-3 py-0.5 rounded-full border border-red-100">INACTIVE</span>
-                            </label>
-                        </div>
-                    </div>
-
                     <%-- Product Images --%>
                     <div>
-                        <label
-                            class="text-xs font-bold text-gray-400 uppercase tracking-widest">Product
-                            Images</label>
+                        <label class="text-xs font-bold text-gray-400 uppercase tracking-widest">Product Images</label>
+                        <%-- Xóa thuộc tính 'required' ở đây --%>
                         <input type="file" name="productImage" accept="image/*" multiple
-                               required
                                class="w-full mt-1 p-2 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none transition-all">
-                        <p class="text-[10px] text-gray-400 mt-1 italic">* You can
-                            select multiple images. The first image will be set as
-                            thumbnail.</p>
+                        <p class="text-[10px] text-gray-400 mt-1 italic">
+                            * Optional. If no images are selected, a default placeholder will be used.
+                        </p>
                     </div>
                 </div>
             </div>

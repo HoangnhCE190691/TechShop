@@ -16,9 +16,9 @@ public class SpecificationDefinitionDAO extends DBContext {
     // 1. LẤY TẤT CẢ ĐỊNH NGHĨA
     public List<SpecificationDefinition> getAllSpecs() {
         List<SpecificationDefinition> list = new ArrayList<>();
-        String sql = "SELECT s.*, c.category_name FROM specification_definitions s " +
-                "JOIN categories c ON s.category_id = c.category_id " +
-                "ORDER BY s.spec_id DESC";
+        String sql = "SELECT s.*, c.category_name FROM specification_definitions s "
+                + "JOIN categories c ON s.category_id = c.category_id "
+                + "ORDER BY s.spec_id DESC";
         try {
             PreparedStatement ps = conn.prepareStatement(sql);
             ResultSet rs = ps.executeQuery();
@@ -35,8 +35,8 @@ public class SpecificationDefinitionDAO extends DBContext {
 
     // 2. LẤY THEO ID
     public SpecificationDefinition getSpecById(int id) {
-        String sql = "SELECT s.*, c.category_name FROM specification_definitions s " +
-                "JOIN categories c ON s.category_id = c.category_id WHERE s.spec_id = ?";
+        String sql = "SELECT s.*, c.category_name FROM specification_definitions s "
+                + "JOIN categories c ON s.category_id = c.category_id WHERE s.spec_id = ?";
         try {
             PreparedStatement ps = conn.prepareStatement(sql);
             ps.setInt(1, id);
@@ -54,13 +54,17 @@ public class SpecificationDefinitionDAO extends DBContext {
 
     // 3. KIỂM TRA XÓA MỀM: Đếm số lượng giá trị sản phẩm đang dùng spec này
     public int countSpecUsedInProducts(int specId) {
-        String sql = "SELECT COUNT(*) FROM product_specification_values WHERE spec_id = ?";
+        // Sử dụng UNION ALL để gộp kết quả đếm từ cả 2 bảng spec mới
+        String sql = "SELECT (SELECT COUNT(*) FROM product_spec_values WHERE spec_id = ?) + "
+                + "(SELECT COUNT(*) FROM variant_spec_values WHERE spec_id = ?) AS total";
         try {
             PreparedStatement ps = conn.prepareStatement(sql);
             ps.setInt(1, specId);
+            ps.setInt(2, specId);
             ResultSet rs = ps.executeQuery();
-            if (rs.next())
-                return rs.getInt(1);
+            if (rs.next()) {
+                return rs.getInt("total");
+            }
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -139,15 +143,15 @@ public class SpecificationDefinitionDAO extends DBContext {
     }
 
     /**
-     * Lấy danh sách spec definitions có is_variant=1 theo category_id
-     * Dùng để hiển thị dropdown Dung lượng / Màu sắc khi edit variant
+     * Lấy danh sách spec definitions có is_variant=1 theo category_id Dùng để
+     * hiển thị dropdown Dung lượng / Màu sắc khi edit variant
      */
     public List<SpecificationDefinition> getVariantSpecsByCategoryId(int categoryId) {
         List<SpecificationDefinition> list = new ArrayList<>();
-        String sql = "SELECT s.*, c.category_name FROM specification_definitions s " +
-                "JOIN categories c ON s.category_id = c.category_id " +
-                "WHERE s.category_id = ? AND s.is_variant = 1 AND s.is_active = 1 " +
-                "ORDER BY s.spec_id ASC";
+        String sql = "SELECT s.*, c.category_name FROM specification_definitions s "
+                + "JOIN categories c ON s.category_id = c.category_id "
+                + "WHERE s.category_id = ? AND s.is_variant = 1 AND s.is_active = 1 "
+                + "ORDER BY s.spec_id ASC";
         try {
             PreparedStatement ps = conn.prepareStatement(sql);
             ps.setInt(1, categoryId);
@@ -168,10 +172,10 @@ public class SpecificationDefinitionDAO extends DBContext {
      */
     public List<SpecificationDefinition> getAllVariantSpecs() {
         List<SpecificationDefinition> list = new ArrayList<>();
-        String sql = "SELECT s.*, c.category_name FROM specification_definitions s " +
-                "JOIN categories c ON s.category_id = c.category_id " +
-                "WHERE s.is_variant = 1 AND s.is_active = 1 " +
-                "ORDER BY s.category_id, s.spec_id ASC";
+        String sql = "SELECT s.*, c.category_name FROM specification_definitions s "
+                + "JOIN categories c ON s.category_id = c.category_id "
+                + "WHERE s.is_variant = 1 AND s.is_active = 1 "
+                + "ORDER BY s.category_id, s.spec_id ASC";
         try {
             PreparedStatement ps = conn.prepareStatement(sql);
             ResultSet rs = ps.executeQuery();

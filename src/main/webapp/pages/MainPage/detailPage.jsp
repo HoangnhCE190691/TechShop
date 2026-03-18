@@ -1222,44 +1222,23 @@
                         function buildVariantUI() {
                             var analysis = analyzeVariants();
                             var hasSpecs = Object.keys(analysis.specNames).length > 0;
-
+                            // --- ĐOẠN CHỈNH SỬA: KHÔNG HIỆN SKU KHI TRỐNG VARIANT ---
                             if (!hasSpecs) {
-                                var skuSection = document.getElementById('skuSection');
-                                var skuOptions = document.getElementById('skuOptions');
-                                skuSection.style.display = '';
-                                var first = true;
-                                for (var vid in VARIANTS) {
-                                    var v = VARIANTS[vid];
-                                    var btn = document.createElement('div');
-                                    btn.className = 'variant-opt' + (first ? ' selected' : '');
-                                    btn.textContent = v.sku;
-                                    btn.onclick = (function (variant) {
-                                        return function () {
-                                            document.querySelectorAll('#skuOptions .variant-opt').forEach(function (b) {
-                                                b.classList.remove('selected');
-                                            });
-                                            this.classList.add('selected');
-                                            selectVariantAndUpdate(variant);
-                                        };
-                                    })(v);
-                                    skuOptions.appendChild(btn);
-                                    first = false;
-                                }
+                                // Thay vì hiển thị skuSection, chúng ta để trống hoàn toàn
+                                console.log("No variant specs found. Variant UI will be empty.");
                                 return;
                             }
+                            // ------------------------------------------------------
 
                             var storageSpec = analysis.storageSpec;
                             var colorSpec = analysis.colorSpec;
-
                             if (storageSpec) {
                                 var storageSection = document.getElementById('storageSection');
                                 var storageOptions = document.getElementById('storageOptions');
                                 storageSection.style.display = '';
                                 document.querySelector('#storageSection .variant-label').textContent = storageSpec;
-
                                 var storageVals = getUniqueValues(storageSpec);
                                 selectedStorage = storageVals[0];
-
                                 storageVals.forEach(function (sv, idx) {
                                     var btn = document.createElement('div');
                                     btn.className = 'variant-opt' + (idx === 0 ? ' selected' : '');
@@ -1294,7 +1273,6 @@
                             var availableColors = getAvailableColors(storageVal, storageSpec, colorSpec);
                             var colorKeys = Object.keys(availableColors);
                             selectedColor = colorKeys.length > 0 ? colorKeys[0] : null;
-
                             colorKeys.forEach(function (colorName, idx) {
                                 var btn = document.createElement('div');
                                 btn.className = 'variant-opt color-opt' + (idx === 0 ? ' selected' : '');
@@ -1309,7 +1287,6 @@
                                 };
                                 colorOptions.appendChild(btn);
                             });
-
                             if (selectedColor)
                                 selectVariantAndUpdate(findVariant(storageVal, selectedColor, storageSpec, colorSpec));
                         }
@@ -1318,7 +1295,6 @@
                             Fancybox.bind('[data-fancybox="gallery"]', {hideScrollbar: false});
                             buildVariantUI();
                         });
-
                         function changeImage(thumbEl, imgSrc) {
                             document.getElementById('mainImage').src = imgSrc;
                             document.getElementById('mainImageLink').href = imgSrc;
