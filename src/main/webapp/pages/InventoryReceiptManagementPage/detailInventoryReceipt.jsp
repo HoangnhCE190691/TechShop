@@ -156,6 +156,7 @@
                                    class="text-amber-600 hover:underline">
                                     Edit
                                 </a>
+                                <span class="text-gray-300">|</span>
                                 <form action="${pageContext.request.contextPath}/staffservlet"
                                       method="post"
                                       class="inline"

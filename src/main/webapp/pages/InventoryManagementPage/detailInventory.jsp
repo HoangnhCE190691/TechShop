@@ -109,11 +109,6 @@
                     Back
                 </a>
 
-                <a href="inventory?action=edit&id=${inventoryItem.inventory_id}"
-                   class="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-full hover:bg-blue-700 font-medium text-sm no-underline shadow-sm">
-                    Edit
-                </a>
-
             </div>
 
         </div>

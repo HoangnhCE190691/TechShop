@@ -103,7 +103,7 @@ public class SupplierServlet extends HttpServlet {
                     if (dao.deleteSupplierIfNoReferences(id)) {
                         setMsg(request.getSession(), "Supplier deleted.", "success");
                     } else {
-                        setMsg(request.getSession(), "Cannot delete: supplier is used in import receipts.", "danger");
+                        setMsg(request.getSession(), "Cannot delete (in use).", "danger");
                     }
                 } else {
                     setMsg(request.getSession(), "Invalid ID.", "danger");

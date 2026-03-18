@@ -58,11 +58,22 @@
                                 <div class="font-medium">${item.productName}</div>
                                 <div class="text-xs text-gray-400">SKU: ${item.sku}</div>
                             </td>
-                            <td class="py-4 font-mono text-sm text-blue-600">${item.imei}</td>
+                            <td class="py-4 font-mono text-sm text-blue-600">
+                                <c:choose>
+                                    <c:when test="${not empty item.imei}">
+                                        ${item.imei}
+                                    </c:when>
+                                    <c:when test="${not empty item.quantity}">
+                                        x${item.quantity}
+                                    </c:when>
+                                    <c:otherwise>
+                                        —
+                                    </c:otherwise>
+                                </c:choose>
+                            </td>
                             <td class="py-4 text-right font-bold text-red-500">
                                 <fmt:formatNumber value="${item.price}" type="number" pattern="#,###"/>đ
                             </td>
-                        </tr>
                         </tr>
                     </c:forEach>
                 </tbody>

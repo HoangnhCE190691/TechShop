@@ -58,7 +58,7 @@
                     <th class="px-4 py-3">Supplier name</th>
                     <th class="px-4 py-3 w-[170px]">Phone</th>
                     <th class="px-4 py-3 text-center w-[140px]">Status</th>
-                    <th class="px-4 py-3 text-right w-[260px]">Actions</th>
+                    <th class="px-4 py-3 text-center w-[260px]">Actions</th>
                 </tr>
             </thead>
             <tbody class="divide-y divide-gray-200">
@@ -81,7 +81,7 @@
                                 </c:otherwise>
                             </c:choose>
                         </td>
-                        <td class="px-4 py-3 text-right whitespace-nowrap">
+                        <td class="px-4 py-3 text-center whitespace-nowrap">
                             <a href="supplier?action=view&id=${s.supplier_id}"
                                class="text-gray-600 hover:text-gray-800 font-medium hover:underline">View</a>
                             <span class="text-gray-300 mx-1">|</span>

@@ -79,7 +79,13 @@ public class orderStaffServlet extends HttpServlet {
                 case "orderDetail":
                     int idDetail = Integer.parseInt(request.getParameter("id"));
                     Order order = odao.getOrderById(idDetail);
-                    List<Map<String, Object>> items = odao.getOrderDetailsWithIMEI(idDetail);
+                    String cancelledStatusCode = odao.getCancelledStatusCode();
+                    List<Map<String, Object>> items;
+                    if (order != null && cancelledStatusCode != null && cancelledStatusCode.equalsIgnoreCase(order.getStatus())) {
+                        items = odao.getCancelledOrderDetails(idDetail);
+                    } else {
+                        items = odao.getOrderDetailsWithIMEI(idDetail);
+                    }
 
                     request.setAttribute("order", order);
                     request.setAttribute("items", items);

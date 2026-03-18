@@ -77,26 +77,26 @@
 
     </div>
 
-    <!-- Totals: Nhập - Xuất - Tồn (chỉ hiển thị khi không search) -->
+    <!-- Totals (only show when not searching) -->
     <c:if test="${empty param.keyword}">
         <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-5">
-            <!-- Nhập -->
+            <!-- Imported -->
             <div class="bg-gray-50 border border-gray-200 rounded-xl px-4 py-3">
-                <p class="text-xs uppercase text-gray-500 font-semibold">Nhập</p>
+                <p class="text-xs uppercase text-gray-500 font-semibold">Imported</p>
                 <p class="mt-1 text-xl font-bold text-gray-900">
                     ${totalImported != null ? totalImported : 0}
                 </p>
             </div>
-            <!-- Xuất (đã bán) -->
+            <!-- Sold -->
             <div class="bg-blue-50 border border-blue-200 rounded-xl px-4 py-3">
-                <p class="text-xs uppercase text-blue-700 font-semibold">Xuất</p>
+                <p class="text-xs uppercase text-blue-700 font-semibold">Sold</p>
                 <p class="mt-1 text-xl font-bold text-blue-700">
                     ${totalSold != null ? totalSold : 0}
                 </p>
             </div>
-            <!-- Tồn (trong kho) -->
+            <!-- In stock -->
             <div class="bg-green-50 border border-green-200 rounded-xl px-4 py-3">
-                <p class="text-xs uppercase text-green-700 font-semibold">Tồn</p>
+                <p class="text-xs uppercase text-green-700 font-semibold">In stock</p>
                 <p class="mt-1 text-xl font-bold text-green-700">
                     ${totalInStock != null ? totalInStock : 0}
                 </p>
@@ -113,12 +113,12 @@
             <thead class="text-xs uppercase bg-gray-50 text-gray-700 font-semibold">
                 <tr>
                     <th class="px-4 py-3">#</th>
-                    <th class="px-4 py-3">Tên sản phẩm</th>
-                    <th class="px-4 py-3">SKU / Mẫu mã</th>
-                    <th class="px-4 py-3 text-right">Nhập</th>
-                    <th class="px-4 py-3 text-right">Xuất</th>
-                    <th class="px-4 py-3 text-right">Tồn</th>
-                    <th class="px-4 py-3 text-center">Hành động</th>
+                    <th class="px-4 py-3">Product name</th>
+                    <th class="px-4 py-3">SKU / Variant</th>
+                    <th class="px-4 py-3 text-right">Imported</th>
+                    <th class="px-4 py-3 text-right">Sold</th>
+                    <th class="px-4 py-3 text-right">In stock</th>
+                    <th class="px-4 py-3 text-center">Actions</th>
                 </tr>
             </thead>
 

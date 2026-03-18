@@ -103,25 +103,22 @@
                         <td class="px-4 py-3">${empName}</td>
                         <td class="px-4 py-3 text-right font-semibold text-blue-600"><fmt:formatNumber value="${r.total_cost}" groupingUsed="true"/>₫</td>
                         <td class="px-4 py-3 text-xs">${r.import_date != null ? r.import_date : '—'}</td>
-                        <td class="px-4 py-3">
-                            <div class="flex items-center justify-center gap-2">
-                                <a href="${pageContext.request.contextPath}/staffservlet?action=inventoryReceiptDetail&id=${r.receipt_id}"
-                                   class="inline-flex items-center p-1.5 text-blue-600 bg-blue-50 rounded-lg hover:bg-blue-600 hover:text-white"
-                                   title="Detail">
-                                    Detail
-                                </a>
-                                <a href="${pageContext.request.contextPath}/staffservlet?action=inventoryReceiptEdit&id=${r.receipt_id}"
-                                   class="inline-flex items-center p-1.5 text-amber-600 bg-amber-50 rounded-lg hover:bg-amber-500 hover:text-white"
-                                   title="Edit">
-                                    Edit
-                                </a>
-                                <a href="${pageContext.request.contextPath}/staffservlet?action=inventoryReceiptDelete&id=${r.receipt_id}"
-                                   onclick="return confirm('Delete this receipt? All receipt items will also be removed.');"
-                                   class="inline-flex items-center p-1.5 text-red-600 bg-red-50 rounded-lg hover:bg-red-600 hover:text-white"
-                                   title="Delete">
-                                    Delete
-                                </a>
-                            </div>
+                        <td class="px-4 py-3 text-center whitespace-nowrap">
+                            <a href="${pageContext.request.contextPath}/staffservlet?action=inventoryReceiptDetail&id=${r.receipt_id}"
+                               class="text-gray-600 hover:text-gray-800 font-medium hover:underline">
+                                Detail
+                            </a>
+                            <span class="text-gray-300 mx-1">|</span>
+                            <a href="${pageContext.request.contextPath}/staffservlet?action=inventoryReceiptEdit&id=${r.receipt_id}"
+                               class="text-amber-600 hover:text-amber-800 font-medium hover:underline">
+                                Edit
+                            </a>
+                            <span class="text-gray-300 mx-1">|</span>
+                            <a href="${pageContext.request.contextPath}/staffservlet?action=inventoryReceiptDelete&id=${r.receipt_id}"
+                               onclick="return confirm('Delete this receipt? All receipt items will also be removed.');"
+                               class="text-red-600 hover:text-red-800 font-medium hover:underline">
+                                Delete
+                            </a>
                         </td>
                     </tr>
                 </c:forEach>
