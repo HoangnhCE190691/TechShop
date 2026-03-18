@@ -7,21 +7,21 @@
          class="fixed top-6 left-1/2 z-[9999] w-[calc(100%-2rem)] max-w-md -translate-x-1/2 transition-all duration-300 ease-out">
         <div class="relative flex items-start gap-3 rounded-2xl border px-4 py-3 shadow-xl backdrop-blur-sm
              ${isDangerToast
-                 ? 'bg-white/95 border-red-100 text-red-700'
-                 : 'bg-white/95 border-emerald-100 text-emerald-700'}">
+               ? 'bg-white/95 border-red-100 text-red-700'
+               : 'bg-white/95 border-emerald-100 text-emerald-700'}">
             <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full
                  ${isDangerToast ? 'bg-red-100 text-red-600' : 'bg-emerald-100 text-emerald-600'}">
                 <c:choose>
                     <c:when test="${isDangerToast}">
                         <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                  d="M12 9v3m0 4h.01M10.29 3.86l-7.5 13A1 1 0 003.66 18h16.68a1 1 0 00.87-1.5l-7.5-13a1 1 0 00-1.74 0z"/>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                              d="M12 9v3m0 4h.01M10.29 3.86l-7.5 13A1 1 0 003.66 18h16.68a1 1 0 00.87-1.5l-7.5-13a1 1 0 00-1.74 0z"/>
                         </svg>
                     </c:when>
                     <c:otherwise>
                         <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                  d="M9 12l2 2 4-4m5 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                              d="M9 12l2 2 4-4m5 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
                         </svg>
                     </c:otherwise>
                 </c:choose>
@@ -38,8 +38,8 @@
                     onclick="closeToastReceipt()"
                     class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-gray-400 transition hover:bg-gray-100 hover:text-gray-600">
                 <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                          d="M6 18L18 6M6 6l12 12"/>
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="M6 18L18 6M6 6l12 12"/>
                 </svg>
             </button>
         </div>
@@ -49,7 +49,8 @@
     <script>
         function closeToastReceipt() {
             var t = document.getElementById('toast-receipt');
-            if (!t) return;
+            if (!t)
+                return;
             t.classList.add('opacity-0', '-translate-y-3');
             setTimeout(function () {
                 t.remove();

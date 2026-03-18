@@ -28,8 +28,8 @@
     <c:remove var="msgType" scope="session" />
 
     <script>
-        window.onload = function() {
-            setTimeout(function() {
+        window.onload = function () {
+            setTimeout(function () {
                 var toast = document.getElementById("toast-notification");
                 if (toast != null) {
                     toast.parentNode.removeChild(toast);
@@ -152,94 +152,95 @@
                             class="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none">
 
                         <option value="IN_STOCK"
-                            <c:if test="${inventoryItem.status == 'IN_STOCK'}">selected</c:if>>
-                            IN_STOCK
-                        </option>
+                                <c:if test="${inventoryItem.status == 'IN_STOCK'}">selected</c:if>>
+                                    IN_STOCK
+                                </option>
 
-                        <option value="SOLD"
-                            <c:if test="${inventoryItem.status == 'SOLD'}">selected</c:if>>
-                            SOLD
-                        </option>
+                                <option value="SOLD"
+                                <c:if test="${inventoryItem.status == 'SOLD'}">selected</c:if>>
+                                    SOLD
+                                </option>
 
-                        <option value="RESERVED"
-                            <c:if test="${inventoryItem.status == 'RESERVED'}">selected</c:if>>
-                            RESERVED
-                        </option>
+                                <option value="RESERVED"
+                                <c:if test="${inventoryItem.status == 'RESERVED'}">selected</c:if>>
+                                    RESERVED
+                                </option>
 
-                        <option value="DEFECTIVE"
-                            <c:if test="${inventoryItem.status == 'DEFECTIVE'}">selected</c:if>>
-                            DEFECTIVE
-                        </option>
+                                <option value="DEFECTIVE"
+                                <c:if test="${inventoryItem.status == 'DEFECTIVE'}">selected</c:if>>
+                                    DEFECTIVE
+                                </option>
 
-                        <option value="RETURNED"
-                            <c:if test="${inventoryItem.status == 'RETURNED'}">selected</c:if>>
-                            RETURNED
-                        </option>
+                                <option value="RETURNED"
+                                <c:if test="${inventoryItem.status == 'RETURNED'}">selected</c:if>>
+                                    RETURNED
+                                </option>
 
-                    </select>
+                        </select>
+                    </div>
                 </div>
-            </div>
 
-            <script>
-                function confirmSoldToInStock(event) {
-                    var original = document.getElementById("originalStatus");
-                    var statusSelect = document.getElementById("statusSelect");
-                    if (!original || !statusSelect) return true;
-                    var origVal = (original.value || "").toUpperCase();
-                    var newVal = (statusSelect.value || "").toUpperCase();
-                    if (origVal === "SOLD" && newVal === "IN_STOCK") {
-                        var msg = "This item may be linked to an order. Normally use Order Cancel to revert stock. Continue anyway?";
-                        if (!confirm(msg)) {
-                            event.preventDefault();
-                            return false;
+                <script>
+                    function confirmSoldToInStock(event) {
+                        var original = document.getElementById("originalStatus");
+                        var statusSelect = document.getElementById("statusSelect");
+                        if (!original || !statusSelect)
+                            return true;
+                        var origVal = (original.value || "").toUpperCase();
+                        var newVal = (statusSelect.value || "").toUpperCase();
+                        if (origVal === "SOLD" && newVal === "IN_STOCK") {
+                            var msg = "This item may be linked to an order. Normally use Order Cancel to revert stock. Continue anyway?";
+                            if (!confirm(msg)) {
+                                event.preventDefault();
+                                return false;
+                            }
                         }
+                        return true;
                     }
-                    return true;
-                }
 
-                window.onload = function() {
+                    window.onload = function () {
 
-                    var search = document.getElementById("variantSearch");
-                    var select = document.getElementById("variantSelect");
+                        var search = document.getElementById("variantSearch");
+                        var select = document.getElementById("variantSelect");
 
-                    if (search != null && select != null) {
+                        if (search != null && select != null) {
 
-                        search.onkeyup = function() {
+                            search.onkeyup = function () {
 
-                            var q = this.value.toLowerCase();
-                            var options = select.getElementsByTagName("option");
+                                var q = this.value.toLowerCase();
+                                var options = select.getElementsByTagName("option");
 
-                            for (var i = 0; i < options.length; i++) {
+                                for (var i = 0; i < options.length; i++) {
 
-                                var text = options[i].getAttribute("data-text");
+                                    var text = options[i].getAttribute("data-text");
 
-                                if (text != null) {
-                                    text = text.toLowerCase();
+                                    if (text != null) {
+                                        text = text.toLowerCase();
 
-                                    if (q == "" || text.indexOf(q) >= 0) {
-                                        options[i].style.display = "";
-                                    } else {
-                                        options[i].style.display = "none";
+                                        if (q == "" || text.indexOf(q) >= 0) {
+                                            options[i].style.display = "";
+                                        } else {
+                                            options[i].style.display = "none";
+                                        }
                                     }
                                 }
-                            }
-                        };
-                    }
-                };
-            </script>
+                            };
+                        }
+                    };
+                </script>
 
-            <div class="flex gap-3 pt-2">
-                <button type="submit"
-                        class="inline-flex items-center gap-2 px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium text-sm">
-                    Update
-                </button>
+                <div class="flex gap-3 pt-2">
+                    <button type="submit"
+                            class="inline-flex items-center gap-2 px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium text-sm">
+                        Update
+                    </button>
 
-                <a href="staffservlet?action=inventoryManagement"
-                   class="inline-flex items-center gap-2 px-5 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg font-medium text-sm">
-                    Cancel
-                </a>
-            </div>
+                    <a href="staffservlet?action=inventoryManagement"
+                       class="inline-flex items-center gap-2 px-5 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg font-medium text-sm">
+                        Cancel
+                    </a>
+                </div>
 
-        </form>
-    </div>
+            </form>
+        </div>
 </c:if>

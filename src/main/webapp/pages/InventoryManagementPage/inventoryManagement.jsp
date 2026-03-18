@@ -46,26 +46,26 @@
 
         <div class="w-full flex flex-col md:flex-row md:items-center gap-3">
             <form class="w-full md:w-1/3 md:max-w-[520px]" action="staffservlet" method="GET">
-            <input type="hidden" name="action" value="inventoryManagement">
+                <input type="hidden" name="action" value="inventoryManagement">
 
-            <div class="relative">
-                <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-400">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
-                    </svg>
-                </span>
-                <input type="text"
-                       name="keyword"
-                       class="w-full pl-10 pr-10 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                       placeholder="Search by product name, IMEI, status or ID..."
-                       value="${param.keyword}">
-                <c:if test="${not empty param.keyword}">
-                    <a href="staffservlet?action=inventoryManagement"
-                       class="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 hover:text-gray-600">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
-                    </a>
-                </c:if>
-            </div>
+                <div class="relative">
+                    <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-400">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                        </svg>
+                    </span>
+                    <input type="text"
+                           name="keyword"
+                           class="w-full pl-10 pr-10 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                           placeholder="Search by product name, IMEI, status or ID..."
+                           value="${param.keyword}">
+                    <c:if test="${not empty param.keyword}">
+                        <a href="staffservlet?action=inventoryManagement"
+                           class="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 hover:text-gray-600">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                        </a>
+                    </c:if>
+                </div>
             </form>
 
             <button type="button"
@@ -106,66 +106,66 @@
 
     <!-- Summary table: per variant (imported / sold / in stock) -->
     <c:if test="${empty param.keyword}">
-    <div id="inventory-summary-view" class="overflow-x-auto rounded-lg border border-gray-200">
+        <div id="inventory-summary-view" class="overflow-x-auto rounded-lg border border-gray-200">
 
-        <table class="w-full text-sm text-left text-gray-600">
+            <table class="w-full text-sm text-left text-gray-600">
 
-            <thead class="text-xs uppercase bg-gray-50 text-gray-700 font-semibold">
-                <tr>
-                    <th class="px-4 py-3">#</th>
-                    <th class="px-4 py-3">Product name</th>
-                    <th class="px-4 py-3">SKU / Variant</th>
-                    <th class="px-4 py-3 text-right">Imported</th>
-                    <th class="px-4 py-3 text-right">Sold</th>
-                    <th class="px-4 py-3 text-right">In stock</th>
-                    <th class="px-4 py-3 text-center">Actions</th>
-                </tr>
-            </thead>
-
-            <tbody class="divide-y divide-gray-200">
-
-                <c:forEach items="${inventorySummary}" var="s" varStatus="stt">
-                    <tr class="hover:bg-gray-50 transition-colors">
-                        <td class="px-4 py-3 font-mono text-gray-700">
-                            #${stt.count}
-                        </td>
-                        <td class="px-4 py-3 font-medium text-gray-900"
-                            data-col="product">
-                            ${s.productName}
-                        </td>
-                        <td class="px-4 py-3 font-mono text-gray-700">
-                            ${s.sku}
-                        </td>
-                        <td class="px-4 py-3 text-right font-semibold">
-                            ${s.imported}
-                        </td>
-                        <td class="px-4 py-3 text-right font-semibold text-blue-700">
-                            ${s.sold}
-                        </td>
-                        <td class="px-4 py-3 text-right font-semibold text-green-700">
-                            ${s.inStock}
-                        </td>
-                        <td class="px-4 py-3 text-center">
-                            <button type="button"
-                                    class="text-blue-600 hover:text-blue-800 font-medium hover:underline btn-summary-view-detail"
-                                    data-variant-id="${s.variantId}">
-                                View detail
-                            </button>
-                        </td>
-                    </tr>
-                </c:forEach>
-
-                <c:if test="${empty inventorySummary}">
+                <thead class="text-xs uppercase bg-gray-50 text-gray-700 font-semibold">
                     <tr>
-                        <td colspan="6" class="px-4 py-8 text-center text-gray-500 italic">
-                            No summary data.
-                        </td>
+                        <th class="px-4 py-3">#</th>
+                        <th class="px-4 py-3">Product name</th>
+                        <th class="px-4 py-3">SKU / Variant</th>
+                        <th class="px-4 py-3 text-right">Imported</th>
+                        <th class="px-4 py-3 text-right">Sold</th>
+                        <th class="px-4 py-3 text-right">In stock</th>
+                        <th class="px-4 py-3 text-center">Actions</th>
                     </tr>
-                </c:if>
+                </thead>
 
-            </tbody>
-        </table>
-    </div>
+                <tbody class="divide-y divide-gray-200">
+
+                    <c:forEach items="${inventorySummary}" var="s" varStatus="stt">
+                        <tr class="hover:bg-gray-50 transition-colors">
+                            <td class="px-4 py-3 font-mono text-gray-700">
+                                #${stt.count}
+                            </td>
+                            <td class="px-4 py-3 font-medium text-gray-900"
+                                data-col="product">
+                                ${s.productName}
+                            </td>
+                            <td class="px-4 py-3 font-mono text-gray-700">
+                                ${s.sku}
+                            </td>
+                            <td class="px-4 py-3 text-right font-semibold">
+                                ${s.imported}
+                            </td>
+                            <td class="px-4 py-3 text-right font-semibold text-blue-700">
+                                ${s.sold}
+                            </td>
+                            <td class="px-4 py-3 text-right font-semibold text-green-700">
+                                ${s.inStock}
+                            </td>
+                            <td class="px-4 py-3 text-center">
+                                <button type="button"
+                                        class="text-blue-600 hover:text-blue-800 font-medium hover:underline btn-summary-view-detail"
+                                        data-variant-id="${s.variantId}">
+                                    View detail
+                                </button>
+                            </td>
+                        </tr>
+                    </c:forEach>
+
+                    <c:if test="${empty inventorySummary}">
+                        <tr>
+                            <td colspan="6" class="px-4 py-8 text-center text-gray-500 italic">
+                                No summary data.
+                            </td>
+                        </tr>
+                    </c:if>
+
+                </tbody>
+            </table>
+        </div>
     </c:if>
 
     <!-- Table: per inventory item (IMEI-level) -->
@@ -313,10 +313,12 @@
         }
 
         function renderGroupedRows(filterVariantId) {
-            if (!detailTbody) return;
+            if (!detailTbody)
+                return;
 
             const items = allItems.filter(function (it) {
-                if (!filterVariantId) return true;
+                if (!filterVariantId)
+                    return true;
                 return String(it.variantId) === String(filterVariantId);
             });
 
@@ -346,10 +348,12 @@
                 // sort by receipt_item_id then import price then product name
                 const ra = Number(a.receiptItemId || 0);
                 const rb = Number(b.receiptItemId || 0);
-                if (ra !== rb) return ra - rb;
+                if (ra !== rb)
+                    return ra - rb;
                 const pa = Number(a.importPrice || 0);
                 const pb = Number(b.importPrice || 0);
-                if (pa !== pb) return pa - pb;
+                if (pa !== pb)
+                    return pa - pb;
                 return String(a.productName || '').localeCompare(String(b.productName || ''));
             });
 

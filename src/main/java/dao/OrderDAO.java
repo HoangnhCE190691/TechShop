@@ -6,7 +6,6 @@ package dao;
 
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
-import java.sql.Types;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -349,6 +348,38 @@ public class OrderDAO extends DBContext {
                 Map<String, Object> item = new HashMap<>();
                 item.put("productName", rs.getString("name"));
                 item.put("sku", rs.getString("sku"));
+                item.put("quantity", rs.getInt("quantity"));
+                item.put("price", rs.getBigDecimal("unit_price"));
+                item.put("imageUrl", rs.getString("image_url"));
+                details.add(item);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return details;
+    }
+
+    /**
+     * Chi tiết đơn hàng CANCELLED theo từng inventory_id để lấy được IMEI (nếu có).
+     * Dùng cho trang staff order detail để luôn hiển thị IMEI/Serial.
+     */
+    public List<Map<String, Object>> getCancelledOrderDetailsWithIMEI(int orderId) {
+        List<Map<String, Object>> details = new ArrayList<>();
+        String sql = "SELECT p.name, pv.sku, ii.imei, coi.quantity, coi.unit_price, pi.image_url "
+                + "FROM cancelled_order_items coi "
+                + "JOIN inventory_items ii ON coi.inventory_id = ii.inventory_id "
+                + "JOIN product_variants pv ON ii.variant_id = pv.variant_id "
+                + "JOIN products p ON pv.product_id = p.product_id "
+                + "LEFT JOIN product_images pi ON p.product_id = pi.product_id AND pi.is_thumbnail = 1 "
+                + "WHERE coi.order_id = ?";
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, orderId);
+            ResultSet rs = ps.executeQuery();
+            while (rs.next()) {
+                Map<String, Object> item = new HashMap<>();
+                item.put("productName", rs.getString("name"));
+                item.put("sku", rs.getString("sku"));
+                item.put("imei", rs.getString("imei"));
                 item.put("quantity", rs.getInt("quantity"));
                 item.put("price", rs.getBigDecimal("unit_price"));
                 item.put("imageUrl", rs.getString("image_url"));

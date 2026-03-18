@@ -110,7 +110,7 @@ public class orderHistoryPageServlet extends HttpServlet {
             boolean success = orderDao.cancelOrderByCustomer(orderId, currentUserId);
 
             if (success) {
-                request.getSession().setAttribute("msg", "Order #" + orderId + " has been cancelled.");
+                request.getSession().setAttribute("msg", "Order #" + orderId + " was cancelled.");
                 request.getSession().setAttribute("msgType", "success");
             } else {
                 request.getSession().setAttribute("msg", "Cannot cancel this order.");
