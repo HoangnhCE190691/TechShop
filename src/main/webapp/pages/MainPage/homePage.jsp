@@ -26,7 +26,7 @@
 
     <div class="w-full my-8 bg-white p-6 rounded-2xl shadow-sm">
         <h3 class="text-2xl md:text-3xl font-bold mb-6 text-gray-800 flex items-center gap-2">
-            <span class="text-yellow-400">⭐</span> Product
+            <span class="text-yellow-400">⭐</span> New Product
         </h3>
 
         <div class="ant-tabs ant-tabs-top">
@@ -81,7 +81,7 @@
                         <c:if test="${empty phoneList}">
                             <div
                                 class="col-span-full bg-gray-50 p-4 rounded-lg border border-dashed border-gray-300 text-center text-gray-400 font-medium">
-                                Chưa có sản phẩm nào</div>
+                                There are no products yet</div>
                             </c:if>
                     </div>
                 </div>
@@ -113,7 +113,7 @@
                         <c:if test="${empty laptopList}">
                             <div
                                 class="col-span-full bg-gray-50 p-4 rounded-lg border border-dashed border-gray-300 text-center text-gray-400 font-medium">
-                                Chưa có sản phẩm nào</div>
+                                There are no products yet</div>
                             </c:if>
                     </div>
                 </div>
@@ -145,7 +145,7 @@
                         <c:if test="${empty accessoryList}">
                             <div
                                 class="col-span-full bg-gray-50 p-4 rounded-lg border border-dashed border-gray-300 text-center text-gray-400 font-medium">
-                                Chưa có sản phẩm nào</div>
+                                There are no products yet</div>
                             </c:if>
                     </div>
                 </div>
@@ -177,7 +177,7 @@
                         <c:if test="${empty watchList}">
                             <div
                                 class="col-span-full bg-gray-50 p-4 rounded-lg border border-dashed border-gray-300 text-center text-gray-400 font-medium">
-                                Chưa có sản phẩm nào</div>
+                                There are no products yet</div>
                             </c:if>
                     </div>
                 </div>
@@ -245,7 +245,9 @@
                             Trả góp 0%</div>
 
                         <div class="mt-8 mb-4 overflow-hidden rounded-xl bg-gray-50 p-2">
-                            <img src="../assets/img/product/default.png" class="w-full h-44 object-contain transition-transform duration-500 group-hover:scale-110">
+                            <img src="${empty p.thumbnailUrl ? '../assets/img/product/default.png' : p.thumbnailUrl}"
+                                 class="w-full h-44 object-contain transition-transform duration-500 group-hover:scale-110"
+                                 alt="${p.name}">
                         </div>
 
                         <h3
@@ -265,7 +267,7 @@
             <c:if test="${empty appleList}">
                 <div
                     class="w-full bg-gray-50 p-4 rounded-lg border border-dashed border-gray-300 text-center text-gray-400 font-medium">
-                    Chưa có sản phẩm nào</div>
+                    There are no products yet</div>
                 </c:if>
         </div>
 
@@ -321,7 +323,7 @@
             <c:if test="${empty samsungList}">
                 <div
                     class="w-full bg-gray-50 p-4 rounded-lg border border-dashed border-gray-300 text-center text-gray-400 font-medium">
-                    Chưa có sản phẩm nào</div>
+                    There are no products yet</div>
                 </c:if>
         </div>
 
