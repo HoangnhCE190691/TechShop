@@ -25,6 +25,7 @@
                 </div>
             </div>
         </c:if>
+
         <form id="checkoutForm" method="post" action="orderpageservlet" class="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-10">
             <input type="hidden" name="appliedVoucherId" id="appliedVoucherId" value="0">
             <div class="lg:col-span-7 flex flex-col gap-8">
@@ -216,7 +217,27 @@
         </form>
     </div>
 </div>
-
+<%-- Huy thanh toan vnpay --%>            
+<c:if test="${not empty sessionScope.vnpayError}">
+    <div id="vnpay-toast" class="fixed top-10 left-1/2 -translate-x-1/2 z-[9999] min-w-[360px] transition-all duration-500">
+        <div class="flex items-center gap-3 p-4 rounded-xl shadow-2xl border-2 bg-red-50 text-red-800 border-red-200 ">
+            <svg class="w-6 h-6 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
+            </svg>
+            <span class="font-bold text-sm">${sessionScope.vnpayError}</span>
+        </div>
+    </div>
+    <c:remove var="vnpayError" scope="session"/>
+    <script>
+        setTimeout(() => {
+            const t = document.getElementById('vnpay-toast');
+            if (t) {
+                t.style.opacity = '0';
+                setTimeout(() => t.remove(), 500);
+            }
+        }, 4000);
+    </script>
+</c:if>
 <div id="successModal" class="fixed inset-0 z-50 flex items-center justify-center hidden opacity-0 transition-opacity duration-300">
     <div class="absolute inset-0 bg-black/50 backdrop-blur-sm"></div>
 

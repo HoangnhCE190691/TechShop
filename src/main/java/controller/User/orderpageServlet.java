@@ -277,25 +277,28 @@ public class orderpageServlet extends HttpServlet {
             }
         }
 
-        // 3. Xóa giỏ hàng sau khi đặt hàng thành công
-        cartDao.deleteCartByCustomerId(customerId);
-        // 4. Cập nhật số lượng voucher đã sử dụng
-        if (appliedVoucher != null) {
-            VoucherDAO vdao = new VoucherDAO();
-            vdao.incrementUsedQuantity(appliedVoucher.getVoucherId());
-        }
-        //Check vnpay
+        // 3.Check vnpay
         PaymentMethodDAO pdao = new PaymentMethodDAO();
         PaymentMethod selectedMethod = pdao.getPaymentMethodById(paymentMethodId);
         boolean isVNPay = selectedMethod != null
                 && selectedMethod.getMethod_name().toUpperCase().contains("VNPAY");
 
         if (isVNPay) {
+            // VNPAY: giữ giỏ hàng, redirect sang thanh toán
             response.sendRedirect("vnpayservlet?action=pay&orderId=" + orderId
                     + "&amount=" + totalAmount.longValue());
         } else {
+            // COD hoặc method khác: xóa giỏ hàng, hiện popup success
+            cartDao.deleteCartByCustomerId(customerId);
             response.sendRedirect("orderpageservlet?orderSuccess=1&orderId=" + orderId);
         }
+
+        // 4. Cập nhật số lượng voucher đã sử dụng
+        if (appliedVoucher != null) {
+            VoucherDAO vdao = new VoucherDAO();
+            vdao.incrementUsedQuantity(appliedVoucher.getVoucherId());
+        }
+
     }
 
     /**

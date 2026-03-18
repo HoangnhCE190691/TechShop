@@ -257,6 +257,20 @@ public class OrderDAO extends DBContext {
         return null;
     }
 
+    public int getCustomerIdByOrderId(int orderId) {
+        String sql = "SELECT customer_id FROM orders WHERE order_id = ?";
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, orderId);
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) {
+                return rs.getInt("customer_id");
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return -1;
+    }
+
     //Get order detail with IMEI
     public List<Map<String, Object>> getOrderDetailsWithIMEI(int orderId) {
         List<Map<String, Object>> details = new ArrayList<>();
@@ -315,8 +329,7 @@ public class OrderDAO extends DBContext {
     }
 
     /**
-     * Lấy chi tiết đơn hàng cho các đơn đã hủy, đọc từ bảng
-     * cancelled_order_items.
+     * Lấy chi tiết đơn hàng cho các đơn đã hủy, đọc từ bảng cancelled_order_items.
      */
     public List<Map<String, Object>> getCancelledOrderDetails(int orderId) {
         List<Map<String, Object>> details = new ArrayList<>();
@@ -456,9 +469,7 @@ public class OrderDAO extends DBContext {
     }
 
     /**
-     * Hủy đơn chưa thanh toán (VNPay bỏ giữa chừng / thanh toán thất bại).
-     * Không xóa đơn: chỉ hoàn inventory, xóa order_items, set status =
-     * CANCELLED để vẫn "mò" được trong lịch sử.
+     * Hủy đơn chưa thanh toán (VNPay bỏ giữa chừng / thanh toán thất bại). Không xóa đơn: chỉ hoàn inventory, xóa order_items, set status = CANCELLED để vẫn "mò" được trong lịch sử.
      */
     public void cancelUnpaidOrder(int orderId) {
         // 1. Snapshot chi tiết đơn vào bảng lịch sử (giữ lại thông tin đơn đã hủy)

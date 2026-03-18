@@ -4,6 +4,7 @@
  */
 package controller.User;
 
+import dao.CartItemDAO;
 import dao.OrderDAO;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
@@ -151,6 +152,11 @@ public class VNPayServlet extends HttpServlet {
             try {
                 int id = Integer.parseInt(orderId);
                 new OrderDAO().updateOrderPaymentStatus(id, "PAID");
+
+                int customerId = new OrderDAO().getCustomerIdByOrderId(id);
+                if (customerId > 0) {
+                    new CartItemDAO().deleteCartByCustomerId(customerId);
+                }
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -167,19 +173,10 @@ public class VNPayServlet extends HttpServlet {
             e.printStackTrace();
         }
 
-        String errorMsg = "24".equals(responseCode)
-                ? "Bạn đã hủy thanh toán."
-                : "Thanh toán thất bại. Mã lỗi: " + responseCode;
-
-        request.setAttribute("success", false);
-        request.setAttribute("orderId", orderId);
-        request.setAttribute("responseCode", responseCode);
-        request.setAttribute("errorMsg", errorMsg);
-        request.setAttribute("transactionNo", transactionNo);
-        request.setAttribute("amount", amount != null ? Long.parseLong(amount) / 100 : 0);
-        request.setAttribute("HeaderComponent", "/components/navbar.jsp");
-        request.setAttribute("FooterComponent", "/components/footer.jsp");
-        request.setAttribute("ContentPage", "/pages/MainPage/vnpayReturn.jsp");
-        request.getRequestDispatcher("/template/userTemplate.jsp").forward(request, response);
+        // Hủy hoặc thất bại → quay về trang đặt hàng
+        request.getSession().setAttribute("vnpayError", "24".equals(responseCode)
+                ? "You have canceled your VNPAY payment or an error has occurred. Please try again. We apologize for the inconvenience."
+                : "VNPay payment failed (Error code: " + responseCode + "). ");
+        response.sendRedirect("orderpageservlet");
     }
 }
