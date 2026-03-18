@@ -77,6 +77,9 @@ public class userServlet extends HttpServlet {
 
         if (action != null) {
             switch (action) {
+                case "errorpage": 
+                  page = "/pages/MainPage/error404.jsp"; // Bạn cần tạo file này
+                    break;
                 case "homePage":
                     page = "/pages/MainPage/homePage.jsp";
                     ProductDAO productDAO = new ProductDAO();

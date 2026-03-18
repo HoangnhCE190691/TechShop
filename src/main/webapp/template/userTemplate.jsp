@@ -88,7 +88,7 @@
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
             </svg>
         </button>
-        
+
         <div id="ai-chat-box" class="hidden fixed bottom-24 right-6 w-80 md:w-96 h-[500px] bg-white rounded-2xl shadow-2xl flex flex-col z-[60] border border-gray-100 overflow-hidden">
             <div class="bg-red-600 p-4 text-white flex justify-between items-center">
                 <div class="flex items-center gap-2">
@@ -142,15 +142,15 @@
           let techShopDB = [];
             try {
                 // Dùng JSTL c:forEach để in từng sản phẩm từ List 'inventory' vào mảng JS
-                <c:forEach items="${inventory}" var="item">
-                    techShopDB.push({
-                        productName: "${item.productName}",
-                        import_price: ${item.import_price != null ? item.import_price : 0},
-                        status: "${item.status}",
-                        imei: "${item.imei}"
-                    });
-                </c:forEach>
-                
+            <c:forEach items="${inventory}" var="item">
+                techShopDB.push({
+                    productName: "${item.productName}",
+                    import_price: ${item.import_price != null ? item.import_price : 0},
+                    status: "${item.status}",
+                    imei: "${item.imei}"
+                });
+            </c:forEach>
+
                 console.log("=== Đã lấy thành công dữ liệu từ DB ===");
                 console.log(techShopDB);
             } catch (e) {
