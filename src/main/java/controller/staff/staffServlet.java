@@ -8,14 +8,18 @@ import dao.BrandDAO;
 import dao.CategoryDAO;
 import dao.ProductDAO;
 import dao.SupplierDAO;
+import dao.CustomerDAO;
 import dao.EmployeesDAO;
 import dao.OrderDAO;
 import dao.ReviewDAO;
 import dao.ImportReceiptsDAO;
 import dao.ImportReceiptItemDAO;
+import dao.VoucherDAO;
 import model.Order;
 import model.ImportReceipts;
 import model.ImportReceiptItem;
+import model.Voucher;
+import model.InventorySummary;
 import java.io.IOException;
 import java.io.PrintWriter;
 import jakarta.servlet.ServletException;
@@ -23,6 +27,8 @@ import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.List;
 import model.InventoryItem;
 import model.Supplier;
@@ -90,6 +96,261 @@ public class staffServlet extends HttpServlet {
             switch (action) {
                 case "dashboard":
                     page = "/pages/DashboardPage/staffDashboard.jsp";
+                    int year = 2026;
+                    request.setAttribute("listDataCustomer", new CustomerDAO().getCustomersByYear(year));
+                    request.setAttribute("listDataEmployee", new EmployeesDAO().getEmployeesByYear(year));
+
+                    List<Voucher> listV = new VoucherDAO().getVouchersByYear(year);
+                    List<Order> listOrders = new OrderDAO().getOrdersByYear(year);
+
+                    long activeV = listV.stream()
+                            .filter(v -> v.getStatus().equalsIgnoreCase("Active"))
+                            .count();
+                    long lockedV = listV.stream()
+                            .filter(v -> v.getStatus().equalsIgnoreCase("Locked"))
+                            .count();
+                    long expiredV = listV.stream()
+                            .filter(v -> v.getStatus().equalsIgnoreCase("Expired"))
+                            .count();
+
+                    long pendingCount = listOrders.stream()
+                            .filter(o -> o.getStatus().equalsIgnoreCase("PENDING"))
+                            .count();
+                    long approvedCount = listOrders.stream()
+                            .filter(o -> o.getStatus().equalsIgnoreCase("APPROVED"))
+                            .count();
+                    long shippingCount = listOrders.stream()
+                            .filter(o -> o.getStatus().equalsIgnoreCase("SHIPPING"))
+                            .count();
+                    long shippedCount = listOrders.stream()
+                            .filter(o -> o.getStatus().equalsIgnoreCase("SHIPPED"))
+                            .count();
+                    long cancelledCount = listOrders.stream()
+                            .filter(o -> o.getStatus().equalsIgnoreCase("CANCELLED"))
+                            .count();
+
+                    request.setAttribute("activeV", activeV);
+                    request.setAttribute("lockedV", lockedV);
+                    request.setAttribute("expiredV", expiredV);
+
+                    request.setAttribute("pendingCount", pendingCount);
+                    request.setAttribute("approvedCount", approvedCount);
+                    request.setAttribute("shippingCount", shippingCount);
+                    request.setAttribute("shippedCount", shippedCount);
+                    request.setAttribute("cancelledCount", cancelledCount);
+
+                    request.setAttribute("listDataVoucher", listV);
+
+                    // Supplier + Inventory receipts cards
+                    request.setAttribute("listSuppliers", new SupplierDAO().getAllSuppliers());
+                    List<ImportReceipts> allReceiptsDashboard = new ImportReceiptsDAO().getAllReceipts();
+                    List<ImportReceipts> filteredReceiptsDashboard = new ArrayList<>();
+                    for (ImportReceipts r : allReceiptsDashboard) {
+                        if (r == null || r.getImport_date() == null) continue;
+                        Calendar cal = Calendar.getInstance();
+                        cal.setTime(r.getImport_date());
+                        int rYear = cal.get(Calendar.YEAR);
+                        if (rYear == year) {
+                            filteredReceiptsDashboard.add(r);
+                        }
+                    }
+                    filteredReceiptsDashboard.sort((a, b) -> {
+                        if (a.getImport_date() == null && b.getImport_date() == null) return 0;
+                        if (a.getImport_date() == null) return 1;
+                        if (b.getImport_date() == null) return -1;
+                        return b.getImport_date().compareTo(a.getImport_date());
+                    });
+                    int limitDashboard = 5; // end="4" in JSP
+                    if (filteredReceiptsDashboard.size() > limitDashboard) {
+                        filteredReceiptsDashboard = filteredReceiptsDashboard.subList(0, limitDashboard);
+                    }
+                    request.setAttribute("listImportReceipts", filteredReceiptsDashboard);
+
+                    // Inventory summary for dashboard card
+                    List<InventorySummary> dashboardInventorySummary = new InventoryItemDAO().getInventorySummary();
+                    int dashboardInventoryImportedTotal = 0;
+                    int dashboardInventorySoldTotal = 0;
+                    int dashboardInventoryInStockTotal = 0;
+                    for (InventorySummary s : dashboardInventorySummary) {
+                        if (s == null) continue;
+                        dashboardInventoryImportedTotal += s.getImported();
+                        dashboardInventorySoldTotal += s.getSold();
+                        dashboardInventoryInStockTotal += s.getInStock();
+                    }
+                    request.setAttribute("inventoryImportedTotal", dashboardInventoryImportedTotal);
+                    request.setAttribute("inventorySoldTotal", dashboardInventorySoldTotal);
+                    request.setAttribute("inventoryInStockTotal", dashboardInventoryInStockTotal);
+                    break;
+
+                case "searchByMonth":
+                    page = "/pages/DashboardPage/staffDashboard.jsp";
+                    int yearForMonth = 2026;
+
+                    String monthStr = request.getParameter("month");
+                    int month = -1;
+                    try {
+                        month = monthStr != null ? Integer.parseInt(monthStr) : -1;
+                    } catch (NumberFormatException e) {
+                        month = -1;
+                    }
+                    // value "Select" (0) -> coi như "All"
+                    if (month <= 0) {
+                        month = -1;
+                    }
+
+                    if (month == -1) {
+                        request.setAttribute("listDataCustomer", new CustomerDAO().getCustomersByYear(yearForMonth));
+                        request.setAttribute("listDataEmployee", new EmployeesDAO().getEmployeesByYear(yearForMonth));
+
+                        List<Voucher> listVM = new VoucherDAO().getVouchersByYear(yearForMonth);
+                        List<Order> listOrdersYear = new OrderDAO().getOrdersByYear(yearForMonth);
+
+                        long activeVM = listVM.stream()
+                                .filter(v -> v.getStatus().equalsIgnoreCase("Active"))
+                                .count();
+                        long lockedVM = listVM.stream()
+                                .filter(v -> v.getStatus().equalsIgnoreCase("Locked"))
+                                .count();
+                        long expiredVM = listVM.stream()
+                                .filter(v -> v.getStatus().equalsIgnoreCase("Expired"))
+                                .count();
+
+                        long pendingCountM = listOrdersYear.stream()
+                                .filter(o -> o.getStatus().equalsIgnoreCase("PENDING"))
+                                .count();
+                        long approvedCountM = listOrdersYear.stream()
+                                .filter(o -> o.getStatus().equalsIgnoreCase("APPROVED"))
+                                .count();
+                        long shippingCountM = listOrdersYear.stream()
+                                .filter(o -> o.getStatus().equalsIgnoreCase("SHIPPING"))
+                                .count();
+                        long shippedCountM = listOrdersYear.stream()
+                                .filter(o -> o.getStatus().equalsIgnoreCase("SHIPPED"))
+                                .count();
+                        long cancelledCountM = listOrdersYear.stream()
+                                .filter(o -> o.getStatus().equalsIgnoreCase("CANCELLED"))
+                                .count();
+
+                        request.setAttribute("activeV", activeVM);
+                        request.setAttribute("lockedV", lockedVM);
+                        request.setAttribute("expiredV", expiredVM);
+
+                        request.setAttribute("pendingCount", pendingCountM);
+                        request.setAttribute("approvedCount", approvedCountM);
+                        request.setAttribute("shippingCount", shippingCountM);
+                        request.setAttribute("shippedCount", shippedCountM);
+                        request.setAttribute("cancelledCount", cancelledCountM);
+
+                        request.setAttribute("listDataVoucher", listVM);
+
+                        request.setAttribute("listSuppliers", new SupplierDAO().getAllSuppliers());
+                        List<ImportReceipts> allReceiptsYear = new ImportReceiptsDAO().getAllReceipts();
+                        List<ImportReceipts> filteredReceiptsYear = new ArrayList<>();
+                        for (ImportReceipts r : allReceiptsYear) {
+                            if (r == null || r.getImport_date() == null) continue;
+                            Calendar cal = Calendar.getInstance();
+                            cal.setTime(r.getImport_date());
+                            int rYear = cal.get(Calendar.YEAR);
+                            if (rYear == yearForMonth) {
+                                filteredReceiptsYear.add(r);
+                            }
+                        }
+                        filteredReceiptsYear.sort((a, b) -> {
+                            if (a.getImport_date() == null && b.getImport_date() == null) return 0;
+                            if (a.getImport_date() == null) return 1;
+                            if (b.getImport_date() == null) return -1;
+                            return b.getImport_date().compareTo(a.getImport_date());
+                        });
+                        int limitYear = 5;
+                        if (filteredReceiptsYear.size() > limitYear) {
+                            filteredReceiptsYear = filteredReceiptsYear.subList(0, limitYear);
+                        }
+                        request.setAttribute("listImportReceipts", filteredReceiptsYear);
+                    } else {
+                        request.setAttribute("listDataCustomer", new CustomerDAO().getCustomersByMonth(month));
+                        request.setAttribute("listDataEmployee", new EmployeesDAO().getEmployeesByMonth(month));
+
+                        List<Voucher> listVM = new VoucherDAO().getVouchersByMonth(month);
+                        List<Order> listOrdersMonth = new OrderDAO().getOrdersByMonth(month);
+
+                        long activeVM = listVM.stream()
+                                .filter(v -> v.getStatus().equalsIgnoreCase("Active"))
+                                .count();
+                        long lockedVM = listVM.stream()
+                                .filter(v -> v.getStatus().equalsIgnoreCase("Locked"))
+                                .count();
+                        long expiredVM = listVM.stream()
+                                .filter(v -> v.getStatus().equalsIgnoreCase("Expired"))
+                                .count();
+
+                        long pendingCountM = listOrdersMonth.stream()
+                                .filter(o -> o.getStatus().equalsIgnoreCase("PENDING"))
+                                .count();
+                        long approvedCountM = listOrdersMonth.stream()
+                                .filter(o -> o.getStatus().equalsIgnoreCase("APPROVED"))
+                                .count();
+                        long shippingCountM = listOrdersMonth.stream()
+                                .filter(o -> o.getStatus().equalsIgnoreCase("SHIPPING"))
+                                .count();
+                        long shippedCountM = listOrdersMonth.stream()
+                                .filter(o -> o.getStatus().equalsIgnoreCase("SHIPPED"))
+                                .count();
+                        long cancelledCountM = listOrdersMonth.stream()
+                                .filter(o -> o.getStatus().equalsIgnoreCase("CANCELLED"))
+                                .count();
+
+                        request.setAttribute("activeV", activeVM);
+                        request.setAttribute("lockedV", lockedVM);
+                        request.setAttribute("expiredV", expiredVM);
+
+                        request.setAttribute("pendingCount", pendingCountM);
+                        request.setAttribute("approvedCount", approvedCountM);
+                        request.setAttribute("shippingCount", shippingCountM);
+                        request.setAttribute("shippedCount", shippedCountM);
+                        request.setAttribute("cancelledCount", cancelledCountM);
+
+                        request.setAttribute("listDataVoucher", listVM);
+
+                        request.setAttribute("listSuppliers", new SupplierDAO().getAllSuppliers());
+                        List<ImportReceipts> allReceiptsMonth = new ImportReceiptsDAO().getAllReceipts();
+                        List<ImportReceipts> filteredReceiptsMonth = new ArrayList<>();
+                        for (ImportReceipts r : allReceiptsMonth) {
+                            if (r == null || r.getImport_date() == null) continue;
+                            Calendar cal = Calendar.getInstance();
+                            cal.setTime(r.getImport_date());
+                            int rYear = cal.get(Calendar.YEAR);
+                            int rMonth = cal.get(Calendar.MONTH) + 1;
+                            if (rYear == yearForMonth && rMonth == month) {
+                                filteredReceiptsMonth.add(r);
+                            }
+                        }
+                        filteredReceiptsMonth.sort((a, b) -> {
+                            if (a.getImport_date() == null && b.getImport_date() == null) return 0;
+                            if (a.getImport_date() == null) return 1;
+                            if (b.getImport_date() == null) return -1;
+                            return b.getImport_date().compareTo(a.getImport_date());
+                        });
+                        int limitMonth = 5;
+                        if (filteredReceiptsMonth.size() > limitMonth) {
+                            filteredReceiptsMonth = filteredReceiptsMonth.subList(0, limitMonth);
+                        }
+                        request.setAttribute("listImportReceipts", filteredReceiptsMonth);
+                    }
+
+                    // Inventory summary card (not filtered by month because DAO aggregates by variant)
+                    List<InventorySummary> monthInventorySummary = new InventoryItemDAO().getInventorySummary();
+                    int monthInventoryImportedTotal = 0;
+                    int monthInventorySoldTotal = 0;
+                    int monthInventoryInStockTotal = 0;
+                    for (InventorySummary s : monthInventorySummary) {
+                        if (s == null) continue;
+                        monthInventoryImportedTotal += s.getImported();
+                        monthInventorySoldTotal += s.getSold();
+                        monthInventoryInStockTotal += s.getInStock();
+                    }
+                    request.setAttribute("inventoryImportedTotal", monthInventoryImportedTotal);
+                    request.setAttribute("inventorySoldTotal", monthInventorySoldTotal);
+                    request.setAttribute("inventoryInStockTotal", monthInventoryInStockTotal);
                     break;
                 // Trong switch (action) của Servlet:
 

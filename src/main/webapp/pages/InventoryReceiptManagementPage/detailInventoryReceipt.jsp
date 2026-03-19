@@ -128,7 +128,7 @@
                 </tr>
             </thead>
             <tbody class="divide-y divide-gray-200">
-                <c:forEach items="${receiptItems}" var="it">
+                <c:forEach items="${receiptItems}" var="it" varStatus="st">
                     <c:set var="variantSku" value="—"/>
                     <c:set var="variantProductName" value=""/>
                     <c:forEach items="${listVariants}" var="v">
@@ -139,7 +139,7 @@
                     </c:forEach>
 
                     <tr class="hover:bg-gray-50">
-                        <td class="px-4 py-3 font-medium text-gray-500">#${it.receipt_item_id}</td>
+                        <td class="px-4 py-3 font-medium text-gray-500">#${st.count}</td>
                         <td class="px-4 py-3">
                             <span class="font-medium text-red-600">${variantSku}</span>
                             <c:if test="${not empty variantProductName}">

@@ -45,7 +45,7 @@
                             <svg class="w-5 h-5 transition duration-75 ${isOrder ? 'text-blue-700' : 'text-gray-500 group-hover:text-blue-700'}" fill="currentColor" viewBox="0 0 20 20">
                             <path fill-rule="evenodd" d="M10 2a4 4 0 00-4 4v1H5a1 1 0 00-.994.89l-1 9A1 1 0 004 18h12a1 1 0 00.994-1.11l-1-9A1 1 0 0015 7h-1V6a4 4 0 00-4-4zm2 5V6a2 2 0 10-4 0v1h4zm-6 3a1 1 0 112 0 1 1 0 01-2 0zm7-1a1 1 0 100 2 1 1 0 000-2z" clip-rule="evenodd"></path>
                             </svg>
-                            <span class="ms-3 whitespace-nowrap">Manage Orders</span>
+                            <span class="ms-3 whitespace-nowrap">Order</span>
                         </a>
                     </li>
 
@@ -115,7 +115,7 @@
                             <svg class="w-5 h-5 transition duration-75 ${isReview ? 'text-blue-700' : 'text-gray-500 group-hover:text-blue-700'}" fill="currentColor" viewBox="0 0 20 20">
                             <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path>
                             </svg>
-                            <span class="ms-3 whitespace-nowrap">Feedback</span>
+                            <span class="ms-3 whitespace-nowrap">feedback</span>
                         </a>
                     </li>
 
