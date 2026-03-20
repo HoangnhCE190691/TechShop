@@ -107,7 +107,14 @@ public class orderHistoryPageServlet extends HttpServlet {
         if ("cancelOrder".equals(action)) {
             int orderId = Integer.parseInt(request.getParameter("orderId"));
             OrderDAO orderDao = new OrderDAO();
-            boolean success = orderDao.cancelOrderByCustomer(orderId, currentUserId);
+            String cancelReason = request.getParameter("cancelReason");
+            if (cancelReason != null) {
+                cancelReason = cancelReason.trim();
+                if (cancelReason.isEmpty()) {
+                    cancelReason = null;
+                }
+            }
+            boolean success = orderDao.cancelOrderByCustomer(orderId, currentUserId, cancelReason);
 
             if (success) {
                 request.getSession().setAttribute("msg", "Order #" + orderId + " was cancelled.");

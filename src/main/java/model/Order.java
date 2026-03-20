@@ -28,6 +28,7 @@ public class Order {
     private String email;
     private String paymentMethodName;
     private String productImageUrl;
+    private String cancelReason;
 
     public Order() {
     }
@@ -175,6 +176,14 @@ public class Order {
 
     public void setProductImageUrl(String productImageUrl) {
         this.productImageUrl = productImageUrl;
+    }
+
+    public String getCancelReason() {
+        return cancelReason;
+    }
+
+    public void setCancelReason(String cancelReason) {
+        this.cancelReason = cancelReason;
     }
 
     @Override

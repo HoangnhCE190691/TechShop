@@ -132,15 +132,11 @@
 
                             <c:choose>
                                 <c:when test="${canCancel && order.paymentStatus != 'PAID'}">
-                                    <form method="post" action="orderhistorypageservlet"
-                                          onsubmit="return confirm('Are you sure you want to cancel order #${order.orderId}?')">
-                                        <input type="hidden" name="action" value="cancelOrder">
-                                        <input type="hidden" name="orderId" value="${order.orderId}">
-                                        <button type="submit"
-                                                class="px-5 py-2.5 rounded-xl border border-red-200 text-red-500 font-bold text-sm hover:bg-red-50 transition-colors">
-                                            Cancel Order
-                                        </button>
-                                    </form>
+                                    <button type="button"
+                                            onclick="openCancelModal(${order.orderId})"
+                                            class="px-5 py-2.5 rounded-xl border border-red-200 text-red-500 font-bold text-sm hover:bg-red-50 transition-colors">
+                                        Cancel Order
+                                    </button>
                                 </c:when>
                                 <c:otherwise>
                                     <button disabled
@@ -160,6 +156,75 @@
     </div>
 </div>
 
+<%-- ===================== MODAL HỦY ĐƠN HÀNG ===================== --%>
+<div id="cancelModal"
+     class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm hidden"
+     onclick="handleModalBackdropClick(event)">
+    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md mx-4 p-6 animate-fade-in">
+        <div class="flex items-center gap-3 mb-4">
+            <div class="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center flex-shrink-0">
+                <svg class="w-5 h-5 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="M12 9v2m0 4h.01M10.293 5.293a1 1 0 011.414 0L12 6l.293-.293a1 1 0 011.414 1.414L12 8.414l-1.707-1.707a1 1 0 010-1.414zM4.929 19.071A10 10 0 1019.07 4.93 10 10 0 004.93 19.07z"/>
+                </svg>
+            </div>
+            <div>
+                <h2 class="text-lg font-extrabold text-gray-900">Cancel Order</h2>
+                <p class="text-sm text-gray-500">Order #<span id="modalOrderId"></span></p>
+            </div>
+        </div>
+
+        <p class="text-sm text-gray-600 mb-3">Please select or enter a reason for cancellation:</p>
+
+        <div class="flex flex-wrap gap-2 mb-3" id="quickReasons">
+            <button type="button" onclick="selectQuickReason(this)"
+                    class="quick-reason-btn px-3 py-1.5 rounded-lg border border-gray-200 text-sm text-gray-600 hover:border-red-300 hover:text-red-600 transition-colors">
+                Changed my mind
+            </button>
+            <button type="button" onclick="selectQuickReason(this)"
+                    class="quick-reason-btn px-3 py-1.5 rounded-lg border border-gray-200 text-sm text-gray-600 hover:border-red-300 hover:text-red-600 transition-colors">
+                Found a better price
+            </button>
+            <button type="button" onclick="selectQuickReason(this)"
+                    class="quick-reason-btn px-3 py-1.5 rounded-lg border border-gray-200 text-sm text-gray-600 hover:border-red-300 hover:text-red-600 transition-colors">
+                Ordered by mistake
+            </button>
+            <button type="button" onclick="selectQuickReason(this)"
+                    class="quick-reason-btn px-3 py-1.5 rounded-lg border border-gray-200 text-sm text-gray-600 hover:border-red-300 hover:text-red-600 transition-colors">
+                Want to apply another voucher
+            </button>
+        </div>
+
+        <textarea id="cancelReasonInput"
+                  rows="3"
+                  maxlength="500"
+                  placeholder="Or type your own reason... "
+                  class="w-full border border-gray-300 rounded-xl px-4 py-2.5 text-sm resize-none focus:ring-2 focus:ring-red-400 focus:outline-none mb-1"></textarea>
+        <p class="text-xs text-gray-400 text-right mb-4"><span id="charCount">0</span>/500</p>
+        <p id="cancelReasonError" class="text-xs text-red-500 font-semibold mb-3 hidden">
+            Please select or enter a reason before confirming.
+        </p>
+
+        <form id="cancelOrderForm" method="post" action="orderhistorypageservlet">
+            <input type="hidden" name="action" value="cancelOrder">
+            <input type="hidden" name="orderId" id="cancelOrderIdInput">
+            <input type="hidden" name="cancelReason" id="cancelReasonHidden">
+        </form>
+
+        <div class="flex gap-3 justify-end">
+            <button type="button" onclick="closeCancelModal()"
+                    class="px-5 py-2.5 rounded-xl border border-gray-200 text-gray-600 font-semibold text-sm hover:bg-gray-50 transition-colors">
+                Go Back
+            </button>
+            <button type="button" onclick="submitCancelOrder()"
+                    class="px-5 py-2.5 rounded-xl bg-red-500 text-white font-bold text-sm hover:bg-red-600 transition-colors">
+                Confirm Cancellation
+            </button>
+        </div>
+    </div>
+</div>
+<%-- ============================================================== --%>
+
 <style>
     .hide-scrollbar::-webkit-scrollbar {
         display: none;
@@ -168,26 +233,95 @@
         -ms-overflow-style: none;
         scrollbar-width: none;
     }
+    .quick-reason-btn.selected {
+        border-color: #ef4444;
+        color: #ef4444;
+        background-color: #fef2f2;
+        font-weight: 600;
+    }
+    @keyframes fadeIn {
+        from {
+            opacity: 0;
+            transform: scale(0.97);
+        }
+        to   {
+            opacity: 1;
+            transform: scale(1);
+        }
+    }
+    .animate-fade-in {
+        animation: fadeIn 0.18s ease-out;
+    }
 </style>
 <script>
     document.addEventListener("DOMContentLoaded", function () {
+        // Search
         const searchInput = document.getElementById('searchInput');
         const orderRows = document.querySelectorAll('.order-card');
-
         searchInput.addEventListener('keyup', function () {
             const searchTerm = searchInput.value.toLowerCase();
-
             orderRows.forEach(function (row) {
                 const orderName = row.querySelector('.order-name')?.textContent.toLowerCase() || '';
                 const orderId = row.querySelector('.order-id')?.textContent.toLowerCase() || '';
                 const shippingAddress = row.textContent.toLowerCase();
-
-                if (orderName.includes(searchTerm) || orderId.includes(searchTerm) || shippingAddress.includes(searchTerm)) {
-                    row.style.display = '';
-                } else {
-                    row.style.display = 'none';
-                }
+                row.style.display = (orderName.includes(searchTerm) || orderId.includes(searchTerm) || shippingAddress.includes(searchTerm)) ? '' : 'none';
             });
         });
+
+        // Char counter textarea
+        document.getElementById('cancelReasonInput').addEventListener('input', function () {
+            document.getElementById('charCount').textContent = this.value.length;
+            document.querySelectorAll('.quick-reason-btn').forEach(b => b.classList.remove('selected'));
+            if (this.value.trim()) {
+                document.getElementById('cancelReasonError').classList.add('hidden');
+                this.classList.remove('border-red-400');
+            }
+        });
     });
+
+    function openCancelModal(orderId) {
+        document.getElementById('modalOrderId').textContent = orderId;
+        document.getElementById('cancelOrderIdInput').value = orderId;
+        document.getElementById('cancelReasonInput').value = '';
+        document.getElementById('charCount').textContent = '0';
+        document.querySelectorAll('.quick-reason-btn').forEach(b => b.classList.remove('selected'));
+        document.getElementById('cancelModal').classList.remove('hidden');
+    }
+
+    function closeCancelModal() {
+        document.getElementById('cancelModal').classList.add('hidden');
+    }
+
+    function handleModalBackdropClick(event) {
+        if (event.target === document.getElementById('cancelModal'))
+            closeCancelModal();
+    }
+
+    function selectQuickReason(btn) {
+        const isSelected = btn.classList.contains('selected');
+        document.querySelectorAll('.quick-reason-btn').forEach(b => b.classList.remove('selected'));
+        if (!isSelected) {
+            btn.classList.add('selected');
+            document.getElementById('cancelReasonError').classList.add('hidden');
+            document.getElementById('cancelReasonInput').classList.remove('border-red-400');
+            document.getElementById('cancelReasonInput').value = btn.textContent.trim();
+            document.getElementById('charCount').textContent = btn.textContent.trim().length;
+        } else {
+            document.getElementById('cancelReasonInput').value = '';
+            document.getElementById('charCount').textContent = '0';
+        }
+    }
+
+    function submitCancelOrder() {
+        const reason = document.getElementById('cancelReasonInput').value.trim();
+        const errorEl = document.getElementById('cancelReasonError');
+        if (!reason) {
+            errorEl.classList.remove('hidden');
+            document.getElementById('cancelReasonInput').classList.add('border-red-400');
+            return;
+        }
+        errorEl.classList.add('hidden');
+        document.getElementById('cancelReasonHidden').value = reason;
+        document.getElementById('cancelOrderForm').submit();
+    }
 </script>

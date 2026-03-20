@@ -299,7 +299,7 @@ public class staffServlet extends HttpServlet {
                         request.setAttribute("listDataEmployee", new EmployeesDAO().getEmployeesByMonth(month));
 
                         List<Voucher> listVM = new VoucherDAO().getVouchersByMonth(month);
-                        List<Order> listOrdersMonth = new OrderDAO().getOrdersByMonthStaff(month);
+                        List<Order> listOrdersMonth = new OrderDAO().getTop5OrdersByMonthStaff(month);
 
                         long activeVM = listVM.stream()
                                 .filter(v -> v.getStatus().equalsIgnoreCase("Active"))

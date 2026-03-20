@@ -14,6 +14,33 @@
         </div>
 
         <div class="p-6">
+
+            <%-- ===== BANNER LÝ DO HỦY (chỉ hiện khi đơn CANCELLED) ===== --%>
+            <c:if test="${order.status == 'CANCELLED'}">
+                <div class="mb-6 rounded-xl border border-red-200 bg-red-50 p-4 flex gap-3">
+                    <div class="flex-shrink-0 mt-0.5">
+                        <svg class="w-5 h-5 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                  d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2M12 3a9 9 0 100 18A9 9 0 0012 3z"/>
+                        </svg>
+                    </div>
+                    <div>
+                        <p class="text-sm font-bold text-red-600 mb-0.5">Order Cancelled</p>
+                        <p class="text-sm text-red-500">
+                            <c:choose>
+                                <c:when test="${not empty order.cancelReason}">
+                                    <span class="font-medium">Reason:</span> ${order.cancelReason}
+                                </c:when>
+                                <c:otherwise>
+                                    <span class="italic text-red-400">No cancellation reason was provided.</span>
+                                </c:otherwise>
+                            </c:choose>
+                        </p>
+                    </div>
+                </div>
+            </c:if>
+            <%-- ========================================================= --%>
+
             <div class="grid grid-cols-2 gap-4 mb-8">
                 <div>
                     <h3 class="text-gray-500 text-sm uppercase font-bold">Customer Information</h3>

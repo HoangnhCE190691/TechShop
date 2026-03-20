@@ -87,16 +87,23 @@ public class OrderDAO extends DBContext {
     public List<Order> getAllOrdersWithFullInfo() {
         List<Order> list = new ArrayList<>();
         String sql = "SELECT o.*, c.full_name, v.code AS code, "
-                + "(SELECT TOP 1 p.name FROM order_items oi "
-                + " JOIN inventory_items ii ON oi.inventory_id = ii.inventory_id "
-                + " JOIN product_variants pv ON ii.variant_id = pv.variant_id "
-                + " JOIN products p ON pv.product_id = p.product_id "
-                + " WHERE oi.order_id = o.order_id) as representative_product, "
-                + "(SELECT COUNT(*) FROM order_items WHERE order_id = o.order_id) as total_items "
+                + "COALESCE( "
+                + "  (SELECT TOP 1 p.name FROM order_items oi "
+                + "   JOIN inventory_items ii ON oi.inventory_id = ii.inventory_id "
+                + "   JOIN product_variants pv ON ii.variant_id = pv.variant_id "
+                + "   JOIN products p ON pv.product_id = p.product_id "
+                + "   WHERE oi.order_id = o.order_id), "
+                + "  (SELECT TOP 1 p.name FROM cancelled_order_items coi "
+                + "   JOIN inventory_items ii ON coi.inventory_id = ii.inventory_id "
+                + "   JOIN product_variants pv ON ii.variant_id = pv.variant_id "
+                + "   JOIN products p ON pv.product_id = p.product_id "
+                + "   WHERE coi.order_id = o.order_id) "
+                + ") as representative_product, "
+                + "((SELECT COUNT(*) FROM order_items WHERE order_id = o.order_id) "
+                + " + (SELECT ISNULL(SUM(quantity), 0) FROM cancelled_order_items WHERE order_id = o.order_id)) as total_items "
                 + "FROM orders o "
                 + "JOIN customers c ON o.customer_id = c.customer_id "
                 + "LEFT JOIN vouchers v ON o.voucher_id = v.voucher_id "
-                //                + "WHERE EXISTS (SELECT 1 FROM order_items WHERE order_id = o.order_id)"
                 + "ORDER BY o.created_at DESC";
         try (PreparedStatement ps = conn.prepareStatement(sql); ResultSet rs = ps.executeQuery()) {
             while (rs.next()) {
@@ -247,6 +254,7 @@ public class OrderDAO extends DBContext {
                 order.setCustomerName(rs.getNString("full_name"));
                 order.setEmail(rs.getString("email"));
                 order.setPhone(rs.getString("phone_number"));
+                order.setCancelReason(rs.getString("cancel_reason"));
 
                 return order;
             }
@@ -360,21 +368,28 @@ public class OrderDAO extends DBContext {
         return list;
     }
 
-    public List<Order> getOrdersByMonthStaff(int month) {
+    public List<Order> getTop5OrdersByMonthStaff(int month) {
         List<Order> list = new ArrayList<>();
         String sql = "SELECT o.*, c.full_name, v.code AS code, "
-                + "(SELECT TOP 1 p.name FROM order_items oi "
-                + " JOIN inventory_items ii ON oi.inventory_id = ii.inventory_id "
-                + " JOIN product_variants pv ON ii.variant_id = pv.variant_id "
-                + " JOIN products p ON pv.product_id = p.product_id "
-                + " WHERE oi.order_id = o.order_id) as representative_product, "
-                + "(SELECT COUNT(*) FROM order_items WHERE order_id = o.order_id) as total_items "
+                + "COALESCE( "
+                + "  (SELECT TOP 1 p.name FROM order_items oi "
+                + "   JOIN inventory_items ii ON oi.inventory_id = ii.inventory_id "
+                + "   JOIN product_variants pv ON ii.variant_id = pv.variant_id "
+                + "   JOIN products p ON pv.product_id = p.product_id "
+                + "   WHERE oi.order_id = o.order_id), "
+                + "  (SELECT TOP 1 p.name FROM cancelled_order_items coi "
+                + "   JOIN inventory_items ii ON coi.inventory_id = ii.inventory_id "
+                + "   JOIN product_variants pv ON ii.variant_id = pv.variant_id "
+                + "   JOIN products p ON pv.product_id = p.product_id "
+                + "   WHERE coi.order_id = o.order_id) "
+                + ") as representative_product, "
+                + "((SELECT COUNT(*) FROM order_items WHERE order_id = o.order_id) "
+                + " + (SELECT ISNULL(SUM(quantity), 0) FROM cancelled_order_items WHERE order_id = o.order_id)) as total_items "
                 + "FROM orders o "
                 + "JOIN customers c ON o.customer_id = c.customer_id "
                 + "LEFT JOIN vouchers v ON o.voucher_id = v.voucher_id "
                 + "WHERE (MONTH(o.created_at) = ? OR ? = -1) AND YEAR(o.created_at) = 2026 "
                 + "ORDER BY o.created_at DESC";
-
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, month);
             ps.setInt(2, month);
@@ -577,13 +592,22 @@ public class OrderDAO extends DBContext {
     }
 
     // Update order
-    public boolean updateOrderFull(int id, String address, String status, String paymentStatus) {
-        String sql = "UPDATE orders SET shipping_address = ?, status = ?, payment_status = ? WHERE order_id = ?";
+    public boolean updateOrderFull(int id, String address, String status, String paymentStatus, String cancelReason) {
+        String sql = """
+            UPDATE orders
+            SET shipping_address = ?,
+                status = ?,
+                payment_status = ?,
+                cancel_reason = CASE WHEN ? IS NOT NULL THEN ? ELSE cancel_reason END
+            WHERE order_id = ?
+        """;
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setNString(1, address);
             ps.setString(2, status);
             ps.setString(3, paymentStatus);
-            ps.setInt(4, id);
+            ps.setString(4, cancelReason); // tham số kiểm tra IS NOT NULL
+            ps.setString(5, cancelReason); // giá trị ghi vào nếu không null
+            ps.setInt(6, id);
             return ps.executeUpdate() > 0;
         } catch (Exception e) {
             e.printStackTrace();
@@ -672,7 +696,7 @@ public class OrderDAO extends DBContext {
         }
     }
 
-    public boolean cancelOrderByCustomer(int orderId, int customerId) {
+    public boolean cancelOrderByCustomer(int orderId, int customerId, String cancelReason) {
         // Kiểm tra đơn thuộc customer (bỏ điều kiện step_order/payment_status để tránh khó hủy)
         String sqlCheck = """
         SELECT o.order_id FROM orders o
@@ -722,10 +746,11 @@ public class OrderDAO extends DBContext {
             String cancelledCode = getCancelledStatusCode();
 
             // Cập nhật status đơn thành CANCELLED
-            String sqlUpdate = "UPDATE orders SET status = ? WHERE order_id = ?";
+            String sqlUpdate = "UPDATE orders SET status = ?, cancel_reason = ? WHERE order_id = ?";
             PreparedStatement ps3 = conn.prepareStatement(sqlUpdate);
             ps3.setString(1, cancelledCode);
-            ps3.setInt(2, orderId);
+            ps3.setString(2, cancelReason);
+            ps3.setInt(3, orderId);
             ps3.executeUpdate();
 
             return true;
@@ -738,17 +763,24 @@ public class OrderDAO extends DBContext {
     public List<Order> getTop5RecentOrders() {
         List<Order> list = new ArrayList<>();
         String sql = "SELECT TOP 5 o.*, c.full_name, v.code AS code, "
-                + "(SELECT TOP 1 p.name FROM order_items oi "
-                + " JOIN inventory_items ii ON oi.inventory_id = ii.inventory_id "
-                + " JOIN product_variants pv ON ii.variant_id = pv.variant_id "
-                + " JOIN products p ON pv.product_id = p.product_id "
-                + " WHERE oi.order_id = o.order_id) as representative_product, "
-                + "(SELECT COUNT(*) FROM order_items WHERE order_id = o.order_id) as total_items "
+                + "COALESCE( "
+                + "  (SELECT TOP 1 p.name FROM order_items oi "
+                + "   JOIN inventory_items ii ON oi.inventory_id = ii.inventory_id "
+                + "   JOIN product_variants pv ON ii.variant_id = pv.variant_id "
+                + "   JOIN products p ON pv.product_id = p.product_id "
+                + "   WHERE oi.order_id = o.order_id), "
+                + "  (SELECT TOP 1 p.name FROM cancelled_order_items coi "
+                + "   JOIN inventory_items ii ON coi.inventory_id = ii.inventory_id "
+                + "   JOIN product_variants pv ON ii.variant_id = pv.variant_id "
+                + "   JOIN products p ON pv.product_id = p.product_id "
+                + "   WHERE coi.order_id = o.order_id) "
+                + ") as representative_product, "
+                + "((SELECT COUNT(*) FROM order_items WHERE order_id = o.order_id) "
+                + " + (SELECT ISNULL(SUM(quantity), 0) FROM cancelled_order_items WHERE order_id = o.order_id)) as total_items "
                 + "FROM orders o "
                 + "JOIN customers c ON o.customer_id = c.customer_id "
                 + "LEFT JOIN vouchers v ON o.voucher_id = v.voucher_id "
                 + "ORDER BY o.created_at DESC";
-
         try (PreparedStatement ps = conn.prepareStatement(sql); ResultSet rs = ps.executeQuery()) {
             while (rs.next()) {
                 Voucher voucher = null;

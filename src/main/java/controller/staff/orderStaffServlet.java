@@ -83,6 +83,9 @@ public class orderStaffServlet extends HttpServlet {
                     List<Map<String, Object>> items;
                     if (order != null && cancelledStatusCode != null && cancelledStatusCode.equalsIgnoreCase(order.getStatus())) {
                         items = odao.getCancelledOrderDetailsWithIMEI(idDetail);
+                        if (items == null || items.isEmpty()) {
+                            items = odao.getOrderDetailsWithIMEI(idDetail);
+                        }
                     } else {
                         items = odao.getOrderDetailsWithIMEI(idDetail);
                     }
@@ -137,15 +140,29 @@ public class orderStaffServlet extends HttpServlet {
             Order currentOrder = odao.getOrderById(orderId);
             String oldStatus = currentOrder != null ? currentOrder.getStatus() : "";
 
-            boolean success = odao.updateOrderFull(orderId, address, status, paymentStatus);
+            // 1. Đọc thêm cancelReason từ form
+            String cancelReason = request.getParameter("cancelReason");
+            if (cancelReason != null) {
+                cancelReason = cancelReason.trim();
+                if (cancelReason.isEmpty()) {
+                    cancelReason = null;
+                }
+            }
+
+// 2. Tính trước isChangingToCancel để dùng lại
+            String cancelledCode = odao.getCancelledStatusCode();
+            boolean isChangingToCancel = !oldStatus.equalsIgnoreCase(status)
+                    && status.equalsIgnoreCase(cancelledCode);
+
+// 3. Truyền thêm cancelReason vào updateOrderFull
+            boolean success = odao.updateOrderFull(orderId, address, status, paymentStatus,
+                    isChangingToCancel ? cancelReason : null);
 
             if (success) {
-                // Nếu chuyển sang SHIPPED → set inventory SOLD
-                String cancelledCode = odao.getCancelledStatusCode();
                 if (!oldStatus.equalsIgnoreCase(status)) {
                     if (status.equalsIgnoreCase("SHIPPED")) {
                         odao.updateInventoryStatusByOrderId(orderId, "SOLD");
-                    } else if (status.equalsIgnoreCase(cancelledCode)) {
+                    } else if (isChangingToCancel) {
                         odao.updateInventoryStatusByOrderId(orderId, "IN_STOCK");
                     }
                 }
