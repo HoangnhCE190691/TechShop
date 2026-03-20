@@ -186,14 +186,26 @@
             </div>
         </div>
         <div id="pie-chart-voucher" class="mt-auto"></div>
-        <div class="grid grid-cols-2 border-t border-gray-100 bg-gray-50/50">
+        <div class="grid grid-cols-5 border-t border-gray-100 bg-gray-50/50">
             <div class="text-center py-3 border-r border-gray-100">
-                <p class="text-xs text-gray-500 uppercase font-semibold">Active</p>
-                <p class="font-bold text-gray-900">${activeV != null ? activeV : 0}</p>
+                <p class="text-[10px] text-gray-500 uppercase font-semibold">5 ⭐</p>
+                <p class="font-bold text-gray-900">${star5 != null ? star5 : 0}</p>
+            </div>
+            <div class="text-center py-3 border-r border-gray-100">
+                <p class="text-[10px] text-gray-500 uppercase font-semibold">4 ⭐</p>
+                <p class="font-bold text-gray-900">${star4 != null ? star4 : 0}</p>
+            </div>
+            <div class="text-center py-3 border-r border-gray-100">
+                <p class="text-[10px] text-gray-500 uppercase font-semibold">3 ⭐</p>
+                <p class="font-bold text-gray-900">${star3 != null ? star3 : 0}</p>
+            </div>
+            <div class="text-center py-3 border-r border-gray-100">
+                <p class="text-[10px] text-gray-500 uppercase font-semibold">2 ⭐</p>
+                <p class="font-bold text-gray-900">${star2 != null ? star2 : 0}</p>
             </div>
             <div class="text-center py-3">
-                <p class="text-xs text-gray-500 uppercase font-semibold">Locked/Expired</p>
-                <p class="font-bold text-gray-900">${(lockedV != null ? lockedV : 0) + (expiredV != null ? expiredV : 0)}</p>
+                <p class="text-[10px] text-gray-500 uppercase font-semibold">1 ⭐</p>
+                <p class="font-bold text-gray-900">${star1 != null ? star1 : 0}</p>
             </div>
         </div>
     </div>
@@ -235,6 +247,11 @@
      data-inventory-imported-total="${inventoryImportedTotal != null ? inventoryImportedTotal : 0}"
      data-inventory-sold-total="${inventorySoldTotal != null ? inventorySoldTotal : 0}"
      data-inventory-in-stock-total="${inventoryInStockTotal != null ? inventoryInStockTotal : 0}"
+     data-star1="${star1 != null ? star1 : 0}"
+     data-star2="${star2 != null ? star2 : 0}"
+     data-star3="${star3 != null ? star3 : 0}"
+     data-star4="${star4 != null ? star4 : 0}"
+     data-star5="${star5 != null ? star5 : 0}"
      class="hidden">
 </div>
 
@@ -252,13 +269,15 @@
         if (voucherEl) {
             const voucherOptions = {
                 series: [
-                    getNum('activeV'),
-                    getNum('lockedV'),
-                    getNum('expiredV')
+                    getNum('star5'),
+                    getNum('star4'),
+                    getNum('star3'),
+                    getNum('star2'),
+                    getNum('star1')
                 ],
                 chart: {type: 'donut', height: 260},
-                labels: ['Active', 'Locked', 'Expired'],
-                colors: ['#10B981', '#EF4444', '#9CA3AF'],
+                labels: ['5 Stars', '4 Stars', '3 Stars', '2 Stars', '1 Star'],
+                colors: ['#10B981', '#34D399', '#FBBF24', '#FB923C', '#EF4444'],
                 legend: {position: 'bottom'},
                 plotOptions: {
                     pie: {

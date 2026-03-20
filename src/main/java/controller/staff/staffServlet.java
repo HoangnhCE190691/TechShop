@@ -141,6 +141,12 @@ public class staffServlet extends HttpServlet {
 
                     request.setAttribute("listDataVoucher", listV);
 
+                    ReviewDAO reviewDAO = new ReviewDAO();
+                    Map<Integer, Integer> reviewStats = reviewDAO.getReviewStats();
+                    for (int i = 1; i <= 5; i++) {
+                        request.setAttribute("star" + i, reviewStats.get(i));
+                    }
+
                     // Supplier + Inventory receipts cards
                     request.setAttribute("listSuppliers", new SupplierDAO().getAllSuppliers());
                     List<ImportReceipts> allReceiptsDashboard = new ImportReceiptsDAO().getAllReceipts();
@@ -335,6 +341,12 @@ public class staffServlet extends HttpServlet {
                             filteredReceiptsMonth = filteredReceiptsMonth.subList(0, limitMonth);
                         }
                         request.setAttribute("listImportReceipts", filteredReceiptsMonth);
+                    }
+
+                    ReviewDAO rdStats = new ReviewDAO();
+                    Map<Integer, Integer> rsStats = rdStats.getReviewStats();
+                    for (int i = 1; i <= 5; i++) {
+                        request.setAttribute("star" + i, rsStats.get(i));
                     }
 
                     // Inventory summary card (not filtered by month because DAO aggregates by variant)

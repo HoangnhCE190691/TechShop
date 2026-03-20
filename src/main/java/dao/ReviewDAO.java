@@ -4,7 +4,9 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import model.Review;
 import utils.DBContext;
 
@@ -185,7 +187,7 @@ public class ReviewDAO extends DBContext {
                 + "JOIN inventory_items ii ON oi.inventory_id = ii.inventory_id "
                 + "JOIN product_variants pv ON ii.variant_id = pv.variant_id "
                 + "WHERE o.customer_id = ? AND pv.product_id = ? "
-                + "  AND (o.status = 'COMPLETED' OR o.status = 'DELIVERED') "
+                + "  AND (o.status = 'COMPLETED' OR o.status = 'DELIVERED' OR o.status = 'SHIPPED') "
                 + "  AND NOT EXISTS (SELECT 1 FROM reviews r WHERE r.order_item_id = oi.order_item_id)";
         try {
             PreparedStatement ps = conn.prepareStatement(sql);
@@ -199,6 +201,31 @@ public class ReviewDAO extends DBContext {
             e.printStackTrace();
         }
         return -1; // Không tìm thấy (chưa mua hoặc đã review hết)
+    }
+
+    // 7b. Lấy order_item_id của một sản phẩm trong một đơn hàng cụ thể
+    public int getUnreviewedOrderItemId(int customerId, int productId, int orderId) {
+        String sql = "SELECT TOP 1 oi.order_item_id "
+                + "FROM order_items oi "
+                + "JOIN orders o ON oi.order_id = o.order_id "
+                + "JOIN inventory_items ii ON oi.inventory_id = ii.inventory_id "
+                + "JOIN product_variants pv ON ii.variant_id = pv.variant_id "
+                + "WHERE o.customer_id = ? AND pv.product_id = ? AND o.order_id = ? "
+                + "  AND (o.status = 'COMPLETED' OR o.status = 'DELIVERED' OR o.status = 'SHIPPED') "
+                + "  AND NOT EXISTS (SELECT 1 FROM reviews r WHERE r.order_item_id = oi.order_item_id)";
+        try {
+            PreparedStatement ps = conn.prepareStatement(sql);
+            ps.setInt(1, customerId);
+            ps.setInt(2, productId);
+            ps.setInt(3, orderId);
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) {
+                return rs.getInt("order_item_id");
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return -1;
     }
 
     // 8. User Thêm đánh giá mới
@@ -229,6 +256,25 @@ public class ReviewDAO extends DBContext {
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+
+    public Map<Integer, Integer> getReviewStats() {
+        Map<Integer, Integer> stats = new HashMap<>();
+        // Initialize with 0 for all stars 1-5
+        for (int i = 1; i <= 5; i++) {
+            stats.put(i, 0);
+        }
+        String sql = "SELECT rating, COUNT(*) as count FROM reviews GROUP BY rating";
+        try {
+            PreparedStatement ps = conn.prepareStatement(sql);
+            ResultSet rs = ps.executeQuery();
+            while (rs.next()) {
+                stats.put(rs.getInt("rating"), rs.getInt("count"));
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return stats;
     }
 
     private Review mapResultSet(ResultSet rs) throws Exception {
