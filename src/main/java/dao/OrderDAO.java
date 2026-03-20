@@ -39,7 +39,11 @@ public class OrderDAO extends DBContext {
             }
             ps.setInt(3, o.getPaymentMethodId());
             ps.setString(4, o.getShippingAddress());
-            ps.setBigDecimal(5, o.getTotalAmount());
+            java.math.BigDecimal totalAmount = o.getTotalAmount();
+            if (totalAmount.compareTo(new java.math.BigDecimal("500000")) < 0) {
+                totalAmount = totalAmount.add(new java.math.BigDecimal("30000"));
+            }
+            ps.setBigDecimal(5, totalAmount);
             ps.executeUpdate();
             try (ResultSet rs = ps.getGeneratedKeys()) {
                 if (rs.next()) {

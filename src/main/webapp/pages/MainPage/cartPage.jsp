@@ -135,10 +135,7 @@
                             <span>Subtotal:</span>
                             <span id="cartSubtotal" class="cart-summary-subtotal font-semibold text-gray-900 text-base"><fmt:formatNumber value="${totalAmount}" groupingUsed="true"/>đ</span>
                         </div>
-                        <div class="flex justify-between items-center">
-                            <span>Shipping:</span>
-                            <span class="font-semibold text-gray-900 text-base">Free</span>
-                        </div>
+                        
                     </div>
 
                     <div class="flex justify-between items-end mb-8">

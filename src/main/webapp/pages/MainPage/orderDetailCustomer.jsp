@@ -69,11 +69,57 @@
             </table>
 
             <div class="mt-8 border-t pt-4 flex justify-end">
-                <div class="text-right">
-                    <span class="text-gray-500 mr-4">Total Amount:</span>
-                    <span class="text-2xl font-bold text-gray-900">
-                        <fmt:formatNumber value="${order.totalAmount}" type="number" pattern="#,###"/>đ
-                    </span>
+                <div class="text-right space-y-2">
+                    <%-- Tính giá gốc từ items (có quantity) --%>
+                    <c:set var="originalAmount" value="0"/>
+                    <c:forEach items="${items}" var="item">
+                        <c:set var="originalAmount" value="${originalAmount + item.price * item.quantity}"/>
+                    </c:forEach>
+
+                    <%-- Giá gốc --%>
+                    <div class="flex justify-between gap-16 text-sm text-gray-600">
+                        <span>Original Price:</span>
+                        <span><fmt:formatNumber value="${originalAmount}" type="number" pattern="#,###"/>đ</span>
+                    </div>
+
+                    <%-- Giảm giá (voucher) — chỉ hiện nếu có --%>
+                    <c:set var="discount" value="${originalAmount - order.totalAmount}"/>
+                    <c:if test="${discount > 0}">
+                        <div class="flex justify-between gap-16 text-sm text-green-600">
+                            <span>Discount:</span>
+                            <span>- <fmt:formatNumber value="${discount}" type="number" pattern="#,###"/>đ</span>
+                        </div>
+                    </c:if>
+
+                    <%-- Phí ship --%>
+                    <div class="flex justify-between gap-16 text-sm text-gray-600">
+                        <span>Shipping:</span>
+                        <c:choose>
+                            <c:when test="${order.totalAmount >= 500000}">
+                                <span class="text-green-600 font-medium">Free</span>
+                            </c:when>
+                            <c:otherwise>
+                                <span>30,000đ</span>
+                            </c:otherwise>
+                        </c:choose>
+                    </div>
+
+                    <%-- Tổng --%>
+                    <div class="border-t border-gray-200 pt-2 flex justify-between gap-16">
+                        <span class="text-gray-500 font-medium">Total Amount:</span>
+                        <c:choose>
+                            <c:when test="${order.totalAmount >= 500000}">
+                                <span class="text-2xl font-black text-red-600">
+                                    <fmt:formatNumber value="${order.totalAmount}" type="number" pattern="#,###"/>đ
+                                </span>
+                            </c:when>
+                            <c:otherwise>
+                                <span class="text-2xl font-black text-red-600">
+                                    <fmt:formatNumber value="${order.totalAmount}" type="number" pattern="#,###"/>đ
+                                </span>
+                            </c:otherwise>
+                        </c:choose>
+                    </div>
                 </div>
             </div>
         </div>

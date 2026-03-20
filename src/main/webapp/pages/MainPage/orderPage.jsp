@@ -186,7 +186,7 @@
 
                         <div class="flex justify-between items-center">
                             <span>Shipping:</span>
-                            <span class="font-semibold text-gray-900 text-base">Free</span>
+                            <span class="font-semibold text-gray-900 text-base" id="shippingDisplay">Free</span>
                         </div>
                     </div>
 
@@ -311,7 +311,17 @@
     }${!loop.last ? ',' : ''}
     </c:forEach>
     ];
-
+    const formatMoney = (amount) => amount.toLocaleString('vi-VN') + 'đ';
+    (function () {
+        const shippingDisplay = document.getElementById('shippingDisplay');
+        const totalDisplay = document.getElementById('totalDisplay');
+        const shipCost = subTotal < 500000 ? 30000 : 0;
+        shippingDisplay.innerText = shipCost > 0 ? formatMoney(shipCost) : 'Free';
+        shippingDisplay.className = shipCost > 0
+                ? 'font-semibold text-gray-900 text-base'
+                : 'font-semibold text-green-600 text-base';
+        totalDisplay.innerText = formatMoney(subTotal + shipCost);
+    })();
     function applyVoucher() {
         const inputCode = document.getElementById('voucherInput').value.trim().toUpperCase();
         const messageDiv = document.getElementById('voucherMessage');
@@ -374,10 +384,18 @@
         }
 
         // 3. Cập nhật lại HTML hiển thị giá tiền
-        discountDisplay.innerText = '-' + formatMoney(currentDiscount);
-        let finalTotal = subTotal - currentDiscount;
+        let afterDiscount = subTotal - currentDiscount;
+        const SHIP_FEE = 30000;
+        const shippingDisplay = document.getElementById('shippingDisplay');
+        let shipCost = afterDiscount < 500000 ? SHIP_FEE : 0;
+        shippingDisplay.innerText = shipCost > 0 ? formatMoney(shipCost) : 'Free';
+        shippingDisplay.className = shipCost > 0
+                ? 'font-semibold text-gray-900 text-base'
+                : 'font-semibold text-green-600 text-base';
+        let finalTotal = afterDiscount + shipCost;
         totalDisplay.innerText = formatMoney(finalTotal);
     }
+
     // --- 3. SCRIPT HIỂN THỊ MODAL THÀNH CÔNG ---
     const modal = document.getElementById('successModal');
     const modalContent = document.getElementById('modalContent');

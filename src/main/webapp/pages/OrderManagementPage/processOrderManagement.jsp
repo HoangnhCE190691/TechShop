@@ -7,7 +7,7 @@
     <div class="flex flex-col gap-4 mb-6">
         <div class="flex justify-between items-center">
             <h1 class="text-2xl font-bold text-gray-800">Order Management</h1>
-            <div class="text-sm text-gray-500">Total: <span id="visibleCount">${orderList.size()}</span> orders</div>
+
         </div>
 
         <div class="flex flex-col md:flex-row md:items-center gap-4">
@@ -120,6 +120,14 @@
             </tbody>
         </table>
     </div>
+    <%-- Pagination --%>
+    <div class="flex items-center justify-between mt-4 px-1">
+        <div class="text-sm text-gray-500">
+            Showing <span id="pageFrom">1</span>–<span id="pageTo">10</span>
+            of <span id="visibleCount">${orderList.size()}</span> orders
+        </div>
+        <div class="flex gap-1" id="paginationControls"></div>
+    </div>
     <script>
         document.addEventListener("DOMContentLoaded", function () {
             const searchInput = document.getElementById('searchInput');
@@ -128,53 +136,52 @@
             const minAmountInput = document.getElementById('minAmount');
             const maxAmountInput = document.getElementById('maxAmount');
             const resetBtn = document.getElementById('resetFilters');
-
             const tableBody = document.getElementById('orderTableBody');
             const rows = tableBody.getElementsByClassName('order-row');
             const visibleCount = document.getElementById('visibleCount');
-
+            const PAGE_SIZE = 10;
+            let currentPage = 1;
+            let filteredRows = [];
             function filterTable() {
                 const searchText = searchInput.value.toLowerCase();
                 const fPayment = paymentFilter.value;
                 const fStatus = statusFilter.value;
                 const minAmt = parseFloat(minAmountInput.value) || 0;
                 const maxAmt = parseFloat(maxAmountInput.value) || Infinity;
-
-                let hasResultCount = 0;
-
+                filteredRows = [];
                 for (let i = 0; i < rows.length; i++) {
-                    // Lấy text để search
                     const idText = rows[i].querySelector('.order-id').innerText.toLowerCase();
                     const nameText = rows[i].querySelector('.order-name').innerText.toLowerCase();
                     const customerText = rows[i].querySelector('.customer-name').innerText.toLowerCase();
-
-                    // Lấy data attribute để lọc
                     const rowPayment = rows[i].getAttribute('data-payment');
                     const rowStatus = rows[i].getAttribute('data-status');
                     const rowAmount = parseFloat(rows[i].getAttribute('data-amount')) || 0;
-
-                    // Kiểm tra 4 điều kiện
-                    const matchesSearch = idText.includes(searchText) ||
-                            nameText.includes(searchText) ||
-                            customerText.includes(searchText);
+                    const matchesSearch = idText.includes(searchText) || nameText.includes(searchText) || customerText.includes(searchText);
                     const matchesPayment = (fPayment === 'all' || rowPayment === fPayment);
                     const matchesStatus = (fStatus === 'all' || rowStatus === fStatus);
                     const matchesAmount = (rowAmount >= minAmt && rowAmount <= maxAmt);
-
+                    rows[i].style.display = 'none'; // ẩn hết trước
                     if (matchesSearch && matchesPayment && matchesStatus && matchesAmount) {
-                        rows[i].style.display = "";
-                        hasResultCount++;
-                    } else {
-                        rows[i].style.display = "none";
+                        filteredRows.push(rows[i]);
                     }
                 }
 
-                // Cập nhật số lượng
-                visibleCount.innerText = hasResultCount;
+                currentPage = 1;
+                renderPage();
+                renderPagination();
+            }
 
-                // Hiển thị thông báo "No Results" 
+            function renderPage() {
+                const start = (currentPage - 1) * PAGE_SIZE;
+                const end = start + PAGE_SIZE;
+                filteredRows.forEach((row, idx) => {
+                    row.style.display = (idx >= start && idx < end) ? '' : 'none';
+                });
+                document.getElementById('pageFrom').textContent = filteredRows.length === 0 ? 0 : start + 1;
+                document.getElementById('pageTo').textContent = Math.min(end, filteredRows.length);
+                document.getElementById('visibleCount').textContent = filteredRows.length;
                 let noResultRow = document.getElementById('noResultRow');
-                if (hasResultCount === 0) {
+                if (filteredRows.length === 0) {
                     if (!noResultRow) {
                         noResultRow = document.createElement('tr');
                         noResultRow.id = 'noResultRow';
@@ -185,6 +192,56 @@
                     noResultRow.remove();
                 }
             }
+
+            function renderPagination() {
+                const totalPages = Math.ceil(filteredRows.length / PAGE_SIZE);
+                const controls = document.getElementById('paginationControls');
+                controls.innerHTML = '';
+                if (totalPages <= 1)
+                    return;
+                const btnClass = 'px-3 py-1 rounded text-sm font-medium border transition-colors ';
+                const activeClass = 'bg-blue-600 text-white border-blue-600';
+                const inactiveClass = 'bg-white text-gray-600 border-gray-300 hover:bg-gray-50';
+                // Prev
+                const prev = document.createElement('button');
+                prev.textContent = '←';
+                prev.className = btnClass + (currentPage === 1 ? 'opacity-40 cursor-not-allowed ' + inactiveClass : inactiveClass);
+                prev.disabled = currentPage === 1;
+                prev.onclick = () => {
+                    currentPage--;
+                    renderPage();
+                    renderPagination();
+                };
+                controls.appendChild(prev);
+                // Page numbers
+                for (let i = 1; i <= totalPages; i++) {
+                    const btn = document.createElement('button');
+                    btn.textContent = i;
+                    btn.className = btnClass + (i === currentPage ? activeClass : inactiveClass);
+                    btn.onclick = (function (p) {
+                        return function () {
+                            currentPage = p;
+                            renderPage();
+                            renderPagination();
+                        };
+                    })(i);
+                    controls.appendChild(btn);
+                }
+
+                // Next
+                const next = document.createElement('button');
+                next.textContent = '→';
+                next.className = btnClass + (currentPage === totalPages ? 'opacity-40 cursor-not-allowed ' + inactiveClass : inactiveClass);
+                next.disabled = currentPage === totalPages;
+                next.onclick = () => {
+                    currentPage++;
+                    renderPage();
+                    renderPagination();
+                };
+                controls.appendChild(next);
+            }
+            filterTable();
+
 
             // Gán sự kiện (keyup cho input, change cho select)
             [searchInput, minAmountInput, maxAmountInput].forEach(el => el.addEventListener('keyup', filterTable));
@@ -199,6 +256,7 @@
                 maxAmountInput.value = '';
                 filterTable();
             });
-        });
+        }
+        );
     </script>
 </div>
