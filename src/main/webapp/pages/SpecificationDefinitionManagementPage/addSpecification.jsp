@@ -47,14 +47,12 @@
                         <input type="radio" name="isVariant" value="0" checked class="w-5 h-5 text-blue-600 focus:ring-blue-400">
                         <div class="flex flex-col">
                             <span class="text-sm font-bold text-gray-700 group-hover:text-blue-600 transition-colors">General Spec</span>
-                            <span class="text-[10px] text-gray-400 font-medium italic">Thông số kỹ thuật chung</span>
                         </div>
                     </label>
                     <label class="flex items-center gap-2 cursor-pointer group border-l pl-6 border-gray-100">
                         <input type="radio" name="isVariant" value="1" class="w-5 h-5 text-purple-600 focus:ring-purple-400">
                         <div class="flex flex-col">
                             <span class="text-sm font-bold text-gray-700 group-hover:text-purple-600 transition-colors">Variant Spec</span>
-                            <span class="text-[10px] text-gray-400 font-medium italic">Dùng để tạo biến thể</span>
                         </div>
                     </label>
                 </div>

@@ -127,48 +127,38 @@ public class brandServlet extends HttpServlet {
 
         if ("add".equals(action) || "update".equals(action)) {
             String name = request.getParameter("brandName").trim();
+            // Lấy trạng thái từ radio button (1 là true, 0 là false)
             boolean status = "1".equals(request.getParameter("isActive"));
 
             // 1. XỬ LÝ FILE UPLOAD
             Part filePart = request.getPart("brandLogo");
-            String fileName = (filePart != null) ? filePart.getSubmittedFileName() : null;
             String imagePath = null;
 
-            if (fileName != null && !fileName.isEmpty()) {
-                String extension = fileName.substring(fileName.lastIndexOf("."));
-                String finalFileName = "";
+            // Chỉ xử lý nếu người dùng thực sự chọn file
+            if (filePart != null && filePart.getSize() > 0) {
+                // Lấy tên file gốc (Ví dụ: apple-logo.png)
+                String originalFileName = java.nio.file.Paths.get(filePart.getSubmittedFileName()).getFileName().toString();
 
-                if ("add".equals(action)) {
-                    // ADD: Tạo dãy số mới (Timestamp)
-                    finalFileName = System.currentTimeMillis() + "_" + name.replaceAll("\\s+", "_").toLowerCase() + extension;
-                } else if ("update".equals(action)) {
-                    // UPDATE: Lấy tên file cũ từ DB để ghi đè, tránh đẻ file mới
-                    int id = Integer.parseInt(request.getParameter("brandId"));
-                    Brand current = bdao.getBrandById(id);
-                    String oldPath = (current != null) ? current.getImageUrl() : null;
+                // Tạo tên file duy nhất: Timestamp + Tên file gốc để giữ chữ "-logo"
+                String finalFileName = System.currentTimeMillis() + "_" + originalFileName;
 
-                    if (oldPath != null && !oldPath.isEmpty() && oldPath.contains("/")) {
-                        // Trích xuất lại tên file cũ (bao gồm cả dãy số cũ)
-                        finalFileName = oldPath.substring(oldPath.lastIndexOf("/") + 1);
-                    } else {
-                        // Nếu trước đó chưa có ảnh hoặc lỗi đường dẫn, tạo mới có dãy số
-                        finalFileName = System.currentTimeMillis() + "_" + name.replaceAll("\\s+", "_").toLowerCase() + extension;
-                    }
+                // Thiết lập đường dẫn lưu trữ trong server (thư mục assets/img/brands)
+                String deployPath = request.getServletContext().getRealPath("") + java.io.File.separator + "assets/img/brands";
+                java.io.File uploadDir = new java.io.File(deployPath);
+                if (!uploadDir.exists()) {
+                    uploadDir.mkdirs();
                 }
 
-                // 2. THIẾT LẬP ĐƯỜNG DẪN LƯU TRỮ (Đã sửa chính tả assets)
-                String deployPath = request.getServletContext().getRealPath("") + File.separator + UPLOAD_DIR;
-                File uploadDirDeploy = new File(deployPath);
-                if (!uploadDirDeploy.exists()) {
-                    uploadDirDeploy.mkdirs(); // Tạo thư mục nếu chưa có
-                }
+                // Ghi file vật lý vào thư mục
+                filePart.write(deployPath + java.io.File.separator + finalFileName);
 
-                // 3. GHI FILE (Lệnh write sẽ ghi đè nếu trùng tên file cũ)
-                filePart.write(deployPath + File.separator + finalFileName);
-                imagePath = UPLOAD_DIR + "/" + finalFileName;
+                // Lưu đường dẫn tương đối vào database
+                imagePath = "assets/img/brands/" + finalFileName;
             }
-            // 2. XỬ LÝ ACTION: ADD
+
+            // 2. XỬ LÝ LƯU VÀO DATABASE
             if ("add".equals(action)) {
+                // Kiểm tra trùng tên trước khi thêm mới
                 if (bdao.isBrandNameExists(name)) {
                     session.setAttribute("msg", "Error: Brand name '" + name + "' already exists!");
                     session.setAttribute("msgType", "danger");
@@ -178,33 +168,32 @@ public class brandServlet extends HttpServlet {
                 bdao.insertBrand(name, imagePath, status);
                 session.setAttribute("msg", "Brand '" + name + "' added successfully!");
 
-                // 3. XỬ LÝ ACTION: UPDATE
             } else if ("update".equals(action)) {
                 int id = Integer.parseInt(request.getParameter("brandId"));
 
-                // Sử dụng hàm số 6 trong DAO để loại trừ chính mình khi check trùng tên
+                // Kiểm tra trùng tên (loại trừ ID của chính mình)
                 if (bdao.isBrandNameExists(name, id)) {
-                    session.setAttribute("msg", "Error: Name '" + name + "' is already used by another brand!");
+                    session.setAttribute("msg", "Error: Name '" + name + "' is used by another brand!");
                     session.setAttribute("msgType", "danger");
                     response.sendRedirect("brandServlet?action=edit&id=" + id);
                     return;
                 }
 
-                Brand current = bdao.getBrandById(id);
-                // Nếu người dùng không chọn ảnh mới, giữ lại đường dẫn ảnh cũ
+                // Nếu không upload ảnh mới, giữ lại đường dẫn ảnh cũ từ DB
                 if (imagePath == null) {
-                    imagePath = current.getImageUrl();
+                    model.Brand current = bdao.getBrandById(id);
+                    imagePath = (current != null) ? current.getImageUrl() : null;
                 }
 
-                Brand b = new Brand(id, name, imagePath, status);
+                model.Brand b = new model.Brand(id, name, imagePath, status);
                 bdao.updateBrand(b);
                 session.setAttribute("msg", "Brand '" + name + "' updated successfully!");
             }
             session.setAttribute("msgType", "success");
 
-            // 4. XỬ LÝ ACTION: DELETE
         } else if ("delete".equals(action)) {
             int id = Integer.parseInt(request.getParameter("brandId"));
+            // Nếu thương hiệu đã có sản phẩm, chỉ cho phép ẩn (Deactivate)
             if (bdao.countProductsByBrandId(id) > 0) {
                 bdao.deactivateBrand(id);
                 session.setAttribute("msg", "Brand contains products. Switched to INACTIVE.");
@@ -215,6 +204,7 @@ public class brandServlet extends HttpServlet {
             session.setAttribute("msgType", "success");
         }
 
+        // Sau khi xử lý xong, quay lại danh sách quản lý
         response.sendRedirect("brandServlet?action=all");
     }
 

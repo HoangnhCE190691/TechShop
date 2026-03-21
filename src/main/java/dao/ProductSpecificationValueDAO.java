@@ -11,11 +11,12 @@ public class ProductSpecificationValueDAO extends DBContext {
 
     public List<ProductSpecificationValues> getAllProductSpecs() {
         List<ProductSpecificationValues> list = new ArrayList<>();
+
         String sql = "SELECT v.*, p.name as product_name, s.spec_name, s.unit "
                 + "FROM product_spec_values v "
                 + "JOIN products p ON v.product_id = p.product_id "
                 + "JOIN specification_definitions s ON v.spec_id = s.spec_id "
-                + "ORDER BY p.product_id DESC";
+                + "ORDER BY v.product_id DESC, v.spec_id DESC";
         try {
             PreparedStatement ps = conn.prepareStatement(sql);
             ResultSet rs = ps.executeQuery();

@@ -20,7 +20,7 @@ public class CategoryDAO extends DBContext {
     // Lấy tất cả danh mục
     public List<Category> getAllCategory() {
         List<Category> list = new ArrayList<>();
-        String sql = "SELECT category_id, category_name, is_active FROM categories";
+        String sql = "SELECT * FROM categories";
         try {
             PreparedStatement ps = conn.prepareStatement(sql);
             ResultSet rs = ps.executeQuery();
