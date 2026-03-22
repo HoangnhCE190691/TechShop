@@ -113,14 +113,14 @@
                         <input type="text" 
                                name="specValue_${specDef.specId}" 
                                disabled
-                               placeholder="Nhập ${specDef.specName}..."
+                               placeholder="Enter ${specDef.specName}..."
                                class="w-full mt-2 p-3 bg-purple-50 border-2 border-purple-200 rounded-xl font-black text-purple-900 placeholder-purple-300 focus:border-purple-600 focus:ring-4 focus:ring-purple-100 transition-all outline-none">
                     </div>
                 </c:forEach>
             </div>
             
             <div id="no-specs-message" class="hidden py-6 text-center bg-gray-50 border-2 border-dashed border-gray-200 rounded-xl mt-4">
-                <p class="text-sm font-bold text-gray-400 italic">⚠️ Danh mục của sản phẩm này không yêu cầu thông số Variant.</p>
+                <p class="text-sm font-bold text-gray-400 italic">⚠️ This product listing does not require Variant specifications.</p>
             </div>
         </div>
 
