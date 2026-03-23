@@ -193,7 +193,7 @@
 
     <div class="relative my-12 bg-white p-6 rounded-2xl shadow-sm border border-blue-50">
         <h2 class="text-2xl font-bold text-gray-800 uppercase mb-6 flex items-center gap-2">
-            <span class="text-blue-500 text-3xl">❄️</span> SAMSUNG BRAND
+            <span class="text-blue-500 text-3xl">❄️</span> OPPO BRAND
         </h2>
 
         <button onclick="scrollProduct2(-1)"

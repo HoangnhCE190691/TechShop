@@ -113,11 +113,12 @@
                                 class="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 border border-gray-100">
                                 <c:if test="${cookie.cookieRole.value eq 'customer' }">
                                     <a href="userservlet?action=userDashboard&id=${cookie.cookieID.value}"
-                                       class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">account information</a>
-                                </c:if>
+                                       class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Account information</a>
                                 <a href="orderhistorypageservlet"
                                    class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Order history</a>
                                 <div class="border-t border-gray-100 my-1"></div>
+                                </c:if>
+                                
                                 <c:if test="${cookie.cookieRole.value eq 'Admin' }">
                                     <a href="adminservlet?action=dashboard"
                                        class="block px-4 py-2 text-sm text-blue-600 hover:bg-gray-100 font-medium">System Management</a>
