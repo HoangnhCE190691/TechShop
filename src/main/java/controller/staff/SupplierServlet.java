@@ -79,9 +79,9 @@ public class SupplierServlet extends HttpServlet {
                 int id = parseIntSafe(request.getParameter("id"), 0);
                 if (id > 0) {
                     dao.deactivateSupplier(id);
-                    setMsg(request.getSession(), "Đã tạm ngưng nhà cung cấp.", "success");
+                    setMsg(request.getSession(), "Supplier has been deactivated.", "success");
                 } else {
-                    setMsg(request.getSession(), "ID không hợp lệ, bạn kiểm tra lại nhé.", "danger");
+                    setMsg(request.getSession(), "Invalid ID. Please check again.", "danger");
                 }
                 redirectToSupplierManagement(request, response);
                 return;
@@ -90,9 +90,9 @@ public class SupplierServlet extends HttpServlet {
                 int id = parseIntSafe(request.getParameter("id"), 0);
                 if (id > 0) {
                     dao.restoreSupplier(id);
-                    setMsg(request.getSession(), "Đã kích hoạt lại nhà cung cấp.", "success");
+                    setMsg(request.getSession(), "Supplier has been reactivated.", "success");
                 } else {
-                    setMsg(request.getSession(), "ID không hợp lệ, bạn kiểm tra lại nhé.", "danger");
+                    setMsg(request.getSession(), "Invalid ID. Please check again.", "danger");
                 }
                 redirectToSupplierManagement(request, response);
                 return;
@@ -101,12 +101,12 @@ public class SupplierServlet extends HttpServlet {
                 int id = parseIntSafe(request.getParameter("id"), 0);
                 if (id > 0) {
                     if (dao.deleteSupplierIfNoReferences(id)) {
-                        setMsg(request.getSession(), "Xóa nhà cung cấp thành công.", "success");
+                        setMsg(request.getSession(), "Supplier deleted successfully.", "success");
                     } else {
-                        setMsg(request.getSession(), "Không thể xóa vì nhà cung cấp đang được sử dụng.", "danger");
+                        setMsg(request.getSession(), "Cannot delete supplier because it is currently in use.", "danger");
                     }
                 } else {
-                    setMsg(request.getSession(), "ID không hợp lệ, bạn kiểm tra lại nhé.", "danger");
+                    setMsg(request.getSession(), "Invalid ID. Please check again.", "danger");
                 }
                 redirectToSupplierManagement(request, response);
                 return;
@@ -142,14 +142,14 @@ public class SupplierServlet extends HttpServlet {
 
                 if (name != null && !name.trim().isEmpty() && phone != null && !phone.trim().isEmpty()) {
                     if (!phone.matches("[0-9]{10}")) {
-                        setMsg(request.getSession(), "Số điện thoại phải đúng 10 số.", "danger");
+                        setMsg(request.getSession(), "Phone number must contain exactly 10 digits.", "danger");
                     } else {
                         Supplier s = new Supplier(0, name.trim(), phone.trim(), "1".equals(isActive));
                         dao.insertSupplier(s);
-                        setMsg(request.getSession(), "Thêm nhà cung cấp thành công.", "success");
+                        setMsg(request.getSession(), "Supplier added successfully.", "success");
                     }
                 } else {
-                    setMsg(request.getSession(), "Bạn nhập giúp tên và số điện thoại nhé.", "danger");
+                    setMsg(request.getSession(), "Please enter both supplier name and phone number.", "danger");
                 }
                 break;
             }
@@ -161,19 +161,19 @@ public class SupplierServlet extends HttpServlet {
 
                 if (idStr != null && !idStr.isEmpty() && name != null && !name.trim().isEmpty() && phone != null && !phone.trim().isEmpty()) {
                     if (!phone.matches("[0-9]{10}")) {
-                        setMsg(request.getSession(), "Số điện thoại phải đúng 10 số.", "danger");
+                        setMsg(request.getSession(), "Phone number must contain exactly 10 digits.", "danger");
                     } else {
                         try {
                             int id = parseIntSafe(idStr, 0);
                             Supplier s = new Supplier(id, name.trim(), phone.trim(), "1".equals(isActive));
                             dao.updateSupplier(s);
-                            setMsg(request.getSession(), "Cập nhật nhà cung cấp thành công.", "success");
+                            setMsg(request.getSession(), "Supplier updated successfully.", "success");
                         } catch (Exception e) {
-                            setMsg(request.getSession(), "ID không hợp lệ, bạn kiểm tra lại nhé.", "danger");
+                            setMsg(request.getSession(), "Invalid ID. Please check again.", "danger");
                         }
                     }
                 } else {
-                    setMsg(request.getSession(), "Bạn điền đủ các trường bắt buộc giúp mình nhé.", "danger");
+                    setMsg(request.getSession(), "Please fill in all required fields.", "danger");
                 }
                 break;
             }

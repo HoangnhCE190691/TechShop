@@ -6,7 +6,6 @@ package controller.User;
 
 import dao.CartItemDAO;
 import dao.CustomerAddressDAO;
-import dao.CustomerDAO;
 import dao.InventoryItemDAO;
 import dao.OrderDAO;
 import dao.OrderItemDAO;
@@ -136,7 +135,6 @@ public class orderpageServlet extends HttpServlet {
                 totalAmount += d.getSubtotal();
             }
         }
-        CustomerDAO aO = new CustomerDAO();
         CustomerAddressDAO addressDAO = new CustomerAddressDAO();
         VoucherDAO vdao = new VoucherDAO();
 
@@ -281,7 +279,9 @@ public class orderpageServlet extends HttpServlet {
                 List<Integer> inventoryIds = inventoryDAO.getAvailableInventoryIdsByVariantId(variantId, qty);
                 for (Integer invId : inventoryIds) {
                     orderItemDAO.insertOrderItem(new OrderItem(orderId, invId, sellingPrice));
-                    inventoryDAO.updateStatus(invId, "SOLD");
+                        // COD/không VNPay: chỉ chuyển sang SOLD khi đơn được SHIPPED.
+                        // Trước đó coi như "reversed"/reserved để đúng nghiệp vụ theo yêu cầu.
+                        inventoryDAO.updateStatus(invId, "REVERSED");
                 }
             }
 

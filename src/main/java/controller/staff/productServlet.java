@@ -186,7 +186,6 @@ public class productServlet extends HttpServlet {
                 Product prod = new Product();
                 prod.setProductId(productId);
                 pi.setProduct(prod);
-                // Đảm bảo bạn đã có file này trong thư mục assets/img/product/
                 pi.setImageUrl("assets/img/product/default.png");
                 pi.setIs_thumbnail((byte) 1);
                 imgDao.addProductImage(pi);
@@ -197,7 +196,7 @@ public class productServlet extends HttpServlet {
                         + "img" + File.separator + "product";
                 File uploadDir = new File(uploadPath);
                 if (!uploadDir.exists()) {
-                    uploadDir.mkdirs(); // Sửa thành mkdirs() để tạo đầy đủ cây thư mục
+                    uploadDir.mkdirs();
                 }
 
                 for (Part filePart : request.getParts()) {

@@ -156,6 +156,25 @@ public class CategoryDAO extends DBContext {
         }
         return false;
     }
+    
+    public List<Category> getAllActiveCategories() {
+        List<Category> list = new ArrayList<>();
+        String sql = "SELECT * FROM categories WHERE is_active = 1 ORDER BY category_name DESC";
+        try {
+            PreparedStatement ps = conn.prepareStatement(sql);
+            ResultSet rs = ps.executeQuery();
+            while (rs.next()) {
+                list.add(new Category(
+                        rs.getInt("category_id"),
+                        rs.getString("category_name"),
+                        rs.getBoolean("is_active")
+                ));
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return list;
+    }
 
     public static void main(String[] args) {
         CategoryDAO dao = new CategoryDAO();

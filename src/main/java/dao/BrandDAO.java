@@ -141,6 +141,22 @@ public class BrandDAO extends DBContext {
         return 0;
     }
 
+    public List<Brand> getAllActiveBrands() {
+        List<Brand> list = new ArrayList<>();
+
+        String sql = "SELECT * FROM brands WHERE is_active = 1 ORDER BY brand_name DESC";
+        try {
+            PreparedStatement ps = conn.prepareStatement(sql);
+            ResultSet rs = ps.executeQuery();
+            while (rs.next()) {
+                list.add(mapResultSet(rs));
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return list;
+    }
+
     // Hàm Map dữ liệu chuẩn Template
     private Brand mapResultSet(ResultSet rs) throws Exception {
         Brand b = new Brand();
@@ -153,11 +169,9 @@ public class BrandDAO extends DBContext {
 
     public static void main(String[] args) {
         BrandDAO a = new BrandDAO();
-        
+
         List<Brand> list = a.getAllBrand();
-        
-        
-        
+
         for (Brand brand : list) {
             System.out.println(brand.toString());
         }

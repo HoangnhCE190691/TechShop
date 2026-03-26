@@ -45,7 +45,7 @@
                 <tr>
                     <th class="px-4 py-3 font-semibold">Order / Customer</th>
                     <th class="px-4 py-3 font-semibold">Product</th>
-                    <th class="px-4 py-3 font-semibold text-center">Amount</th>
+                    <th class="px-4 py-3 font-semibold text-right">Amount</th>
                     <th class="px-4 py-3 font-semibold text-center">Status</th>
                 </tr>
             </thead>
@@ -70,8 +70,8 @@
                                 ${o.orderName}
                             </div>
                         </td>
-                        <td class="px-4 py-3 text-center font-bold text-gray-900">
-                            <fmt:formatNumber value="${o.totalAmount}" type="number" groupingUsed="true"/> đ
+                        <td class="px-4 py-3 text-right text-gray-900 whitespace-nowrap tabular-nums">
+                            <fmt:formatNumber value="${o.totalAmount}" type="number" pattern="#,###"/>đ
                         </td>
                         <td class="px-4 py-3 text-center">
                             <c:choose>
@@ -242,7 +242,7 @@
             </div>
         </div>
         <div id="pie-chart-inventory" class="mt-auto"></div>
-        <div class="grid grid-cols-3 border-t border-gray-100 bg-gray-50/50">
+        <div class="grid grid-cols-4 border-t border-gray-100 bg-gray-50/50">
             <div class="text-center py-3 border-r border-gray-100">
                 <p class="text-xs text-gray-500 uppercase font-semibold">Imported</p>
                 <p class="font-bold text-gray-900">${inventoryImportedTotal != null ? inventoryImportedTotal : 0}</p>
@@ -250,6 +250,10 @@
             <div class="text-center py-3 border-r border-gray-100">
                 <p class="text-xs text-gray-500 uppercase font-semibold">Sold</p>
                 <p class="font-bold text-gray-900">${inventorySoldTotal != null ? inventorySoldTotal : 0}</p>
+            </div>
+            <div class="text-center py-3 border-r border-gray-100">
+                <p class="text-xs text-gray-500 uppercase font-semibold">Reversed</p>
+                <p class="font-bold text-gray-900">${inventoryReversedTotal != null ? inventoryReversedTotal : 0}</p>
             </div>
             <div class="text-center py-3">
                 <p class="text-xs text-gray-500 uppercase font-semibold">In Stock</p>
@@ -271,6 +275,7 @@
      data-cancelled-count="${cancelledCount != null ? cancelledCount : 0}"
      data-inventory-imported-total="${inventoryImportedTotal != null ? inventoryImportedTotal : 0}"
      data-inventory-sold-total="${inventorySoldTotal != null ? inventorySoldTotal : 0}"
+   data-inventory-reversed-total="${inventoryReversedTotal != null ? inventoryReversedTotal : 0}"
      data-inventory-in-stock-total="${inventoryInStockTotal != null ? inventoryInStockTotal : 0}"
      data-star1="${star1 != null ? star1 : 0}"
      data-star2="${star2 != null ? star2 : 0}"
@@ -333,11 +338,12 @@
                 series: [
                     getNum('inventoryImportedTotal'),
                     getNum('inventorySoldTotal'),
+                    getNum('inventoryReversedTotal'),
                     getNum('inventoryInStockTotal')
                 ],
                 chart: {type: 'donut', height: 260},
-                labels: ['Imported', 'Sold', 'In Stock'],
-                colors: ['#1A56DB', '#10B981', '#F59E0B'],
+                labels: ['Imported', 'Sold', 'Reversed', 'In Stock'],
+                colors: ['#1A56DB', '#10B981', '#FB923C', '#F59E0B'],
                 legend: {position: 'bottom'},
                 plotOptions: {
                     pie: {

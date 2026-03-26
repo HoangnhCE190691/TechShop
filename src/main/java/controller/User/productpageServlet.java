@@ -61,20 +61,20 @@ public class productpageServlet extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        // 1. Khởi tạo các thành phần giao diện mặc định (Giữ nguyên) 
+        // 1. Khởi tạo các thành phần giao diện mặc định 
         String headerComponent = "/components/navbar.jsp";
         String footerComponent = "/components/footer.jsp";
         String page = "/pages/MainPage/productPage.jsp";
 
-        // 2. Lấy các tham số lọc từ Request (Giữ nguyên) 
+        // 2. Lấy các tham số lọc từ Request 
         String keyword = request.getParameter("keyword");
         String categoryIdParam = request.getParameter("categoryId");
         String brandIdParam = request.getParameter("brandId");
         String priceRange = request.getParameter("priceRange");
         String sortOrder = request.getParameter("sortOrder");
 
-        // --- BỔ SUNG: Lấy tham số phân trang ---
-        int pageSize = 9; // Bạn có thể chỉnh số lượng sản phẩm mỗi trang ở đây
+        // Lấy tham số phân trang 
+        int pageSize = 9;
         String pageParam = request.getParameter("page");
         int pageIndex = (pageParam == null || pageParam.isEmpty()) ? 1 : Integer.parseInt(pageParam);
 
@@ -83,7 +83,7 @@ public class productpageServlet extends HttpServlet {
         Double minPrice = null;
         Double maxPrice = null;
 
-        // 3. Xử lý ép kiểu và logic khoảng giá (Giữ nguyên) 
+        // 3. Xử lý ép kiểu và logic khoảng giá
         try {
             if (categoryIdParam != null && !categoryIdParam.trim().isEmpty()) {
                 categoryId = Integer.parseInt(categoryIdParam);
@@ -116,7 +116,6 @@ public class productpageServlet extends HttpServlet {
 
         ProductDAO pdao = new ProductDAO();
 
-        // --- CẬP NHẬT: Gọi DAO theo kiểu phân trang ---
         // Lấy tổng số để tính endPage 
         int totalProducts = pdao.getTotalFilteredProducts(keyword, categoryId, brandId, minPrice, maxPrice);
         int endPage = (int) Math.ceil((double) totalProducts / pageSize);
@@ -125,20 +124,20 @@ public class productpageServlet extends HttpServlet {
         List<Product> productList = pdao.getFilteredProductsWithPaging(
                 keyword, categoryId, brandId, minPrice, maxPrice, sortOrder, pageIndex, pageSize);
 
-        // 5. Lấy dữ liệu bổ trợ cho các bộ lọc Sidebar (Giữ nguyên) 
+        // 5. Lấy dữ liệu bổ trợ cho các bộ lọc Sidebar 
         dao.CategoryDAO cdao = new dao.CategoryDAO();
         dao.BrandDAO bdao = new dao.BrandDAO();
 
-        // 6. Đưa dữ liệu lên Request Attribute (Giữ nguyên + Thêm tag phân trang) 
-        request.setAttribute("categoryList", cdao.getAllCategory());
-        request.setAttribute("brandList", bdao.getAllBrand());
+        // 6. Đưa dữ liệu lên Request Attribute
+        request.setAttribute("categoryList", cdao.getAllActiveCategories());
+        request.setAttribute("brandList", bdao.getAllActiveBrands());
         request.setAttribute("productList", productList);
 
         // Thêm các attribute cho phân trang
         request.setAttribute("endP", endPage);
         request.setAttribute("tag", pageIndex);
 
-        // Giữ lại trạng thái các bộ lọc để UI không bị reset (Giữ nguyên) 
+        // Giữ lại trạng thái các bộ lọc để UI không bị reset
         request.setAttribute("keyword", keyword);
         request.setAttribute("categoryId", categoryId);
         request.setAttribute("brandId", brandId);
@@ -149,7 +148,7 @@ public class productpageServlet extends HttpServlet {
         request.setAttribute("FooterComponent", footerComponent);
         request.setAttribute("ContentPage", page);
 
-        // 7. Forward đến Template người dùng (Giữ nguyên) 
+        // 7. Forward đến Template người dùng 
         request.getRequestDispatcher("/template/userTemplate.jsp").forward(request, response);
     }
 

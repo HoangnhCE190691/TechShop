@@ -32,7 +32,7 @@
                                                 <fmt:formatNumber pattern="#,###" value="${product.minPrice}" />đ
                                             </c:if>
                                             <c:if test="${empty product.minPrice or product.minPrice == 0}">
-                                                <span class="text-gray-500 font-normal">Liên hệ</span>
+                                                <span class="text-gray-500 font-normal">Contact</span>
                                             </c:if>
                                         </span>
                                     </div>
@@ -44,14 +44,14 @@
                             <a href="productpageservlet?keyword=${searchKeyword}"
                                 class="block px-4 py-3 text-center text-blue-600 font-medium box-border"
                                 style="width: 100%;">
-                                Xem tất cả kết quả cho "${searchKeyword}"
+                                View all results for "${searchKeyword}"
                             </a>
                         </li>
                     </ul>
                 </c:when>
                 <c:otherwise>
                     <div class="px-4 py-3 text-sm text-gray-500 text-center m-0 box-border w-full block">
-                        Không tìm thấy sản phẩm nào!
+                        No results found!
                     </div>
                 </c:otherwise>
             </c:choose>

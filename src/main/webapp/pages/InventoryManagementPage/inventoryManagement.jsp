@@ -74,7 +74,7 @@
 
             <button type="button"
                     id="btn-back-to-summary"
-                    class="inline-flex items-center px-3 py-2 text-sm font-semibold rounded-lg bg-gray-100 text-gray-700 border border-gray-300 hover:bg-gray-200 md:ml-auto ${empty param.keyword ? 'hidden' : ''}">
+                    class="inline-flex items-center px-3 py-2 text-sm font-semibold rounded-lg bg-gray-100 text-gray-700 border border-gray-300 hover:bg-gray-200 md:ml-auto hidden">
                 ← Back to summary
             </button>
         </div>
@@ -83,7 +83,7 @@
 
     <!-- Totals (only show when not searching) -->
     <c:if test="${empty param.keyword}">
-        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-5">
+        <div class="grid grid-cols-1 sm:grid-cols-4 gap-4 mb-5">
             <!-- Imported -->
             <div class="bg-gray-50 border border-gray-200 rounded-xl px-4 py-3">
                 <p class="text-xs uppercase text-gray-500 font-semibold">Imported</p>
@@ -96,6 +96,13 @@
                 <p class="text-xs uppercase text-blue-700 font-semibold">Sold</p>
                 <p class="mt-1 text-xl font-bold text-blue-700">
                     ${totalSold != null ? totalSold : 0}
+                </p>
+            </div>
+            <!-- Reversed -->
+            <div class="bg-orange-50 border border-orange-200 rounded-xl px-4 py-3">
+                <p class="text-xs uppercase text-orange-700 font-semibold">Reversed</p>
+                <p class="mt-1 text-xl font-bold text-orange-700">
+                    ${totalReversed != null ? totalReversed : 0}
                 </p>
             </div>
             <!-- In stock -->
@@ -121,6 +128,7 @@
                         <th class="px-4 py-3">SKU / Variant</th>
                         <th class="px-4 py-3 text-right">Imported</th>
                         <th class="px-4 py-3 text-right">Sold</th>
+                        <th class="px-4 py-3 text-right">Reversed</th>
                         <th class="px-4 py-3 text-right">In stock</th>
                         <th class="px-4 py-3 text-center">Actions</th>
                     </tr>
@@ -146,6 +154,9 @@
                             <td class="px-4 py-3 text-right font-semibold text-blue-700">
                                 ${s.sold}
                             </td>
+                            <td class="px-4 py-3 text-right font-semibold text-orange-700">
+                                ${s.reversed}
+                            </td>
                             <td class="px-4 py-3 text-right font-semibold text-green-700">
                                 ${s.inStock}
                             </td>
@@ -161,7 +172,7 @@
 
                     <c:if test="${empty inventorySummary}">
                         <tr>
-                            <td colspan="6" class="px-4 py-8 text-center text-gray-500 italic">
+                            <td colspan="8" class="px-4 py-8 text-center text-gray-500 italic">
                                 No summary data.
                             </td>
                         </tr>
@@ -206,6 +217,7 @@
                 <c:forEach items="${listInventory}" var="it" varStatus="stt">
                     <tr class="hover:bg-gray-50 transition-colors"
                         data-inventory-id="${it.inventory_id}"
+                        data-imei="${it.imei}"
                         data-variant-id="${it.variant_id}"
                         data-receipt-item-id="${it.receipt_item_id}"
                         data-status="${it.status}"
@@ -286,6 +298,22 @@
     </div>
 </div>
 
+<!-- Modal: grouped inventory items -->
+<div id="group-items-modal"
+     class="fixed inset-0 z-50 hidden items-center justify-center bg-black/40 backdrop-blur-sm"
+     aria-hidden="true">
+    <div class="w-full max-w-lg mx-4 bg-white rounded-2xl shadow-2xl border border-gray-200">
+        <div class="flex items-center justify-between px-5 py-4 border-b border-gray-100">
+            <h3 id="group-items-modal-title" class="text-base font-bold text-gray-900">Grouped inventory items</h3>
+            <button id="group-items-modal-close" type="button" class="text-gray-400 hover:text-gray-600 text-xl leading-none">&times;</button>
+        </div>
+        <div class="p-5">
+            <p class="text-xs text-gray-500 mb-3">The following inventory items are included in this grouped row:</p>
+            <div id="group-items-modal-list" class="max-h-72 overflow-y-auto border border-gray-200 rounded-lg divide-y divide-gray-100"></div>
+        </div>
+    </div>
+</div>
+
 <script>
     (function () {
         const summaryView = document.getElementById('inventory-summary-view');
@@ -295,18 +323,24 @@
         const btnRowDetails = document.querySelectorAll('.btn-summary-view-detail');
         const btnBack = document.getElementById('btn-back-to-summary');
         const detailTitle = document.getElementById('detail-product-title');
+        const groupItemsModal = document.getElementById('group-items-modal');
+        const groupItemsModalTitle = document.getElementById('group-items-modal-title');
+        const groupItemsModalList = document.getElementById('group-items-modal-list');
+        const groupItemsModalClose = document.getElementById('group-items-modal-close');
+        let currentGroupedMap = {};
 
         if (!summaryView || !detailView) {
             return;
         }
 
-        // Snapshot all inventory rows from DOM (keeps IMEI in DB, not shown here)
+        // Snapshot all inventory rows from DOM
         const allItems = [];
         if (detailRows) {
             detailRows.forEach(function (row) {
                 const ds = row.dataset || {};
                 allItems.push({
                     inventoryId: ds.inventoryId,
+                    imei: ds.imei || '',
                     variantId: ds.variantId,
                     receiptItemId: ds.receiptItemId,
                     status: ds.status,
@@ -319,6 +353,7 @@
         function renderGroupedRows(filterVariantId) {
             if (!detailTbody)
                 return;
+            currentGroupedMap = {};
 
             const items = allItems.filter(function (it) {
                 if (!filterVariantId)
@@ -332,16 +367,22 @@
                 const key = [it.receiptItemId, it.importPrice, it.status, it.productName].join('|');
                 if (!groups.has(key)) {
                     groups.set(key, {
+                        groupKey: key,
                         productName: it.productName,
                         importPrice: it.importPrice,
                         status: it.status,
                         receiptItemId: it.receiptItemId,
                         quantity: 0,
-                        firstInventoryId: it.inventoryId
+                        firstInventoryId: it.inventoryId,
+                        items: []
                     });
                 }
                 const g = groups.get(key);
                 g.quantity += 1;
+                g.items.push({
+                    inventoryId: it.inventoryId != null ? String(it.inventoryId) : '',
+                    imei: it.imei != null ? String(it.imei) : ''
+                });
                 // keep smallest inventoryId for stable Details link
                 if (g.firstInventoryId == null || (it.inventoryId != null && Number(it.inventoryId) < Number(g.firstInventoryId))) {
                     g.firstInventoryId = it.inventoryId;
@@ -392,6 +433,14 @@
             grouped.forEach(function (g, idx) {
                 const safeName = (g.productName && g.productName.trim()) ? g.productName : '—';
                 const detailsHref = g.firstInventoryId ? ('inventory?action=view&id=' + encodeURIComponent(g.firstInventoryId)) : '#';
+                const groupId = 'group-' + idx;
+                currentGroupedMap[groupId] = {
+                    productName: safeName,
+                    status: g.status,
+                    importPrice: g.importPrice,
+                    receiptItemId: g.receiptItemId,
+                    items: g.items || []
+                };
                 const row = document.createElement('tr');
                 row.className = 'hover:bg-gray-50 transition-colors';
                 row.innerHTML = ''
@@ -406,6 +455,85 @@
                 detailTbody.appendChild(row);
             });
         }
+
+        function openGroupItemsModal(groupId) {
+            if (!groupItemsModal || !groupItemsModalList) {
+                return;
+            }
+            const data = currentGroupedMap[groupId];
+            if (!data) {
+                return;
+            }
+
+            groupItemsModalTitle.textContent = 'Grouped items - ' + data.productName;
+            const items = data.items || [];
+            if (items.length === 0) {
+                groupItemsModalList.innerHTML = '<div class="px-4 py-3 text-sm text-gray-500 italic">No item data found for this group.</div>';
+            } else {
+                const statusText = data.status && String(data.status).trim() ? String(data.status) : 'N/A';
+                const importPriceText = formatVND(data.importPrice) + ' ₫';
+                const batchText = data.receiptItemId && String(data.receiptItemId).trim() ? ('#' + data.receiptItemId) : 'N/A';
+                groupItemsModalList.innerHTML = items.map(function (item, index) {
+                    const invId = item.inventoryId && item.inventoryId.trim() ? ('#' + item.inventoryId) : 'N/A';
+                    const imei = item.imei && item.imei.trim() ? item.imei : 'N/A';
+                    return '<div class="px-4 py-2.5 text-sm">'
+                            + '<div class="flex items-center justify-between gap-4">'
+                            + '<span class="text-gray-500">Item ' + (index + 1) + '</span>'
+                            + '<span class="font-mono text-gray-700">' + invId + '</span>'
+                            + '</div>'
+                            + '<div class="mt-2 grid grid-cols-2 gap-x-3 gap-y-1 text-xs">'
+                            + '<div class="text-gray-500">Status</div><div class="text-gray-800 text-right">' + statusText + '</div>'
+                            + '<div class="text-gray-500">Import price</div><div class="text-gray-800 text-right">' + importPriceText + '</div>'
+                            + '<div class="text-gray-500">Receipt batch</div><div class="text-gray-800 text-right">' + batchText + '</div>'
+                            + '</div>'
+                            + '<div class="mt-2 text-xs text-gray-500">IMEI</div>'
+                            + '<div class="font-mono text-gray-900 break-all">' + imei + '</div>'
+                            + '</div>';
+                }).join('');
+            }
+
+            groupItemsModal.classList.remove('hidden');
+            groupItemsModal.classList.add('flex');
+            groupItemsModal.setAttribute('aria-hidden', 'false');
+        }
+
+        function closeGroupItemsModal() {
+            if (!groupItemsModal) {
+                return;
+            }
+            groupItemsModal.classList.add('hidden');
+            groupItemsModal.classList.remove('flex');
+            groupItemsModal.setAttribute('aria-hidden', 'true');
+        }
+
+        if (detailTbody) {
+            detailTbody.addEventListener('click', function (e) {
+                const btn = e.target.closest('.btn-view-group-items');
+                if (!btn) {
+                    return;
+                }
+                const groupId = btn.getAttribute('data-group-id');
+                if (groupId) {
+                    openGroupItemsModal(groupId);
+                }
+            });
+        }
+
+        if (groupItemsModalClose) {
+            groupItemsModalClose.addEventListener('click', closeGroupItemsModal);
+        }
+        if (groupItemsModal) {
+            groupItemsModal.addEventListener('click', function (e) {
+                if (e.target === groupItemsModal) {
+                    closeGroupItemsModal();
+                }
+            });
+        }
+        document.addEventListener('keydown', function (e) {
+            if (e.key === 'Escape') {
+                closeGroupItemsModal();
+            }
+        });
 
         // From summary row: view detail for a specific variant
         if (btnRowDetails) {
@@ -464,9 +592,6 @@
         // If the page is loaded with keyword search, the detail view is already visible.
         if (!detailView.classList.contains('hidden')) {
             renderGroupedRows(null);
-            if (btnBack) {
-                btnBack.classList.remove('hidden');
-            }
         }
     })();
 </script>

@@ -1,7 +1,11 @@
 package model;
 
 /**
- * Summary of inventory by variant (imported / sold / in stock).
+ * Summary of inventory by variant.
+ * (imported / sold / reversed / in stock)
+ *
+ * reversed: inventory đã được gắn vào order_items nhưng chưa đủ điều kiện để coi là sold
+ * (ví dụ đơn COD chưa SHIPPED).
  */
 public class InventorySummary { 
 
@@ -10,15 +14,17 @@ public class InventorySummary {
     private String sku;
     private int imported;
     private int sold;
+    private int reversed;
     private int inStock;
 
     public InventorySummary(int variantId, String productName, String sku,
-                            int imported, int sold, int inStock) {
+                            int imported, int sold, int reversed, int inStock) {
         this.variantId = variantId;
         this.productName = productName;
         this.sku = sku;
         this.imported = imported;
         this.sold = sold;
+        this.reversed = reversed;
         this.inStock = inStock;
     }
 
@@ -40,6 +46,10 @@ public class InventorySummary {
 
     public int getSold() {
         return sold;
+    }
+
+    public int getReversed() {
+        return reversed;
     }
 
     public int getInStock() {

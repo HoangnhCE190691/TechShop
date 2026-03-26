@@ -440,6 +440,7 @@ public class InventoryItemDAO extends DBContext {
                 + "pv.sku, "
                 + "COUNT(*) AS imported, "
                 + "SUM(CASE WHEN ii.status = 'SOLD' THEN 1 ELSE 0 END) AS sold, "
+                + "SUM(CASE WHEN ii.status = 'REVERSED' THEN 1 ELSE 0 END) AS reversed, "
                 + "SUM(CASE WHEN ii.status = 'IN_STOCK' THEN 1 ELSE 0 END) AS in_stock "
                 + "FROM inventory_items ii "
                 + "JOIN product_variants pv ON ii.variant_id = pv.variant_id "
@@ -454,6 +455,7 @@ public class InventoryItemDAO extends DBContext {
                         rs.getString("sku"),
                         rs.getInt("imported"),
                         rs.getInt("sold"),
+                        rs.getInt("reversed"),
                         rs.getInt("in_stock")
                 ));
             }

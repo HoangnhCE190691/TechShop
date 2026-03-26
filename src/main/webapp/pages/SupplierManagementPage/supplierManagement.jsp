@@ -130,7 +130,7 @@
                             </c:choose>
                             <span class="text-gray-300 mx-1">|</span>
                             <a href="supplier?action=delete&id=${s.supplier_id}"
-                               onclick="return confirm('Bạn có chắc muốn xóa nhà cung cấp #${s.supplier_id} không? Nếu đang dùng trong phiếu nhập thì sẽ không xóa được.');"
+                               onclick="return confirm('Are you sure you want to delete supplier #${s.supplier_id}? If this supplier is used in any import receipt, deletion will fail.');"
                                class="text-red-600 hover:text-red-800 font-medium hover:underline">Delete</a>
                         </td>
                     </tr>

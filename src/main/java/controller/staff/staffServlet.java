@@ -187,6 +187,7 @@ public class staffServlet extends HttpServlet {
                     List<InventorySummary> dashboardInventorySummary = new InventoryItemDAO().getInventorySummary();
                     int dashboardInventoryImportedTotal = 0;
                     int dashboardInventorySoldTotal = 0;
+                    int dashboardInventoryReversedTotal = 0;
                     int dashboardInventoryInStockTotal = 0;
                     for (InventorySummary s : dashboardInventorySummary) {
                         if (s == null) {
@@ -194,10 +195,12 @@ public class staffServlet extends HttpServlet {
                         }
                         dashboardInventoryImportedTotal += s.getImported();
                         dashboardInventorySoldTotal += s.getSold();
+                        dashboardInventoryReversedTotal += s.getReversed();
                         dashboardInventoryInStockTotal += s.getInStock();
                     }
                     request.setAttribute("inventoryImportedTotal", dashboardInventoryImportedTotal);
                     request.setAttribute("inventorySoldTotal", dashboardInventorySoldTotal);
+                    request.setAttribute("inventoryReversedTotal", dashboardInventoryReversedTotal);
                     request.setAttribute("inventoryInStockTotal", dashboardInventoryInStockTotal);
                     break;
 
@@ -392,6 +395,7 @@ public class staffServlet extends HttpServlet {
                     List<InventorySummary> monthInventorySummary = new InventoryItemDAO().getInventorySummary();
                     int monthInventoryImportedTotal = 0;
                     int monthInventorySoldTotal = 0;
+                    int monthInventoryReversedTotal = 0;
                     int monthInventoryInStockTotal = 0;
                     for (InventorySummary s : monthInventorySummary) {
                         if (s == null) {
@@ -399,10 +403,12 @@ public class staffServlet extends HttpServlet {
                         }
                         monthInventoryImportedTotal += s.getImported();
                         monthInventorySoldTotal += s.getSold();
+                        monthInventoryReversedTotal += s.getReversed();
                         monthInventoryInStockTotal += s.getInStock();
                     }
                     request.setAttribute("inventoryImportedTotal", monthInventoryImportedTotal);
                     request.setAttribute("inventorySoldTotal", monthInventorySoldTotal);
+                    request.setAttribute("inventoryReversedTotal", monthInventoryReversedTotal);
                     request.setAttribute("inventoryInStockTotal", monthInventoryInStockTotal);
                     break;
                 // Trong switch (action) của Servlet:
@@ -440,18 +446,21 @@ public class staffServlet extends HttpServlet {
 
                             int totalImported = 0;
                             int totalSold = 0;
+                            int totalReversed = 0;
                             int totalInStock = 0;
                             if (inventorySummary != null) {
                                 for (model.InventorySummary s : inventorySummary) {
                                     if (s != null) {
                                         totalImported += s.getImported();
                                         totalSold += s.getSold();
+                                        totalReversed += s.getReversed();
                                         totalInStock += s.getInStock();
                                     }
                                 }
                             }
                             request.setAttribute("totalImported", totalImported);
                             request.setAttribute("totalSold", totalSold);
+                            request.setAttribute("totalReversed", totalReversed);
                             request.setAttribute("totalInStock", totalInStock);
                         }
                     } catch (Exception e) {
@@ -461,6 +470,7 @@ public class staffServlet extends HttpServlet {
                         request.setAttribute("inventorySummary", new java.util.ArrayList<>());
                         request.setAttribute("totalImported", 0);
                         request.setAttribute("totalSold", 0);
+                        request.setAttribute("totalReversed", 0);
                         request.setAttribute("totalInStock", 0);
                     }
                     break;
