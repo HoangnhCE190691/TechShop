@@ -253,8 +253,7 @@ public class VoucherDAO extends DBContext {
 public boolean softDeleteVoucher(int id) {
     String sql = """
         UPDATE vouchers
-        SET status = 'INACTIVE',
-            deleted_at = CURRENT_TIMESTAMP
+        SET status = 'LOCKED'
         WHERE voucher_id = ?
     """;
     try {

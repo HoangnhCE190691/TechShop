@@ -113,7 +113,9 @@ public class voucherServlet extends HttpServlet {
                         request.setAttribute("successMessage", "The discount code (voucher) has been successfully deleted!");
                     } else {
                         request.setAttribute("errorMessage", "Cancellation failed! This voucher has already been applied to the order and cannot be removed.");
+                    vdao.softDeleteVoucher(idToDelete);
                     }
+                    
 
                     page = "/pages/VoucherManagementPage/voucherManagement.jsp";
                     listData = new VoucherDAO().getAllVoucher();

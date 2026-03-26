@@ -6,6 +6,8 @@ package controller.User;
 
 import dao.CustomerDAO;
 import dao.EmployeesDAO;
+import dao.InventoryItemDAO;
+import dao.OrderDAO;
 import java.io.IOException;
 import java.io.PrintWriter;
 import jakarta.servlet.ServletException;
@@ -14,8 +16,10 @@ import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import java.util.List;
 import model.Customer;
 import model.Employees;
+import model.Order;
 
 /**
  *
@@ -102,6 +106,7 @@ public class loginServlet extends HttpServlet {
         else if (employee.getEmployeeId() != -1) {
 
             if (!employee.getStatus().equalsIgnoreCase("ACTIVE")) {
+                
                 request.setAttribute("error", "Your account has been banned!");
                 // Đăng nhập thất bại
                 request.setAttribute("ContentPage", "/pages/MainPage/loginPage.jsp");
@@ -143,6 +148,14 @@ public class loginServlet extends HttpServlet {
 
             // Kiểm tra tài khoản bị khóa (phần của người kia)
             if (!customer.getStatus().equalsIgnoreCase("ACTIVE")) {
+                 OrderDAO a = new OrderDAO();
+                    InventoryItemDAO c = new InventoryItemDAO();
+                     List<Order> listOrder = a.getOrdersByCustomerWithSummary(customer.getCustomerID());
+                        for (Order order : listOrder) {
+                            if (!order.getStatus().equalsIgnoreCase("Shipped")) {
+                                a.updateOrderCurrentStatus(order.getOrderId(), "Cancelled");
+                                a.updateInventoryStatusByOrderId(order.getOrderId(), "IN_STOCK");
+                            }}
                 request.setAttribute("error", "Your account has been banned!");
                 request.setAttribute("ContentPage", "/pages/MainPage/loginPage.jsp");
                 request.getRequestDispatcher("/template/userTemplate.jsp").forward(request, response);

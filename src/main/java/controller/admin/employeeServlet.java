@@ -99,6 +99,7 @@ public class employeeServlet extends HttpServlet {
                         request.setAttribute("successMessage", "Employee removed successfully!");
                     } else {
                         request.setAttribute("errorMessage", "Deletion failed! This employee is involved with other data in the system and therefore cannot delete it.");
+                        edao.softDeleteEmployee(idD);
                     }
 
                     page = "/pages/EmployeeManagementPage/employeeManagement.jsp";

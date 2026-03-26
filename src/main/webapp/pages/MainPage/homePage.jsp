@@ -119,20 +119,7 @@
             </div>
         </div>
 
-        <button type="button"
-                class="absolute top-1/2 -translate-y-1/2 start-4 z-30 flex items-center justify-center w-12 h-12 rounded-full bg-white/50 hover:bg-white backdrop-blur-md shadow-md text-gray-800 transition-all opacity-70 group-hover:opacity-100 focus:outline-none"
-                data-carousel-prev>
-            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
-            </svg>
-        </button>
-        <button type="button"
-                class="absolute top-1/2 -translate-y-1/2 end-4 z-30 flex items-center justify-center w-12 h-12 rounded-full bg-white/50 hover:bg-white backdrop-blur-md shadow-md text-gray-800 transition-all opacity-70 group-hover:opacity-100 focus:outline-none"
-                data-carousel-next>
-            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-            </svg>
-        </button>
+        
     </div>
 
     <div class="relative my-12 bg-white p-6 rounded-2xl shadow-sm border border-red-50">
