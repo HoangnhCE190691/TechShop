@@ -86,15 +86,15 @@ public class productServlet extends HttpServlet {
         if (action != null) {
             switch (action) {
                 case "add":
-                    request.setAttribute("categories", cdao.getAllCategory());
-                    request.setAttribute("brands", bdao.getAllBrand());
+                    request.setAttribute("categories", cdao.getAllActiveCategories());
+                    request.setAttribute("brands", bdao.getAllActiveBrands());
                     page = "/pages/ProductManagementPage/addProduct.jsp";
                     break;
                 case "edit":
                     int idEdit = Integer.parseInt(request.getParameter("id"));
                     request.setAttribute("product", pdao.getProductById(idEdit));
-                    request.setAttribute("categories", cdao.getAllCategory());
-                    request.setAttribute("brands", bdao.getAllBrand());
+                    request.setAttribute("categories", cdao.getAllActiveCategories());
+                    request.setAttribute("brands", bdao.getAllActiveBrands());
 
                     ProductImageDAO imgDaoEdit = new ProductImageDAO();
                     request.setAttribute("images", imgDaoEdit.getImagesByProductId(idEdit));

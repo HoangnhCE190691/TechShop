@@ -184,7 +184,6 @@ public class ProductDAO extends DBContext {
     // 7. Xóa cứng
     public boolean deleteProduct(int id) {
         try {
-            // Bật chế độ Transaction để đảm bảo xóa sạch hoặc không xóa gì cả
             conn.setAutoCommit(false);
 
             // 1. Xóa ảnh sản phẩm
@@ -212,13 +211,13 @@ public class ProductDAO extends DBContext {
             psProd.setInt(1, id);
             int result = psProd.executeUpdate();
 
-            conn.commit(); // Xác nhận xóa tất cả
+            conn.commit(); 
             return result > 0;
         } catch (Exception e) {
             try {
                 conn.rollback();
             } catch (Exception ex) {
-            } // Nếu lỗi thì trả lại dữ liệu cũ
+            } 
             e.printStackTrace();
             return false;
         } finally {
