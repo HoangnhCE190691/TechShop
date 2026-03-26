@@ -249,4 +249,21 @@ public class VoucherDAO extends DBContext {
         System.out.println(dao.getVoucherById(5));
 //        dao.getVoucherById(1);
     }
+    // ===== SOFT DELETE =====
+public boolean softDeleteVoucher(int id) {
+    String sql = """
+        UPDATE vouchers
+        SET status = 'INACTIVE',
+            deleted_at = CURRENT_TIMESTAMP
+        WHERE voucher_id = ?
+    """;
+    try {
+        PreparedStatement ps = conn.prepareStatement(sql);
+        ps.setInt(1, id);
+        return ps.executeUpdate() > 0;
+    } catch (Exception e) {
+        e.printStackTrace();
+    }
+    return false;
+}
 }

@@ -358,6 +358,25 @@ public class EmployeesDAO extends DBContext {
         }
         return false;
     }
+    
+    // 17.5 Soft Delete Employee Record
+public boolean softDeleteEmployee(int id) {
+    // Thay vì xóa vĩnh viễn, ta cập nhật trạng thái thành 'DEACTIVATED'
+    // Lưu ý: Tên trạng thái phải khớp với quy định trong Database của bạn (ví dụ: 'INACTIVE', 'LOCKED')
+    String sql = "UPDATE employees SET status = 'DEACTIVATED' WHERE employee_id = ?";
+
+    try {
+        PreparedStatement ps = conn.prepareStatement(sql);
+        ps.setInt(1, id);
+
+        // Trả về true nếu cập nhật trạng thái thành công
+        return ps.executeUpdate() > 0;
+    } catch (Exception e) {
+        // Ghi log lỗi nếu có vấn đề về kết nối hoặc tên cột
+        e.printStackTrace();
+    }
+    return false;
+}
 
     // Test Main
     public static void main(String[] args) {

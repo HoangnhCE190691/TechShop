@@ -184,7 +184,7 @@
                     There are no products yet</div>
                 </c:if>
         </div>
-
+,
         <button onclick="scrollProduct(1)"
                 class="absolute -right-5 top-[55%] -translate-y-1/2 z-10 bg-white shadow-xl border border-gray-100 w-12 h-12 rounded-full text-gray-600 hover:text-red-600 hover:border-red-600 transition-all flex items-center justify-center text-2xl focus:outline-none">
             ›

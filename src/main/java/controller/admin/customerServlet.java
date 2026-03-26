@@ -6,6 +6,8 @@ package controller.admin;
 
 import dao.CustomerAddressDAO;
 import dao.CustomerDAO;
+import dao.InventoryItemDAO;
+import dao.OrderDAO;
 import jakarta.mail.MessagingException;
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -18,6 +20,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import model.Customer;
 import model.CustomerAddress;
+import model.Order;
 
 /**
  *
@@ -89,11 +92,19 @@ public class customerServlet extends HttpServlet {
                 case "delete":
                     int idD = Integer.parseInt(request.getParameter("id"));
                     boolean isDeleted = cdao.deleteCustomer(idD); // Mình đổi tên biến Delete thành isDeleted cho đúng chuẩn Java nhé
-
+                    OrderDAO a = new OrderDAO();
+                    InventoryItemDAO c = new InventoryItemDAO();
                     if (!isDeleted) {
                         // Nếu xóa thất bại
                         request.setAttribute("errorMessage", "Deletion failed! This customer has related data (address, order details, etc.) so it cannot be deleted.");
                         cdao.softDeleteCustomer(idD);
+                        List<Order> listOrder = a.getOrdersByCustomerWithSummary(idD);
+                        for (Order order : listOrder) {
+                            if (!order.getStatus().equalsIgnoreCase("Shipped")) {
+                                a.updateOrderCurrentStatus(order.getOrderId(), "Cancelled");
+                                a.updateInventoryStatusByOrderId(order.getOrderId(), "IN_STOCK");
+                            }
+                        }
                     } else {
                         // Nêu xóa thành công (bạn có thể thêm để thông báo cho rõ ràng)
                         request.setAttribute("successMessage", "Customer successfully deleted!");
@@ -167,10 +178,9 @@ public class customerServlet extends HttpServlet {
                         // OK -> Thêm vào DB
                         cdao.addCustomer(new Customer(0, username, password, fullName, email, phone, status, LocalDateTime.now()));
                         response.sendRedirect("customerservlet?action=all");
-                        
-                        
+
                         try {
-                         utils.EmailUtils.sendEmail(email, "Test TechShop", "<h1>Chào " + fullName +"!</h1><p>Tài khoản và mật khẩu của bạn là: <b>" + username + "</b>" + " và " + password  +"</p>");
+                            utils.EmailUtils.sendEmail(email, "Test TechShop", "<h1>Chào " + fullName + "!</h1><p>Tài khoản và mật khẩu của bạn là: <b>" + username + "</b>" + " và " + password + "</p>");
                         } catch (MessagingException ex) {
                             System.getLogger(employeeServlet.class.getName()).log(System.Logger.Level.ERROR, (String) null, ex);
                         }
@@ -186,7 +196,6 @@ public class customerServlet extends HttpServlet {
                         request.setAttribute("oldEmail", email);
                         request.setAttribute("oldPhone", phone);
                         request.setAttribute("oldPassword", password);
-
 
                         request.setAttribute("contentPage", "/pages/CustomerManagementPage/addCustomer.jsp");
                         request.getRequestDispatcher("/template/adminTemplate.jsp").forward(request, response);
