@@ -169,7 +169,7 @@ public class InventoryServlet extends HttpServlet {
                     double importPrice = Double.parseDouble(importPriceStr != null ? importPriceStr : "0");
                     String normalizedStatus = (status == null || status.trim().isEmpty()) ? "IN_STOCK" : status.trim();
                     InventoryItem item = new InventoryItem(inventoryId, variantId, existing.getReceipt_item_id(),
-                            existing.getImei(), importPrice, normalizedStatus);
+                            existing.getSerialId(), importPrice, normalizedStatus);
                     boolean ok = dao.updateInventory(item);
                     if (ok) {
                         setMsg(request.getSession(), "Cập nhật sản phẩm trong kho thành công.", "success");

@@ -213,7 +213,7 @@ public class InventoryItemDAO extends DBContext {
     }
 
     /**
-     * Thêm 1 dòng inventory. IMEI không được trùng.
+     * Thêm 1 dòng inventory. Serial ID không được trùng.
      */
     public boolean insertInventory(InventoryItem item) {
         if (conn == null || item == null) {
@@ -223,7 +223,7 @@ public class InventoryItemDAO extends DBContext {
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, item.getVariant_id());
             ps.setInt(2, item.getReceipt_item_id());
-            ps.setString(3, item.getImei());
+            ps.setString(3, item.getSerialId());
             ps.setDouble(4, item.getImport_price());
             ps.setString(5, (item.getStatus() == null || item.getStatus().isEmpty()) ? "IN_STOCK" : item.getStatus());
 
@@ -245,7 +245,7 @@ public class InventoryItemDAO extends DBContext {
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, item.getVariant_id());
             ps.setInt(2, item.getReceipt_item_id());
-            ps.setString(3, item.getImei());
+            ps.setString(3, item.getSerialId());
             ps.setDouble(4, item.getImport_price());
             ps.setString(5, (item.getStatus() == null || item.getStatus().isEmpty()) ? "IN_STOCK" : item.getStatus());
             ps.setInt(6, item.getInventory_id());
