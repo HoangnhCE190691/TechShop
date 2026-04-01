@@ -19,6 +19,7 @@ public class OrderStatusHistory {
     private String statusName;
     private Integer changedByEmployee;
     private Timestamp changedAt;
+    private String employeeName;
 
     //Insert Constructor
     public OrderStatusHistory(int orderId, int statusId, Integer changedByEmployee) {
@@ -44,6 +45,17 @@ public class OrderStatusHistory {
         this.statusName = statusName;
         this.changedByEmployee = changedByEmployee;
         this.changedAt = changedAt;
+    }
+
+    public OrderStatusHistory(int historyId, int orderId, int statusId, String statusCode, String statusName, Integer changedByEmployee, Timestamp changedAt, String employeeName) {
+        this.historyId = historyId;
+        this.orderId = orderId;
+        this.statusId = statusId;
+        this.statusCode = statusCode;
+        this.statusName = statusName;
+        this.changedByEmployee = changedByEmployee;
+        this.changedAt = changedAt;
+        this.employeeName = employeeName;
     }
 
     public int getHistoryId() {
@@ -85,6 +97,31 @@ public class OrderStatusHistory {
     public void setChangedAt(Timestamp changedAt) {
         this.changedAt = changedAt;
     }
+
+    public String getStatusCode() {
+        return statusCode;
+    }
+
+    public void setStatusCode(String statusCode) {
+        this.statusCode = statusCode;
+    }
+
+    public String getStatusName() {
+        return statusName;
+    }
+
+    public void setStatusName(String statusName) {
+        this.statusName = statusName;
+    }
+
+    public String getEmployeeName() {
+        return employeeName;
+    }
+
+    public void setEmployeeName(String employeeName) {
+        this.employeeName = employeeName;
+    }
+    
 
     @Override
     public String toString() {

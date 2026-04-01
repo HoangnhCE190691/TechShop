@@ -453,7 +453,7 @@
         profitEl.className = 'text-lg font-bold ' + (profit < 0 ? 'text-red-600' : 'text-green-600');
     }
 
-    // Gộp chung 1 listener change: profit + duplicate highlight
+   
     document.addEventListener('change', function (e) {
         if (!e.target || !e.target.name || !e.target.name.startsWith('assign_inv_'))
             return;

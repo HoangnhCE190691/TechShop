@@ -18,9 +18,11 @@ import java.util.Map;
 
 import dao.OrderDAO;
 import dao.OrderStatusDAO;
+import dao.OrderStatusHistoryDAO;
 
 import model.Order;
 import model.OrderStatus;
+import model.OrderStatusHistory;
 
 @WebServlet(name = "orderHistoryPageServlet", urlPatterns = {"/orderhistorypageservlet"})
 public class orderHistoryPageServlet extends HttpServlet {
@@ -158,6 +160,8 @@ public class orderHistoryPageServlet extends HttpServlet {
             int orderId = Integer.parseInt(orderIdParam);
             OrderDAO orderDao = new OrderDAO();
             Order order = orderDao.getOrderById(orderId);
+            OrderStatusHistoryDAO historyDao = new OrderStatusHistoryDAO();
+            List<OrderStatusHistory> statusHistory = historyDao.getOrderStatusHistoryWithEmployeeName(orderId);
 
             // Kiểm tra quyền: đơn tồn tại và thuộc về user hiện tại
             if (order != null && order.getCustomerId() == currentUserId) {
@@ -174,6 +178,7 @@ public class orderHistoryPageServlet extends HttpServlet {
                 }
                 request.setAttribute("order", order);
                 request.setAttribute("items", items);
+                request.setAttribute("statusHistory", statusHistory);
                 forwardToTemplate(request, response, PAGE_DETAIL);
             } else {
                 response.sendRedirect("orderhistorypageservlet?error=access_denied");
@@ -235,10 +240,14 @@ public class orderHistoryPageServlet extends HttpServlet {
             int orderId = Integer.parseInt(orderIdParam);
             OrderDAO orderDao = new OrderDAO();
 
-            // Gọi DAO để confirm
             boolean success = orderDao.confirmReceivedOrder(orderId, currentUserId);
 
             if (success) {
+                OrderStatusDAO statusDao = new OrderStatusDAO();
+                int completedStatusId = statusDao.getStatusIdByCode("COMPLETED");
+                if (completedStatusId > 0) {
+                    new OrderStatusHistoryDAO().insertOrderStatusHistory(orderId, completedStatusId, null);
+                }
                 request.getSession().setAttribute("msg", "Thanks you! Order #" + orderId + " has been confirmed as completed.");
                 request.getSession().setAttribute("msgType", "success");
             } else {

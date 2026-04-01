@@ -21,10 +21,10 @@ public class OrderStatusHistoryDAO extends DBContext {
     //insert order status history
     public void insertOrderStatusHistory(int orderId, int statusId, Integer employeeId) {
         String sql = """
-            INSERT INTO order_status_history
-            (order_id, status_id, changed_by_employee)
-            VALUES (?, ?, ?)
-        """;
+        INSERT INTO order_status_history
+        (order_id, status_id, changed_by_employee, changed_at)
+        VALUES (?, ?, ?, GETDATE())
+    """;
         try {
             PreparedStatement ps = conn.prepareStatement(sql);
             ps.setInt(1, orderId);
@@ -79,6 +79,43 @@ public class OrderStatusHistoryDAO extends DBContext {
         return list;
     }
 
+    public List<OrderStatusHistory> getOrderStatusHistoryWithEmployeeName(int orderId) {
+        List<OrderStatusHistory> list = new ArrayList<>();
+        String sql = """
+        SELECT 
+            h.history_id, h.order_id, h.status_id,
+            s.status_code, s.status_name,
+            h.changed_by_employee, h.changed_at,
+            e.full_name as employee_name
+        FROM order_status_history h
+        JOIN order_statuses s ON h.status_id = s.status_id
+        LEFT JOIN employees e ON h.changed_by_employee = e.employee_id
+        WHERE h.order_id = ?
+        ORDER BY h.changed_at ASC
+    """;
+        try {
+            PreparedStatement ps = conn.prepareStatement(sql);
+            ps.setInt(1, orderId);
+            ResultSet rs = ps.executeQuery();
+            while (rs.next()) {
+                String empName = rs.getString("employee_name");
+                list.add(new OrderStatusHistory(
+                        rs.getInt("history_id"),
+                        rs.getInt("order_id"),
+                        rs.getInt("status_id"),
+                        rs.getString("status_code"),
+                        rs.getString("status_name"),
+                        rs.getObject("changed_by_employee", Integer.class),
+                        rs.getTimestamp("changed_at"),
+                        empName != null ? empName : "Customer"
+                ));
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return list;
+    }
+
     //get all order status history
     public List<OrderStatusHistory> getAllOrderStatusHistory() {
         List<OrderStatusHistory> list = new ArrayList<>();
@@ -111,8 +148,8 @@ public class OrderStatusHistoryDAO extends DBContext {
         }
         return list;
     }
-// TEST
 
+// TEST
     public static void main(String[] args) {
         // OrderStatusHistoryDAO dao = new OrderStatusHistoryDAO();
 

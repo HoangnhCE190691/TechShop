@@ -199,6 +199,20 @@ public class OrderStatusDAO extends DBContext {
         return false;
     }
 
+    public int getStatusIdByCode(String statusCode) {
+        String sql = "SELECT status_id FROM order_statuses WHERE UPPER(status_code) = UPPER(?)";
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, statusCode);
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) {
+                return rs.getInt("status_id");
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return 0;
+    }
+
     // TEST
     public static void main(String[] args) {
         OrderStatusDAO dao = new OrderStatusDAO();

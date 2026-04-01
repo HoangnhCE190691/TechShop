@@ -11,6 +11,10 @@
                 <i class="fas fa-circle text-[8px] mr-1"></i> ${order.paymentStatus}
             </span>
             <span class="px-3 py-1 bg-blue-500 rounded-full text-xs">${order.status}</span>
+            <button onclick="openHistoryModal()" 
+                    class="px-3 py-1 bg-slate-400 hover:bg-slate-500 rounded-full text-sm text-white flex items-center gap-1 transition-colors">
+                <i class="fas fa-clock"></i> Order status history
+            </button>
         </div>
 
         <div class="p-6">
@@ -132,4 +136,58 @@
             </a>
         </div>
     </div>
+    <!-- Modal Trạng thái đơn hàng -->
+    <div id="historyModal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50 flex items-center justify-center">
+        <div class="bg-white rounded-xl shadow-xl max-w-lg w-full mx-4 max-h-[80vh] overflow-hidden">
+            <div class="bg-slate-500 p-4 text-white flex justify-between items-center">
+                <h3 class="font-bold text-lg">Order status</h3>
+                <button onclick="closeHistoryModal()" class="hover:bg-slate-600 px-2 py-1 rounded">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="p-4 overflow-y-auto max-h-[60vh]">
+                <c:choose>
+                    <c:when test="${not empty statusHistory}">
+                        <table class="w-full text-left">
+                            <thead class="bg-gray-50">
+                                <tr>
+                                    <th class="py-2 px-2 text-sm font-bold text-gray-600">Status</th>
+                                    <th class="py-2 px-2 text-sm font-bold text-gray-600">Date time</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <c:forEach items="${statusHistory}" var="h">
+                                    <tr class="border-b border-gray-100 hover:bg-gray-50">
+                                        <td class="py-3 px-2">
+                                            <span class="px-2 py-1 bg-blue-100 text-blue-700 rounded text-xs font-medium">
+                                                ${h.statusName}
+                                            </span>
+                                        </td>
+                                        <td class="py-3 px-2 text-sm text-gray-500">
+                                            <fmt:formatDate value="${h.changedAt}" pattern="dd/MM/yyyy HH:mm"/>
+                                        </td>
+                                    </tr>
+                                </c:forEach>
+                            </tbody>
+                        </table>
+                    </c:when>
+                    <c:otherwise>
+                        <p class="text-center text-gray-500 py-8">No recorded</p>
+                    </c:otherwise>
+                </c:choose>
+            </div>
+        </div>
+    </div>
 </div>
+<script>
+    function openHistoryModal() {
+        document.getElementById('historyModal').classList.remove('hidden');
+    }
+    function closeHistoryModal() {
+        document.getElementById('historyModal').classList.add('hidden');
+    }
+    document.getElementById('historyModal').addEventListener('click', function (e) {
+        if (e.target === this)
+            closeHistoryModal();
+    });
+</script>

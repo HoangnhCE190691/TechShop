@@ -35,6 +35,11 @@
                         <option value="${st.code}">${st.name}</option>
                     </c:forEach>
                 </select>
+                <select id="sortAmount" class="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500">
+                    <option value="none">Sort by Amount</option>
+                    <option value="desc">Price: High → Low</option>
+                    <option value="asc">Price: Low → High</option>
+                </select>
             </div>
         </div>
 
@@ -104,25 +109,25 @@
                             <span class="${badgeClass}">${badgeName}</span>
                         </td>
                         <td class="px-6 py-4 text-center">
-    <div class="flex items-center justify-center gap-4">
-        <a href="orderStaffServlet?action=orderDetail&id=${o.orderId}" 
-           class="text-blue-500 hover:text-blue-700 transition-transform hover:scale-110" 
-           title="View Detail">
-            <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                <path d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                <path d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-            </svg>
-        </a>
+                            <div class="flex items-center justify-center gap-4">
+                                <a href="orderStaffServlet?action=orderDetail&id=${o.orderId}" 
+                                   class="text-blue-500 hover:text-blue-700 transition-transform hover:scale-110" 
+                                   title="View Detail">
+                                    <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                    <path d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                    <path d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                    </svg>
+                                </a>
 
-        <a href="orderStaffServlet?action=editOrderPage&id=${o.orderId}" 
-           class="text-orange-500 hover:text-orange-700 transition-transform hover:scale-110" 
-           title="Edit Order">
-            <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                <path d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-            </svg>
-        </a>
-    </div>
-</td>
+                                <a href="orderStaffServlet?action=editOrderPage&id=${o.orderId}" 
+                                   class="text-orange-500 hover:text-orange-700 transition-transform hover:scale-110" 
+                                   title="Edit Order">
+                                    <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                    <path d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                    </svg>
+                                </a>
+                            </div>
+                        </td>
                     </tr>
                 </c:forEach>
                 <%-- Empty state khi khong co don nao --%>
@@ -144,135 +149,153 @@
         </div>
         <div class="flex gap-1" id="paginationControls"></div>
     </div>
-    <script>
-        document.addEventListener("DOMContentLoaded", function () {
-            const searchInput = document.getElementById('searchInput');
-            const paymentFilter = document.getElementById('paymentFilter');
-            const statusFilter = document.getElementById('statusFilter');
-            const minAmountInput = document.getElementById('minAmount');
-            const maxAmountInput = document.getElementById('maxAmount');
-            const resetBtn = document.getElementById('resetFilters');
-            const tableBody = document.getElementById('orderTableBody');
-            const rows = tableBody.getElementsByClassName('order-row');
-            const visibleCount = document.getElementById('visibleCount');
-            const PAGE_SIZE = 10;
-            let currentPage = 1;
-            let filteredRows = [];
-            function filterTable() {
-                const searchText = searchInput.value.toLowerCase();
-                const fPayment = paymentFilter.value;
-                const fStatus = statusFilter.value;
-                const minAmt = parseFloat(minAmountInput.value) || 0;
-                const maxAmt = parseFloat(maxAmountInput.value) || Infinity;
-                filteredRows = [];
-                for (let i = 0; i < rows.length; i++) {
-                    const idText = rows[i].querySelector('.order-id').innerText.toLowerCase();
-                    const nameText = rows[i].querySelector('.order-name').innerText.toLowerCase();
-                    const customerText = rows[i].querySelector('.customer-name').innerText.toLowerCase();
-                    const rowPayment = rows[i].getAttribute('data-payment');
-                    const rowStatus = rows[i].getAttribute('data-status');
-                    const rowAmount = parseFloat(rows[i].getAttribute('data-amount')) || 0;
-                    const matchesSearch = idText.includes(searchText) || nameText.includes(searchText) || customerText.includes(searchText);
-                    const matchesPayment = (fPayment === 'all' || rowPayment === fPayment);
-                    const matchesStatus = (fStatus === 'all' || rowStatus === fStatus);
-                    const matchesAmount = (rowAmount >= minAmt && rowAmount <= maxAmt);
-                    rows[i].style.display = 'none'; // ẩn hết trước
-                    if (matchesSearch && matchesPayment && matchesStatus && matchesAmount) {
-                        filteredRows.push(rows[i]);
-                    }
-                }
 
-                currentPage = 1;
+</div>
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const searchInput = document.getElementById('searchInput');
+        const paymentFilter = document.getElementById('paymentFilter');
+        const statusFilter = document.getElementById('statusFilter');
+        const minAmountInput = document.getElementById('minAmount');
+        const maxAmountInput = document.getElementById('maxAmount');
+        const resetBtn = document.getElementById('resetFilters');
+        const sortAmountSelect = document.getElementById('sortAmount');
+        const tableBody = document.getElementById('orderTableBody');
+        const rows = tableBody.getElementsByClassName('order-row');
+        const originalOrder = Array.from(rows);
+        const visibleCount = document.getElementById('visibleCount');
+        const PAGE_SIZE = 10;
+        let currentPage = 1;
+        let filteredRows = [];
+        function filterTable() {
+            const searchText = searchInput.value.toLowerCase();
+            const fPayment = paymentFilter.value;
+            const fStatus = statusFilter.value;
+            const minAmt = parseFloat(minAmountInput.value) || 0;
+            const maxAmt = parseFloat(maxAmountInput.value) || Infinity;
+            filteredRows = [];
+            for (let i = 0; i < rows.length; i++) {
+                const idText = rows[i].querySelector('.order-id').innerText.toLowerCase();
+                const nameText = rows[i].querySelector('.order-name').innerText.toLowerCase();
+                const customerText = rows[i].querySelector('.customer-name').innerText.toLowerCase();
+                const rowPayment = rows[i].getAttribute('data-payment');
+                const rowStatus = rows[i].getAttribute('data-status');
+                const rowAmount = parseFloat(rows[i].getAttribute('data-amount').replace(/[^0-9.]/g, '')) || 0;
+                const matchesSearch = idText.includes(searchText) || nameText.includes(searchText) || customerText.includes(searchText);
+                const matchesPayment = (fPayment === 'all' || rowPayment === fPayment);
+                const matchesStatus = (fStatus === 'all' || rowStatus === fStatus);
+                const matchesAmount = (rowAmount >= minAmt && rowAmount <= maxAmt);
+                rows[i].style.display = 'none'; // ẩn hết trước
+                if (matchesSearch && matchesPayment && matchesStatus && matchesAmount) {
+                    filteredRows.push(rows[i]);
+                }
+            }
+            const sortVal = sortAmountSelect.value;
+            if (sortVal === 'asc') {
+                filteredRows.sort((a, b) => parseFloat(a.getAttribute('data-amount')) - parseFloat(b.getAttribute('data-amount')));
+            } else if (sortVal === 'desc') {
+                filteredRows.sort((a, b) => parseFloat(b.getAttribute('data-amount')) - parseFloat(a.getAttribute('data-amount')));
+            } else {
+                filteredRows.sort((a, b) => originalOrder.indexOf(a) - originalOrder.indexOf(b));
+            }
+            currentPage = 1;
+            renderPage();
+            renderPagination();
+        }
+
+        function renderPage() {
+            const start = (currentPage - 1) * PAGE_SIZE;
+            const end = start + PAGE_SIZE;
+            filteredRows.forEach(row => tableBody.appendChild(row));
+
+            filteredRows.forEach((row, idx) => {
+                row.style.display = (idx >= start && idx < end) ? '' : 'none';
+            });
+            filteredRows.forEach((row, idx) => {
+                row.style.display = (idx >= start && idx < end) ? '' : 'none';
+            });
+            document.getElementById('pageFrom').textContent = filteredRows.length === 0 ? 0 : start + 1;
+            document.getElementById('pageTo').textContent = Math.min(end, filteredRows.length);
+            document.getElementById('visibleCount').textContent = filteredRows.length;
+            let noResultRow = document.getElementById('noResultRow');
+            if (filteredRows.length === 0) {
+                if (!noResultRow) {
+                    noResultRow = document.createElement('tr');
+                    noResultRow.id = 'noResultRow';
+                    noResultRow.innerHTML = '<td colspan="6" class="px-6 py-10 text-center text-gray-400 italic font-medium">No orders found matching your criteria.</td>';
+                    tableBody.appendChild(noResultRow);
+                }
+            } else if (noResultRow) {
+                noResultRow.remove();
+            }
+        }
+
+        function renderPagination() {
+            const totalPages = Math.ceil(filteredRows.length / PAGE_SIZE);
+            const controls = document.getElementById('paginationControls');
+            controls.innerHTML = '';
+            if (totalPages <= 1)
+                return;
+            const btnClass = 'px-3 py-1 rounded text-sm font-medium border transition-colors ';
+            const activeClass = 'bg-blue-600 text-white border-blue-600';
+            const inactiveClass = 'bg-white text-gray-600 border-gray-300 hover:bg-gray-50';
+            // Prev
+            const prev = document.createElement('button');
+            prev.textContent = '←';
+            prev.className = btnClass + (currentPage === 1 ? 'opacity-40 cursor-not-allowed ' + inactiveClass : inactiveClass);
+            prev.disabled = currentPage === 1;
+            prev.onclick = () => {
+                currentPage--;
                 renderPage();
                 renderPagination();
+            };
+            controls.appendChild(prev);
+            // Page numbers
+            for (let i = 1; i <= totalPages; i++) {
+                const btn = document.createElement('button');
+                btn.textContent = i;
+                btn.className = btnClass + (i === currentPage ? activeClass : inactiveClass);
+                btn.onclick = (function (p) {
+                    return function () {
+                        currentPage = p;
+                        renderPage();
+                        renderPagination();
+                    };
+                })(i);
+                controls.appendChild(btn);
             }
 
-            function renderPage() {
-                const start = (currentPage - 1) * PAGE_SIZE;
-                const end = start + PAGE_SIZE;
-                filteredRows.forEach((row, idx) => {
-                    row.style.display = (idx >= start && idx < end) ? '' : 'none';
-                });
-                document.getElementById('pageFrom').textContent = filteredRows.length === 0 ? 0 : start + 1;
-                document.getElementById('pageTo').textContent = Math.min(end, filteredRows.length);
-                document.getElementById('visibleCount').textContent = filteredRows.length;
-                let noResultRow = document.getElementById('noResultRow');
-                if (filteredRows.length === 0) {
-                    if (!noResultRow) {
-                        noResultRow = document.createElement('tr');
-                        noResultRow.id = 'noResultRow';
-                        noResultRow.innerHTML = '<td colspan="6" class="px-6 py-10 text-center text-gray-400 italic font-medium">No orders found matching your criteria.</td>';
-                        tableBody.appendChild(noResultRow);
-                    }
-                } else if (noResultRow) {
-                    noResultRow.remove();
-                }
-            }
-
-            function renderPagination() {
-                const totalPages = Math.ceil(filteredRows.length / PAGE_SIZE);
-                const controls = document.getElementById('paginationControls');
-                controls.innerHTML = '';
-                if (totalPages <= 1)
-                    return;
-                const btnClass = 'px-3 py-1 rounded text-sm font-medium border transition-colors ';
-                const activeClass = 'bg-blue-600 text-white border-blue-600';
-                const inactiveClass = 'bg-white text-gray-600 border-gray-300 hover:bg-gray-50';
-                // Prev
-                const prev = document.createElement('button');
-                prev.textContent = '←';
-                prev.className = btnClass + (currentPage === 1 ? 'opacity-40 cursor-not-allowed ' + inactiveClass : inactiveClass);
-                prev.disabled = currentPage === 1;
-                prev.onclick = () => {
-                    currentPage--;
-                    renderPage();
-                    renderPagination();
-                };
-                controls.appendChild(prev);
-                // Page numbers
-                for (let i = 1; i <= totalPages; i++) {
-                    const btn = document.createElement('button');
-                    btn.textContent = i;
-                    btn.className = btnClass + (i === currentPage ? activeClass : inactiveClass);
-                    btn.onclick = (function (p) {
-                        return function () {
-                            currentPage = p;
-                            renderPage();
-                            renderPagination();
-                        };
-                    })(i);
-                    controls.appendChild(btn);
-                }
-
-                // Next
-                const next = document.createElement('button');
-                next.textContent = '→';
-                next.className = btnClass + (currentPage === totalPages ? 'opacity-40 cursor-not-allowed ' + inactiveClass : inactiveClass);
-                next.disabled = currentPage === totalPages;
-                next.onclick = () => {
-                    currentPage++;
-                    renderPage();
-                    renderPagination();
-                };
-                controls.appendChild(next);
-            }
-            filterTable();
-
-
-            // Gán sự kiện (keyup cho input, change cho select)
-            [searchInput, minAmountInput, maxAmountInput].forEach(el => el.addEventListener('keyup', filterTable));
-            [paymentFilter, statusFilter].forEach(el => el.addEventListener('change', filterTable));
-
-            // Nút Reset
-            resetBtn.addEventListener('click', () => {
-                searchInput.value = '';
-                paymentFilter.value = 'all';
-                statusFilter.value = 'all';
-                minAmountInput.value = '';
-                maxAmountInput.value = '';
-                filterTable();
-            });
+            // Next
+            const next = document.createElement('button');
+            next.textContent = '→';
+            next.className = btnClass + (currentPage === totalPages ? 'opacity-40 cursor-not-allowed ' + inactiveClass : inactiveClass);
+            next.disabled = currentPage === totalPages;
+            next.onclick = () => {
+                currentPage++;
+                renderPage();
+                renderPagination();
+            };
+            controls.appendChild(next);
         }
-        );
-    </script>
-</div>
+        filterTable();
+
+
+        // Gán sự kiện (keyup cho input, change cho select)
+        [searchInput, minAmountInput, maxAmountInput].forEach(el => el.addEventListener('keyup', filterTable));
+        [paymentFilter, statusFilter].forEach(el => el.addEventListener('change', filterTable));
+        sortAmountSelect.addEventListener('change', filterTable);
+
+
+        // Nút Reset
+        resetBtn.addEventListener('click', () => {
+            searchInput.value = '';
+            paymentFilter.value = 'all';
+            statusFilter.value = 'all';
+            minAmountInput.value = '';
+            maxAmountInput.value = '';
+            sortAmountSelect.value = 'none';
+            filterTable();
+        });
+    }
+    );
+</script>

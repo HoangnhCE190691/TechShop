@@ -5,10 +5,13 @@
 package controller.staff;
 
 import dao.OrderDAO;
+import dao.OrderStatusDAO;
+import dao.OrderStatusHistoryDAO;
 import java.io.IOException;
 import java.io.PrintWriter;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -19,6 +22,7 @@ import java.util.List;
 import java.util.Map;
 import model.Order;
 import model.OrderItem;
+import model.OrderStatusHistory;
 
 /**
  *
@@ -50,6 +54,22 @@ public class orderStaffServlet extends HttpServlet {
             out.println("</body>");
             out.println("</html>");
         }
+    }
+
+    private int getEmployeeIdFromCookie(HttpServletRequest request) {
+        Cookie[] cookies = request.getCookies();
+        if (cookies != null) {
+            for (Cookie c : cookies) {
+                if ("cookieID".equals(c.getName())) {
+                    try {
+                        return Integer.parseInt(c.getValue());
+                    } catch (NumberFormatException e) {
+                        return 0;
+                    }
+                }
+            }
+        }
+        return 0;
     }
 
     // <editor-fold defaultstate="collapsed" desc="HttpServlet methods. Click on the + sign on the left to edit the code.">
@@ -84,6 +104,9 @@ public class orderStaffServlet extends HttpServlet {
                     Order order = odao.getOrderById(idDetail);
                     String cancelledStatusCode = odao.getCancelledStatusCode();
                     List<Map<String, Object>> items;
+                    OrderStatusHistoryDAO historyDao = new OrderStatusHistoryDAO();
+                    List<OrderStatusHistory> statusHistory = historyDao.getOrderStatusHistoryWithEmployeeName(idDetail);
+
                     if (order != null && cancelledStatusCode != null && cancelledStatusCode.equalsIgnoreCase(order.getStatus())) {
                         items = odao.getCancelledOrderDetailsWithIMEI(idDetail);
                         if (items == null || items.isEmpty()) {
@@ -95,6 +118,7 @@ public class orderStaffServlet extends HttpServlet {
 
                     request.setAttribute("order", order);
                     request.setAttribute("items", items);
+                    request.setAttribute("statusHistory", statusHistory);
                     page = "/pages/OrderManagementPage/orderDetail.jsp";
                     break;
                 case "editOrderPage":
@@ -242,10 +266,14 @@ public class orderStaffServlet extends HttpServlet {
 
             if (success) {
                 if (!oldStatus.equalsIgnoreCase(status)) {
+                    int employeeId = getEmployeeIdFromCookie(request);
+                    int statusId = new OrderStatusDAO().getStatusIdByCode(status);
+                    if (statusId > 0) {
+                        new OrderStatusHistoryDAO().insertOrderStatusHistory(orderId, statusId, employeeId);
+                    }
+
                     if (status.equalsIgnoreCase("SHIPPED")) {
-                        //Cap nhat shippedDate
                         odao.updateShippedDate(orderId, new java.sql.Timestamp(System.currentTimeMillis()));
-                        //inventory giu nguyen reserved. chi chuyen khi cus confirm hoac qua ngay
                     } else if (isChangingToCancel) {
                         odao.updateInventoryStatusByOrderId(orderId, "IN_STOCK");
                     }
