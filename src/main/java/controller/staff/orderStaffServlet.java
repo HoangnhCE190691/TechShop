@@ -243,7 +243,9 @@ public class orderStaffServlet extends HttpServlet {
             if (success) {
                 if (!oldStatus.equalsIgnoreCase(status)) {
                     if (status.equalsIgnoreCase("SHIPPED")) {
-                        odao.updateInventoryStatusByOrderId(orderId, "SOLD");
+                        //Cap nhat shippedDate
+                        odao.updateShippedDate(orderId, new java.sql.Timestamp(System.currentTimeMillis()));
+                        //inventory giu nguyen reserved. chi chuyen khi cus confirm hoac qua ngay
                     } else if (isChangingToCancel) {
                         odao.updateInventoryStatusByOrderId(orderId, "IN_STOCK");
                     }

@@ -93,6 +93,12 @@
                         <span class="${badgeClass}">
                             ${badgeText}
                         </span>
+                        <c:if test="${order.status == 'SHIPPED' && not empty order.shippedDate}">
+                            <p class="text-xs text-gray-500 mt-1">
+                                <i class="fas fa-clock mr-1"></i> 
+                                <span class="countdown-shipped" data-shipped="${order.shippedDate}"></span>
+                            </p>
+                        </c:if>
                     </div>
 
                     <div class="space-y-4 mb-6">
@@ -122,6 +128,7 @@
                                 <fmt:formatNumber value="${order.totalAmount}" type="number" pattern="#,###"/>đ
                             </span>
                         </div>
+
                         <div class="flex gap-3">
                             <%-- 1. QUAN TRỌNG: Reset flag canCancel về false cho mỗi đơn hàng mới --%>
                             <c:set var="canCancel" value="false"/>
@@ -160,6 +167,17 @@
                             <button class="px-5 py-2.5 rounded-xl bg-red-50 text-red-600 font-bold text-sm hover:bg-red-100 transition-colors">
                                 <a href="orderhistorypageservlet?action=orderDetail&id=${order.orderId}" class="block">View Details</a>
                             </button>
+                            <c:if test="${order.status == 'SHIPPED'}">
+                                <form action="orderhistorypageservlet" method="GET" class="inline">
+                                    <input type="hidden" name="action" value="confirmReceived">
+                                    <input type="hidden" name="id" value="${order.orderId}">
+                                    <button type="submit" 
+                                            class="px-5 py-2.5 bg-green-600 text-white text-sm font-bold rounded-xl hover:bg-green-700 transition-colors shadow-sm"
+                                            onclick="return confirm('Confirm received order #${order.orderId}?');">
+                                        <i class="fas fa-check-circle mr-1"></i> Order received
+                                    </button>
+                                </form>
+                            </c:if>
                         </div>
                     </div>
                 </div>
@@ -336,4 +354,31 @@
         document.getElementById('cancelReasonHidden').value = reason;
         document.getElementById('cancelOrderForm').submit();
     }
+    document.addEventListener('DOMContentLoaded', function () {
+        const countdowns = document.querySelectorAll('.countdown-shipped');
+        const thresholdDays = 5;
+
+        countdowns.forEach(function (el) {
+            const shippedStr = el.getAttribute('data-shipped');
+            if (!shippedStr)
+                return;
+
+            const shippedDate = new Date(shippedStr);
+            const now = new Date();
+            const diffTime = now - shippedDate;
+            const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+            const daysLeft = thresholdDays - diffDays;
+
+            if (daysLeft > 0) {
+                el.textContent = 'Remain ' + daysLeft + ' days to confirm order';
+                el.style.color = '#f59e0b';
+            } else if (daysLeft === 0) {
+                el.textContent = 'Today is the deadline for confirmation!';
+                el.style.color = '#ef4444';
+            } else {
+                el.textContent = 'Overdue - will automatically complete';
+                el.style.color = '#6b7280';
+            }
+        });
+    });
 </script>

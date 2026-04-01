@@ -29,6 +29,7 @@ public class Order {
     private String paymentMethodName;
     private String productImageUrl;
     private String cancelReason;
+    private Timestamp shippedDate;
 
     public Order() {
     }
@@ -41,6 +42,22 @@ public class Order {
         this.paymentMethodId = paymentMethodId;
         this.shippingAddress = shippingAddress;
         this.totalAmount = totalAmount;
+    }
+
+    //READ constructor for confirm
+    public Order(int orderId, int customerId, Voucher voucher, int paymentMethodId,
+            String shippingAddress, BigDecimal totalAmount,
+            String paymentStatus, String status, Timestamp createdAt, Timestamp shippedDate) {
+        this.orderId = orderId;
+        this.customerId = customerId;
+        this.voucher = voucher;
+        this.paymentMethodId = paymentMethodId;
+        this.shippingAddress = shippingAddress;
+        this.totalAmount = totalAmount;
+        this.paymentStatus = paymentStatus;
+        this.status = status;
+        this.createdAt = createdAt;
+        this.shippedDate = shippedDate;
     }
 
     //READ constructor 
@@ -56,6 +73,7 @@ public class Order {
         this.paymentStatus = paymentStatus;
         this.status = status;
         this.createdAt = createdAt;
+
     }
 
     public int getOrderId() {
@@ -184,6 +202,14 @@ public class Order {
 
     public void setCancelReason(String cancelReason) {
         this.cancelReason = cancelReason;
+    }
+
+    public Timestamp getShippedDate() {
+        return shippedDate;
+    }
+
+    public void setShippedDate(Timestamp shippedDate) {
+        this.shippedDate = shippedDate;
     }
 
     @Override

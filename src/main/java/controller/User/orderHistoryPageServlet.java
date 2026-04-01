@@ -79,6 +79,11 @@ public class orderHistoryPageServlet extends HttpServlet {
 
         // 2. Điều hướng theo action
         String action = request.getParameter("action");
+
+        if ("confirmReceived".equals(action)) {
+            handleConfirmReceived(request, response, currentUserId);
+            return;
+        }
         if ("orderDetail".equals(action)) {
             handleOrderDetail(request, response, currentUserId);
         } else {
@@ -212,6 +217,41 @@ public class orderHistoryPageServlet extends HttpServlet {
         request.setAttribute("currentStatus", isFilterAll ? "ALL" : statusFilter);
 
         forwardToTemplate(request, response, PAGE_HISTORY);
+    }
+
+    /**
+     * Xử lý xác nhận đã nhận hàng của khách
+     */
+    private void handleConfirmReceived(HttpServletRequest request, HttpServletResponse response,
+            int currentUserId) throws ServletException, IOException {
+
+        String orderIdParam = request.getParameter("id");
+        if (orderIdParam == null || orderIdParam.trim().isEmpty()) {
+            response.sendRedirect("orderhistorypageservlet");
+            return;
+        }
+
+        try {
+            int orderId = Integer.parseInt(orderIdParam);
+            OrderDAO orderDao = new OrderDAO();
+
+            // Gọi DAO để confirm
+            boolean success = orderDao.confirmReceivedOrder(orderId, currentUserId);
+
+            if (success) {
+                request.getSession().setAttribute("msg", "Thanks you! Order #" + orderId + " has been confirmed as completed.");
+                request.getSession().setAttribute("msgType", "success");
+            } else {
+                request.getSession().setAttribute("msg", "This order cannot be confirmed. The order may not exist or may not have been delivered.");
+                request.getSession().setAttribute("msgType", "danger");
+            }
+
+        } catch (NumberFormatException e) {
+            request.getSession().setAttribute("msg", "ID order is invalid");
+            request.getSession().setAttribute("msgType", "danger");
+        }
+
+        response.sendRedirect("orderhistorypageservlet");
     }
 
     /**

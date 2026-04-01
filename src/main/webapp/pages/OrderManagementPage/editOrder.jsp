@@ -23,6 +23,16 @@
                     <fmt:formatNumber value="${order.totalAmount}" type="number" pattern="#,###"/>d
                 </p>
             </div>
+
+            <c:if test="${not empty order.shippedDate}">
+                <div>
+                    <label class="block text-xs font-bold text-gray-500 uppercase">Shipped Date</label>
+                    <p class="font-semibold text-blue-600">${order.shippedDate}</p>
+                    <p class="text-xs text-gray-400 mt-1">
+                        (Auto-complete after 5 days from the date of successful delivery.)
+                    </p>
+                </div>
+            </c:if>
         </div>
 
         <div>
@@ -138,21 +148,31 @@
                         <p class="text-xs text-gray-400 italic">This order is completed. No further status changes.</p>
                     </c:when>
                     <c:otherwise>
-                        <div class="flex gap-2">
-                            <button type="button"
-                                    onclick="setStatus('${nextStatus}')"
-                                    class="flex-1 px-3 py-2 bg-blue-600 text-white text-sm font-bold rounded-lg hover:bg-blue-700 transition">
-                                Next: ${nextStatus}
-                            </button>
-                            <c:if test="${order.status != cancelledCode}">
-                                <%-- Cancel button opens modal instead of direct submit --%>
+                        <c:if test="${nextStatus != 'COMPLETED'}">
+                            <div class="flex gap-2">
                                 <button type="button"
-                                        onclick="openStaffCancelModal()"
-                                        class="px-3 py-2 bg-red-100 text-red-600 text-sm font-bold rounded-lg hover:bg-red-200 transition">
-                                    Cancel
+                                        onclick="setStatus('${nextStatus}')"
+                                        class="flex-1 px-3 py-2 bg-blue-600 text-white text-sm font-bold rounded-lg hover:bg-blue-700 transition">
+                                    Next: ${nextStatus}
                                 </button>
-                            </c:if>
-                        </div>
+                                <c:if test="${order.status != cancelledCode}">
+                                    <button type="button"
+                                            onclick="openStaffCancelModal()"
+                                            class="px-3 py-2 bg-red-100 text-red-600 text-sm font-bold rounded-lg hover:bg-red-200 transition">
+                                        Cancel
+                                    </button>
+                                </c:if>
+                            </div>
+                        </c:if>
+                        <%-- Thông báo cho staff biết --%>
+                        <c:if test="${nextStatus == 'COMPLETED'}">
+                            <div class="p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                                <p class="text-sm text-blue-700 font-medium">
+                                    <i class="fas fa-info-circle mr-1"></i>
+                                    Waiting for customer confirmation of receipt.
+                                </p>
+                            </div>
+                        </c:if>
                         <p id="statusPreview" class="mt-2 text-xs text-gray-400">
                             No change selected - will keep current status.
                         </p>
@@ -183,7 +203,7 @@
                      ${autoPayment == 'PAID' ? 'bg-green-50 text-green-700 border-green-200' : 'bg-gray-100 text-gray-500 border-gray-200'}">
                     ${autoPayment}
                 </div>
-                <p class="mt-1 text-xs text-gray-400 italic">Auto-set based on order status.</p>
+                
                 <p id="paymentPreview" class="mt-1 text-xs font-semibold"></p>
             </div>
 
@@ -349,7 +369,7 @@
                 'px-3 py-2 rounded-lg text-sm font-bold border cursor-not-allowed '
                 + bgClass + ' ' + textClass + ' ' + borderClass;
 
-        paymentPreview.textContent = 'Will update to: ' + newPayment;
+
         paymentPreview.className = 'mt-1 text-xs font-semibold '
                 + (newPayment === 'PAID' ? 'text-green-600' : 'text-gray-500');
     }

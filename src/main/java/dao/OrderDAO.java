@@ -16,6 +16,7 @@ import model.Order;
 import model.Voucher;
 import utils.DBContext;
 import java.sql.Statement;
+import java.sql.Timestamp;
 import model.InventoryItem;
 import model.OrderItem;
 
@@ -258,6 +259,7 @@ public class OrderDAO extends DBContext {
 
                 o.setOrderName(finalName);
                 o.setProductImageUrl(rs.getString("product_image_url"));
+                o.setShippedDate(rs.getTimestamp("shipped_date"));
                 list.add(o);
             }
         } catch (Exception e) {
@@ -700,6 +702,17 @@ public class OrderDAO extends DBContext {
         }
     }
 
+    public void updateShippedDate(int orderId, Timestamp shippedDate) {
+        String sql = "UPDATE orders SET shipped_date = ? WHERE order_id = ?";
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setTimestamp(1, shippedDate);
+            ps.setInt(2, orderId);
+            ps.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
     public void updateInventoryStatusByOrderId(int orderId, String inventoryStatus) {
         String sql = """
         UPDATE inventory_items SET status = ?
@@ -907,61 +920,63 @@ public class OrderDAO extends DBContext {
     }
 
     public List<InventoryItem> getAvailableInventoryByVariant(int variantId) {
-    List<InventoryItem> list = new ArrayList<>();
-    String sql = """
+        List<InventoryItem> list = new ArrayList<>();
+        String sql = """
         SELECT inventory_id, serial_id, import_price 
         FROM inventory_items 
         WHERE variant_id = ? AND status = 'IN_STOCK'
         ORDER BY import_price ASC
     """;
-    try (PreparedStatement ps = conn.prepareStatement(sql)) {
-        ps.setInt(1, variantId);
-        ResultSet rs = ps.executeQuery();
-        while (rs.next()) {
-            InventoryItem i = new InventoryItem();
-            i.setInventory_id(rs.getInt("inventory_id"));
-            i.setSerialId(rs.getString("serial_id"));
-            i.setImport_price(rs.getDouble("import_price"));
-            list.add(i);
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, variantId);
+            ResultSet rs = ps.executeQuery();
+            while (rs.next()) {
+                InventoryItem i = new InventoryItem();
+                i.setInventory_id(rs.getInt("inventory_id"));
+                i.setSerialId(rs.getString("serial_id"));
+                i.setImport_price(rs.getDouble("import_price"));
+                list.add(i);
+            }
+        } catch (SQLException e) {
+            System.out.println("getAvailableInventoryByVariant ERROR: " + e.getMessage());
+            e.printStackTrace();
         }
-    } catch (SQLException e) {
-        System.out.println("getAvailableInventoryByVariant ERROR: " + e.getMessage());
-        e.printStackTrace();
+        return list;
     }
-    return list;
-}
 
     public int getAvailableStockCount(int variantId) {
-    String sql = "SELECT COUNT(*) FROM inventory_items WHERE variant_id = ? AND status = 'IN_STOCK'";
-    try (PreparedStatement ps = conn.prepareStatement(sql)) {
-        ps.setInt(1, variantId);
-        ResultSet rs = ps.executeQuery();
-        if (rs.next()) {
-            return rs.getInt(1);
+        String sql = "SELECT COUNT(*) FROM inventory_items WHERE variant_id = ? AND status = 'IN_STOCK'";
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, variantId);
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) {
+                return rs.getInt(1);
+            }
+        } catch (SQLException e) {
+            System.out.println("getAvailableStockCount: " + e.getMessage());
         }
-    } catch (SQLException e) {
-        System.out.println("getAvailableStockCount: " + e.getMessage());
+        return 0;
     }
-    return 0;
-}
 
-public boolean hasEnoughStockForOrder(int orderId) {
-    List<OrderItem> items = getOrderItemsByOrderId(orderId);
-    Map<Integer, Integer> requiredQty = new HashMap<>();
-    
-    for (OrderItem item : items) {
-        if (item.getVariantId() == 0) continue;
-        requiredQty.merge(item.getVariantId(), 1, Integer::sum);
-    }
-    
-    for (Map.Entry<Integer, Integer> entry : requiredQty.entrySet()) {
-        int available = getAvailableStockCount(entry.getKey());
-        if (available < entry.getValue()) {
-            return false;
+    public boolean hasEnoughStockForOrder(int orderId) {
+        List<OrderItem> items = getOrderItemsByOrderId(orderId);
+        Map<Integer, Integer> requiredQty = new HashMap<>();
+
+        for (OrderItem item : items) {
+            if (item.getVariantId() == 0) {
+                continue;
+            }
+            requiredQty.merge(item.getVariantId(), 1, Integer::sum);
         }
+
+        for (Map.Entry<Integer, Integer> entry : requiredQty.entrySet()) {
+            int available = getAvailableStockCount(entry.getKey());
+            if (available < entry.getValue()) {
+                return false;
+            }
+        }
+        return true;
     }
-    return true;
-}
 
     public boolean allocateOrderItems(Map<Integer, Integer> allocations, int orderId, String nextStatus) {
         String sqlCheck = """
@@ -1059,11 +1074,64 @@ public boolean hasEnoughStockForOrder(int orderId) {
         }
     }
 
+    public boolean confirmReceivedOrder(int orderId, int customerId) {
+        String sqlCheck = """
+        SELECT status FROM orders 
+        WHERE order_id = ? AND customer_id = ?
+    """;
+
+        String sqlUpdateOrder = "UPDATE orders SET status = 'COMPLETED' WHERE order_id = ?";
+
+        String sqlUpdateInventory = """
+        UPDATE inventory_items SET status = 'SOLD'
+        WHERE inventory_id IN (SELECT inventory_id FROM order_items WHERE order_id = ?)
+    """;
+
+        try {
+            // 1. Kiểm tra order hợp lệ và đang ở trạng thái SHIPPED
+            PreparedStatement psCheck = conn.prepareStatement(sqlCheck);
+            psCheck.setInt(1, orderId);
+            psCheck.setInt(2, customerId);
+            ResultSet rs = psCheck.executeQuery();
+
+            if (!rs.next()) {
+                return false;
+            }
+
+            String currentStatus = rs.getString("status");
+            if (!"SHIPPED".equalsIgnoreCase(currentStatus)) {
+                return false;
+            }
+
+            // 2. Cập nhật trạng thái đơn hàng → COMPLETED
+            PreparedStatement psOrder = conn.prepareStatement(sqlUpdateOrder);
+            psOrder.setInt(1, orderId);
+            psOrder.executeUpdate();
+
+            // 2. Cập nhật payment_status → PAID 
+            PreparedStatement psPayment = conn.prepareStatement(
+                    "UPDATE orders SET payment_status = 'PAID' WHERE order_id = ? AND (payment_status IS NULL OR payment_status != 'PAID')"
+            );
+            psPayment.setInt(1, orderId);
+            psPayment.executeUpdate();
+
+            // 3. Cập nhật inventory: RESERVED → SOLD
+            PreparedStatement psInv = conn.prepareStatement(sqlUpdateInventory);
+            psInv.setInt(1, orderId);
+            psInv.executeUpdate();
+
+            return true;
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
     public List<OrderItem> getOrderItemsByOrderId(int orderId) {
-    List<OrderItem> list = new ArrayList<>();
-    
- 
-    String sql = """
+        List<OrderItem> list = new ArrayList<>();
+
+        String sql = """
         SELECT 
             oi.order_item_id,
             oi.order_id,
@@ -1078,33 +1146,153 @@ public boolean hasEnoughStockForOrder(int orderId) {
         WHERE oi.order_id = ?
     """;
 
-    try {
-        PreparedStatement ps = conn.prepareStatement(sql);
-        ps.setInt(1, orderId);
-        ResultSet rs = ps.executeQuery();
+        try {
+            PreparedStatement ps = conn.prepareStatement(sql);
+            ps.setInt(1, orderId);
+            ResultSet rs = ps.executeQuery();
 
-        while (rs.next()) {
-            OrderItem item = new OrderItem();
-            item.setOrderItemId(rs.getInt("order_item_id"));
-            item.setOrderId(rs.getInt("order_id"));
-            item.setInventoryId(rs.getInt("inventory_id"));
-            item.setSellingPrice(rs.getBigDecimal("selling_price"));
-            item.setVariantId(rs.getInt("resolved_variant_id"));
-            
-            String variantName = rs.getString("variant_name");
-            if (variantName == null) {
-                variantName = "San pham #" + rs.getInt("resolved_variant_id");
+            while (rs.next()) {
+                OrderItem item = new OrderItem();
+                item.setOrderItemId(rs.getInt("order_item_id"));
+                item.setOrderId(rs.getInt("order_id"));
+                item.setInventoryId(rs.getInt("inventory_id"));
+                item.setSellingPrice(rs.getBigDecimal("selling_price"));
+                item.setVariantId(rs.getInt("resolved_variant_id"));
+
+                String variantName = rs.getString("variant_name");
+                if (variantName == null) {
+                    variantName = "San pham #" + rs.getInt("resolved_variant_id");
+                }
+                item.setVariantName(variantName);
+                list.add(item);
             }
-            item.setVariantName(variantName);
-            list.add(item);
+        } catch (SQLException e) {
+            System.out.println("getOrderItemsByOrderId ERROR: " + e.getMessage());
+            e.printStackTrace();
         }
-    } catch (SQLException e) {
-        System.out.println("getOrderItemsByOrderId ERROR: " + e.getMessage());
-        e.printStackTrace();
+
+        return list;
     }
 
-    return list;
-}
+    /**
+     * Lấy danh sách đơn hàng đang SHIPPED và đã quá X ngày (tính từ shipped_date)
+     */
+    public List<Order> getShippedOrdersOlderThan(int days) {
+        List<Order> list = new ArrayList<>();
+        String sql = """
+        SELECT o.*, c.full_name, v.code AS code,
+               COALESCE(
+                   (SELECT TOP 1 p.name FROM order_items oi
+                    LEFT JOIN inventory_items ii ON oi.inventory_id = ii.inventory_id
+                    LEFT JOIN product_variants pv ON pv.variant_id = COALESCE(oi.variant_id, ii.variant_id)
+                    LEFT JOIN products p ON pv.product_id = p.product_id
+                    WHERE oi.order_id = o.order_id),
+                   (SELECT TOP 1 p.name FROM cancelled_order_items coi
+                    JOIN inventory_items ii ON coi.inventory_id = ii.inventory_id
+                    JOIN product_variants pv ON ii.variant_id = pv.variant_id
+                    JOIN products p ON pv.product_id = p.product_id
+                    WHERE coi.order_id = o.order_id)
+               ) AS representative_product,
+               ((SELECT COUNT(*) FROM order_items WHERE order_id = o.order_id)
+                + (SELECT ISNULL(SUM(quantity), 0) FROM cancelled_order_items WHERE order_id = o.order_id)) AS total_items
+        FROM orders o
+        JOIN customers c ON o.customer_id = c.customer_id
+        LEFT JOIN vouchers v ON o.voucher_id = v.voucher_id
+        WHERE o.status = 'SHIPPED' 
+          AND o.shipped_date IS NOT NULL
+          AND o.shipped_date < DATEADD(DAY, -?, GETDATE())
+        ORDER BY o.shipped_date ASC
+    """;
+
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, days);
+            ResultSet rs = ps.executeQuery();
+
+            while (rs.next()) {
+                Voucher voucher = null;
+                int vId = rs.getInt("voucher_id");
+                if (!rs.wasNull()) {
+                    voucher = new Voucher();
+                    voucher.setVoucherId(vId);
+                    voucher.setCode(rs.getString("code"));
+                }
+
+                Order o = new Order(
+                        rs.getInt("order_id"),
+                        rs.getInt("customer_id"),
+                        voucher,
+                        rs.getInt("payment_method_id"),
+                        rs.getString("shipping_address"),
+                        rs.getBigDecimal("total_amount"),
+                        rs.getString("payment_status"),
+                        rs.getString("status"),
+                        rs.getTimestamp("created_at")
+                );
+                o.setShippedDate(rs.getTimestamp("shipped_date"));
+                o.setCustomerName(rs.getString("full_name"));
+
+                String pName = rs.getString("representative_product");
+                int count = rs.getInt("total_items");
+                String finalName = (pName != null) ? pName : "No products";
+                if (count > 1) {
+                    finalName += " (+" + (count - 1) + " items)";
+                }
+                o.setOrderName(finalName);
+
+                list.add(o);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return list;
+    }
+
+    /**
+     * Tự động hoàn thành đơn hàng SHIPPED quá X ngày
+     *
+     * @param daysThreshold Số ngày kể từ shipped_date để tự động complete
+     * @return Số đơn hàng đã được auto-complete
+     */
+    public int autoCompleteShippedOrders(int daysThreshold) {
+        List<Order> ordersToComplete = getShippedOrdersOlderThan(daysThreshold);
+
+        if (ordersToComplete.isEmpty()) {
+            return 0;
+        }
+
+        int completedCount = 0;
+        String sqlUpdateOrder = "UPDATE orders SET status = 'COMPLETED' WHERE order_id = ?";
+        String sqlUpdateInventory = """
+        UPDATE inventory_items SET status = 'SOLD'
+        WHERE inventory_id IN (SELECT inventory_id FROM order_items WHERE order_id = ?)
+    """;
+
+        try {
+            for (Order order : ordersToComplete) {
+                try {
+                    // Update order status → COMPLETED
+                    PreparedStatement psOrder = conn.prepareStatement(sqlUpdateOrder);
+                    psOrder.setInt(1, order.getOrderId());
+                    psOrder.executeUpdate();
+
+                    // Update inventory: RESERVED → SOLD
+                    PreparedStatement psInv = conn.prepareStatement(sqlUpdateInventory);
+                    psInv.setInt(1, order.getOrderId());
+                    psInv.executeUpdate();
+
+                    completedCount++;
+                    System.out.println("[AutoComplete] Order #" + order.getOrderId() + " auto-completed (shipped on " + order.getShippedDate() + ")");
+
+                } catch (SQLException e) {
+                    System.err.println("[AutoComplete] Failed to complete order #" + order.getOrderId() + ": " + e.getMessage());
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return completedCount;
+    }
 
     //Test
     public static void main(String[] args) {
