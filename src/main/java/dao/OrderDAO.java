@@ -171,6 +171,24 @@ public class OrderDAO extends DBContext {
         List<Order> list = new ArrayList<>();
         String sql = """
         SELECT o.*, c.full_name, v.code as voucher_code,
+                     COALESCE(
+                         (
+                             SELECT TOP 1 p.product_id
+                             FROM order_items oi
+                             LEFT JOIN inventory_items ii ON oi.inventory_id = ii.inventory_id
+                             LEFT JOIN product_variants pv ON pv.variant_id = COALESCE(oi.variant_id, ii.variant_id)
+                             LEFT JOIN products p ON pv.product_id = p.product_id
+                             WHERE oi.order_id = o.order_id
+                         ),
+                         (
+                             SELECT TOP 1 p.product_id
+                             FROM cancelled_order_items coi
+                             JOIN inventory_items ii ON coi.inventory_id = ii.inventory_id
+                             JOIN product_variants pv ON ii.variant_id = pv.variant_id
+                             JOIN products p ON pv.product_id = p.product_id
+                             WHERE coi.order_id = o.order_id
+                         )
+                     ) as product_id,
                COALESCE(
                    (
                        SELECT TOP 1 p.name
@@ -259,6 +277,7 @@ public class OrderDAO extends DBContext {
 
                 o.setOrderName(finalName);
                 o.setProductImageUrl(rs.getString("product_image_url"));
+                o.setProductId(rs.getInt("product_id"));
                 o.setShippedDate(rs.getTimestamp("shipped_date"));
                 list.add(o);
             }
@@ -493,7 +512,8 @@ public class OrderDAO extends DBContext {
     public List<Map<String, Object>> getOrderDetails(int orderId) {
         List<Map<String, Object>> details = new ArrayList<>();
         String sql = """
-        SELECT p.name,
+        SELECT p.product_id,
+               p.name,
                pv.sku,
                COUNT(*) AS quantity,
                oi.selling_price,
@@ -504,7 +524,7 @@ public class OrderDAO extends DBContext {
         LEFT JOIN products p ON pv.product_id = p.product_id
         LEFT JOIN product_images pi ON p.product_id = pi.product_id AND pi.is_thumbnail = 1
         WHERE oi.order_id = ?
-        GROUP BY p.name, pv.sku, oi.selling_price, pi.image_url
+        GROUP BY p.product_id, p.name, pv.sku, oi.selling_price, pi.image_url
     """;
 
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
@@ -513,6 +533,7 @@ public class OrderDAO extends DBContext {
 
             while (rs.next()) {
                 Map<String, Object> item = new HashMap<>();
+                item.put("productId", rs.getInt("product_id"));
                 item.put("productName", rs.getString("name"));
                 item.put("sku", rs.getString("sku"));
                 item.put("quantity", rs.getInt("quantity"));

@@ -53,8 +53,10 @@
                                 <img src="${item.imageUrl != null ? item.imageUrl : 'https://placehold.co/100x100'}"
                                      alt="${item.productName}" class="w-[100px] h-[100px] object-cover rounded">
                             </td>
-                            <td class="py-4">
-                                <div class="font-medium">${item.productName}</div>
+                            <td class="py-4" >
+                                <a href="detailservlet?productId=${item.productId}">
+                                    <div class="font-medium hover:text-red-600 cursor-pointer transition-colors" >${item.productName}</div>
+                                </a>
                                 <div class="text-xs text-gray-400">SKU: ${item.sku}</div>
                             </td>
                             <td class="py-4 text-center font-bold text-gray-700">

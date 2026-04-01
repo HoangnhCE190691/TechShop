@@ -108,9 +108,20 @@
                                      alt="Product" class="w-full h-full object-contain mix-blend-multiply">
                             </div>
                             <div class="flex-1">
-                                <h3 class="order-name font-bold text-gray-900 text-base line-clamp-1 hover:text-red-600 cursor-pointer transition-colors">
-                                    ${order.orderName}
-                                </h3>
+                                <c:choose>
+                                    <c:when test="${not empty order.productId && order.productId > 0}">
+                                        <a href="${pageContext.request.contextPath}/detailservlet?productId=${order.productId}" class="block">
+                                            <h3 class="order-name font-bold text-gray-900 text-base line-clamp-1 hover:text-red-600 cursor-pointer transition-colors">
+                                                ${order.orderName}
+                                            </h3>
+                                        </a>
+                                    </c:when>
+                                    <c:otherwise>
+                                        <h3 class="order-name font-bold text-gray-900 text-base line-clamp-1 cursor-default text-gray-400">
+                                            ${order.orderName}
+                                        </h3>
+                                    </c:otherwise>
+                                </c:choose>
                                 <p class="text-sm text-gray-500 mt-1">${order.shippingAddress}</p>
                             </div>
                             <div class="text-right">

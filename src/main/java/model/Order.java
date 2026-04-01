@@ -30,6 +30,8 @@ public class Order {
     private String productImageUrl;
     private String cancelReason;
     private Timestamp shippedDate;
+    private int productId;
+
 
     public Order() {
     }
@@ -211,6 +213,15 @@ public class Order {
     public void setShippedDate(Timestamp shippedDate) {
         this.shippedDate = shippedDate;
     }
+
+    public int getProductId() {
+        return productId;
+    }
+
+    public void setProductId(int productId) {
+        this.productId = productId;
+    }
+    
 
     @Override
     public String toString() {
