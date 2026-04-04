@@ -109,9 +109,9 @@ public class OrderDAO extends DBContext {
                    (
                        SELECT TOP 1 p.name
                        FROM cancelled_order_items coi
-                       JOIN inventory_items ii ON coi.inventory_id = ii.inventory_id
-                       JOIN product_variants pv ON ii.variant_id = pv.variant_id
-                       JOIN products p ON pv.product_id = p.product_id
+                       LEFT JOIN inventory_items ii ON coi.inventory_id = ii.inventory_id
+                       LEFT JOIN product_variants pv ON pv.variant_id = COALESCE(ii.variant_id, coi.variant_id)
+                       LEFT JOIN products p ON pv.product_id = p.product_id
                        WHERE coi.order_id = o.order_id
                    )
                ) AS representative_product,
@@ -171,73 +171,73 @@ public class OrderDAO extends DBContext {
         List<Order> list = new ArrayList<>();
         String sql = """
         SELECT o.*, c.full_name, v.code as voucher_code,
-                     COALESCE(
-                         (
-                             SELECT TOP 1 p.product_id
-                             FROM order_items oi
-                             LEFT JOIN inventory_items ii ON oi.inventory_id = ii.inventory_id
-                             LEFT JOIN product_variants pv ON pv.variant_id = COALESCE(oi.variant_id, ii.variant_id)
-                             LEFT JOIN products p ON pv.product_id = p.product_id
-                             WHERE oi.order_id = o.order_id
-                         ),
-                         (
-                             SELECT TOP 1 p.product_id
-                             FROM cancelled_order_items coi
-                             JOIN inventory_items ii ON coi.inventory_id = ii.inventory_id
-                             JOIN product_variants pv ON ii.variant_id = pv.variant_id
-                             JOIN products p ON pv.product_id = p.product_id
-                             WHERE coi.order_id = o.order_id
-                         )
-                     ) as product_id,
-               COALESCE(
-                   (
-                       SELECT TOP 1 p.name
-                       FROM order_items oi
-                       LEFT JOIN inventory_items ii ON oi.inventory_id = ii.inventory_id
-                       LEFT JOIN product_variants pv ON pv.variant_id = COALESCE(oi.variant_id, ii.variant_id)
-                       LEFT JOIN products p ON pv.product_id = p.product_id
-                       WHERE oi.order_id = o.order_id
-                   ),
-                   (
-                       SELECT TOP 1 p.name
-                       FROM cancelled_order_items coi
-                       JOIN inventory_items ii ON coi.inventory_id = ii.inventory_id
-                       JOIN product_variants pv ON ii.variant_id = pv.variant_id
-                       JOIN products p ON pv.product_id = p.product_id
-                       WHERE coi.order_id = o.order_id
-                   )
-               ) as representative_product,
-
-               COALESCE(
-                   (
-                       SELECT TOP 1 pi.image_url
-                       FROM order_items oi
-                       LEFT JOIN inventory_items ii ON oi.inventory_id = ii.inventory_id
-                       LEFT JOIN product_variants pv ON pv.variant_id = COALESCE(oi.variant_id, ii.variant_id)
-                       LEFT JOIN products p ON pv.product_id = p.product_id
-                       LEFT JOIN product_images pi ON p.product_id = pi.product_id AND pi.is_thumbnail = 1
-                       WHERE oi.order_id = o.order_id
-                   ),
-                   (
-                       SELECT TOP 1 pi.image_url
-                       FROM cancelled_order_items coi
-                       JOIN inventory_items ii ON coi.inventory_id = ii.inventory_id
-                       JOIN product_variants pv ON ii.variant_id = pv.variant_id
-                       JOIN products p ON pv.product_id = p.product_id
-                       LEFT JOIN product_images pi ON p.product_id = pi.product_id AND pi.is_thumbnail = 1
-                       WHERE coi.order_id = o.order_id
-                   )
-               ) as product_image_url,
-
+             COALESCE(
+                 (
+                     SELECT TOP 1 p.product_id
+                     FROM order_items oi
+                     LEFT JOIN inventory_items ii ON oi.inventory_id = ii.inventory_id
+                     LEFT JOIN product_variants pv ON pv.variant_id = COALESCE(oi.variant_id, ii.variant_id)
+                     LEFT JOIN products p ON pv.product_id = p.product_id
+                     WHERE oi.order_id = o.order_id
+                 ),
+                 (
+                     SELECT TOP 1 p.product_id
+                     FROM cancelled_order_items coi
+                     LEFT JOIN inventory_items ii ON coi.inventory_id = ii.inventory_id
+                     LEFT JOIN product_variants pv ON pv.variant_id = COALESCE(ii.variant_id, coi.variant_id)
+                     LEFT JOIN products p ON pv.product_id = p.product_id
+                     WHERE coi.order_id = o.order_id
+                 )
+             ) as product_id,
+           COALESCE(
                (
-                   (SELECT COUNT(*) FROM order_items WHERE order_id = o.order_id)
-                   + (SELECT ISNULL(SUM(quantity), 0) FROM cancelled_order_items WHERE order_id = o.order_id)
-               ) as total_items
-        FROM orders o
-        JOIN customers c ON o.customer_id = c.customer_id
-        LEFT JOIN vouchers v ON o.voucher_id = v.voucher_id
-        WHERE o.customer_id = ?
-        ORDER BY o.created_at DESC
+                   SELECT TOP 1 p.name
+                   FROM order_items oi
+                   LEFT JOIN inventory_items ii ON oi.inventory_id = ii.inventory_id
+                   LEFT JOIN product_variants pv ON pv.variant_id = COALESCE(oi.variant_id, ii.variant_id)
+                   LEFT JOIN products p ON pv.product_id = p.product_id
+                   WHERE oi.order_id = o.order_id
+               ),
+               (
+                   SELECT TOP 1 p.name
+                   FROM cancelled_order_items coi
+                   LEFT JOIN inventory_items ii ON coi.inventory_id = ii.inventory_id
+                   LEFT JOIN product_variants pv ON pv.variant_id = COALESCE(ii.variant_id, coi.variant_id)
+                   LEFT JOIN products p ON pv.product_id = p.product_id
+                   WHERE coi.order_id = o.order_id
+               )
+           ) as representative_product,
+
+           COALESCE(
+               (
+                   SELECT TOP 1 pi.image_url
+                   FROM order_items oi
+                   LEFT JOIN inventory_items ii ON oi.inventory_id = ii.inventory_id
+                   LEFT JOIN product_variants pv ON pv.variant_id = COALESCE(oi.variant_id, ii.variant_id)
+                   LEFT JOIN products p ON pv.product_id = p.product_id
+                   LEFT JOIN product_images pi ON p.product_id = pi.product_id AND pi.is_thumbnail = 1
+                   WHERE oi.order_id = o.order_id
+               ),
+               (
+                   SELECT TOP 1 pi.image_url
+                   FROM cancelled_order_items coi
+                   LEFT JOIN inventory_items ii ON coi.inventory_id = ii.inventory_id
+                   LEFT JOIN product_variants pv ON pv.variant_id = COALESCE(ii.variant_id, coi.variant_id)
+                   LEFT JOIN products p ON pv.product_id = p.product_id
+                   LEFT JOIN product_images pi ON p.product_id = pi.product_id AND pi.is_thumbnail = 1
+                   WHERE coi.order_id = o.order_id
+               )
+           ) as product_image_url,
+
+           (
+               (SELECT COUNT(*) FROM order_items WHERE order_id = o.order_id)
+               + (SELECT ISNULL(SUM(quantity), 0) FROM cancelled_order_items WHERE order_id = o.order_id)
+           ) as total_items
+    FROM orders o
+    JOIN customers c ON o.customer_id = c.customer_id
+    LEFT JOIN vouchers v ON o.voucher_id = v.voucher_id
+    WHERE o.customer_id = ?
+    ORDER BY o.created_at DESC
     """;
 
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
@@ -552,20 +552,28 @@ public class OrderDAO extends DBContext {
      */
     public List<Map<String, Object>> getCancelledOrderDetails(int orderId) {
         List<Map<String, Object>> details = new ArrayList<>();
-        String sql = "SELECT p.name, pv.sku, SUM(coi.quantity) as quantity, "
-                + "coi.unit_price, pi.image_url "
-                + "FROM cancelled_order_items coi "
-                + "JOIN inventory_items ii ON coi.inventory_id = ii.inventory_id "
-                + "JOIN product_variants pv ON ii.variant_id = pv.variant_id "
-                + "JOIN products p ON pv.product_id = p.product_id "
-                + "LEFT JOIN product_images pi ON p.product_id = pi.product_id AND pi.is_thumbnail = 1 "
-                + "WHERE coi.order_id = ? "
-                + "GROUP BY p.name, pv.sku, coi.unit_price, pi.image_url";
+        String sql = """
+        SELECT 
+            p.product_id,
+            p.name, 
+            pv.sku, 
+            SUM(coi.quantity) as quantity, 
+            coi.unit_price, 
+            pi.image_url
+        FROM cancelled_order_items coi
+        LEFT JOIN inventory_items ii ON coi.inventory_id = ii.inventory_id
+        LEFT JOIN product_variants pv ON COALESCE(ii.variant_id, coi.variant_id) = pv.variant_id
+        LEFT JOIN products p ON pv.product_id = p.product_id
+        LEFT JOIN product_images pi ON p.product_id = pi.product_id AND pi.is_thumbnail = 1
+        WHERE coi.order_id = ?
+        GROUP BY p.product_id, p.name, pv.sku, coi.unit_price, pi.image_url
+    """;
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, orderId);
             ResultSet rs = ps.executeQuery();
             while (rs.next()) {
                 Map<String, Object> item = new HashMap<>();
+                item.put("productId", rs.getInt("product_id"));
                 item.put("productName", rs.getString("name"));
                 item.put("sku", rs.getString("sku"));
                 item.put("quantity", rs.getInt("quantity"));
@@ -579,18 +587,17 @@ public class OrderDAO extends DBContext {
         return details;
     }
 
-    /**
-     * Chi tiết đơn hàng CANCELLED theo từng inventory_id để lấy được IMEI (nếu có). Dùng cho trang staff order detail để luôn hiển thị IMEI/Serial.
-     */
     public List<Map<String, Object>> getCancelledOrderDetailsWithIMEI(int orderId) {
         List<Map<String, Object>> details = new ArrayList<>();
-        String sql = "SELECT p.name, pv.sku, ii.serial_id AS imei, coi.quantity, coi.unit_price, pi.image_url "
-                + "FROM cancelled_order_items coi "
-                + "JOIN inventory_items ii ON coi.inventory_id = ii.inventory_id "
-                + "JOIN product_variants pv ON ii.variant_id = pv.variant_id "
-                + "JOIN products p ON pv.product_id = p.product_id "
-                + "LEFT JOIN product_images pi ON p.product_id = pi.product_id AND pi.is_thumbnail = 1 "
-                + "WHERE coi.order_id = ?";
+        String sql = """
+        SELECT p.name, pv.sku, ii.serial_id AS imei, coi.quantity, coi.unit_price, pi.image_url
+        FROM cancelled_order_items coi
+        LEFT JOIN inventory_items ii ON coi.inventory_id = ii.inventory_id
+        LEFT JOIN product_variants pv ON pv.variant_id = COALESCE(ii.variant_id, coi.variant_id)
+        LEFT JOIN products p ON pv.product_id = p.product_id
+        LEFT JOIN product_images pi ON p.product_id = pi.product_id AND pi.is_thumbnail = 1
+        WHERE coi.order_id = ?
+    """;
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, orderId);
             ResultSet rs = ps.executeQuery();
@@ -804,7 +811,6 @@ public class OrderDAO extends DBContext {
     }
 
     public boolean cancelOrderByCustomer(int orderId, int customerId, String cancelReason) {
-        // Kiểm tra đơn thuộc customer (bỏ điều kiện step_order/payment_status để tránh khó hủy)
         String sqlCheck = """
         SELECT o.order_id FROM orders o
         WHERE o.order_id = ? AND o.customer_id = ?
@@ -815,44 +821,44 @@ public class OrderDAO extends DBContext {
             ps.setInt(2, customerId);
             ResultSet rs = ps.executeQuery();
             if (!rs.next()) {
-                return false; // không hợp lệ
+                return false;
             }
-            // 1. Snapshot chi tiết đơn vào bảng lịch sử (giữ lại thông tin đơn đã hủy)
+
+            // 1. Snapshot chi tiết đơn vào bảng lịch sử 
             String sqlSnapshot = """
-                INSERT INTO cancelled_order_items (order_id, inventory_id, quantity, unit_price, snapshot_created_at)
-                SELECT oi.order_id,
-                       oi.inventory_id,
-                       1 AS quantity,
-                       oi.selling_price AS unit_price,
-                       GETDATE()
-                FROM order_items oi
-                WHERE oi.order_id = ?
-            """;
+            INSERT INTO cancelled_order_items (order_id, inventory_id, variant_id, quantity, unit_price, snapshot_created_at)
+            SELECT oi.order_id,
+                   oi.inventory_id,
+                   oi.variant_id,
+                   1 AS quantity,
+                   oi.selling_price AS unit_price,
+                   GETDATE()
+            FROM order_items oi
+            WHERE oi.order_id = ?
+        """;
             PreparedStatement psSnap = conn.prepareStatement(sqlSnapshot);
             psSnap.setInt(1, orderId);
             psSnap.executeUpdate();
 
-            // 2. Hoàn inventory về IN_STOCK để kho dùng lại cho đơn khác
+            // 2. Hoàn inventory về IN_STOCK 
             String sqlInv = """
             UPDATE inventory_items SET status = 'IN_STOCK'
             WHERE inventory_id IN (
-                SELECT inventory_id FROM order_items WHERE order_id = ?
+                SELECT inventory_id FROM order_items WHERE order_id = ? AND inventory_id IS NOT NULL
             )
         """;
             PreparedStatement ps2 = conn.prepareStatement(sqlInv);
             ps2.setInt(1, orderId);
             ps2.executeUpdate();
 
-            // 3. Xóa order_items của đơn hủy (chi tiết đã nằm ở cancelled_order_items)
+            // 3. Xóa order_items của đơn hủy
             String sqlDeleteItems = "DELETE FROM order_items WHERE order_id = ?";
             PreparedStatement ps2b = conn.prepareStatement(sqlDeleteItems);
             ps2b.setInt(1, orderId);
             ps2b.executeUpdate();
 
-            // Lấy status_code của CANCELLED
+            // 4. Cập nhật status đơn thành CANCELLED
             String cancelledCode = getCancelledStatusCode();
-
-            // Cập nhật status đơn thành CANCELLED
             String sqlUpdate = "UPDATE orders SET status = ?, cancel_reason = ? WHERE order_id = ?";
             PreparedStatement ps3 = conn.prepareStatement(sqlUpdate);
             ps3.setString(1, cancelledCode);
