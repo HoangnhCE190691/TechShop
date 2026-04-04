@@ -84,9 +84,10 @@
                             class="text-xs font-bold text-gray-400 uppercase tracking-widest">Product
                             Name</label>
                         <input type="text" name="name" value="${product.name}"
+                               class="w-full mt-1 p-3 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none transition-all font-semibold text-gray-700"
                                placeholder="Enter product name..."
                                required
-                               pattern="^[a-zA-Z0-9](?:[a-zA-Z0-9\s\-]*[a-zA-Z0-9])?$"                               
+                               pattern="^[a-zA-Z0-9](?:[a-zA-Z0-9\s\-\/\|\(\)]*[a-zA-Z0-9])?$"                               
                                title="Letters, numbers, spaces, and hyphens (-) only. Cannot start or end with a hyphen." />
                     </div>
 
@@ -128,24 +129,24 @@
                                     class="text-xs font-bold text-gray-400 uppercase tracking-widest">Status</label>
                                 <div class="mt-2 flex gap-4">
                                     <%-- Lựa chọn Active --%>
-                                    <label
-                                        class="flex items-center gap-2 cursor-pointer">
-                                        <input type="radio" name="status" value="Active"
-                                               ${product.status=='Active' ? 'checked' : ''
-                                               } class="w-4 h-4 text-blue-600">
-                                        <span
-                                            class="text-sm font-bold text-green-600 bg-green-50 px-3 py-0.5 rounded-full border border-green-100 uppercase">ACTIVE</span>
+                                    <%-- Lựa chọn Active --%>
+                                    <label class="flex items-center gap-2 cursor-pointer">
+                                        <input type="radio" name="status" value="ACTIVE"
+                                               ${product.status.toUpperCase().trim() == 'ACTIVE' ? 'checked' : ''} 
+                                               class="w-4 h-4 text-blue-600">
+                                        <span class="text-sm font-bold text-green-600 bg-green-50 px-3 py-0.5 rounded-full border border-green-100 uppercase">
+                                            ACTIVE
+                                        </span>
                                     </label>
 
                                     <%-- Lựa chọn Inactive --%>
-                                    <label
-                                        class="flex items-center gap-2 cursor-pointer">
-                                        <input type="radio" name="status"
-                                               value="Inactive"
-                                               ${product.status=='Inactive' ? 'checked'
-                                                 : '' } class="w-4 h-4 text-red-600">
-                                        <span
-                                            class="text-sm font-bold text-red-600 bg-red-50 px-3 py-0.5 rounded-full border border-red-100 uppercase">INACTIVE</span>
+                                    <label class="flex items-center gap-2 cursor-pointer">
+                                        <input type="radio" name="status" value="INACTIVE"
+                                               ${product.status.toUpperCase().trim() == 'INACTIVE' ? 'checked' : ''} 
+                                               class="w-4 h-4 text-red-600">
+                                        <span class="text-sm font-bold text-red-600 bg-red-50 px-3 py-0.5 rounded-full border border-red-100 uppercase">
+                                            INACTIVE
+                                        </span>
                                     </label>
                                 </div>
                             </div>

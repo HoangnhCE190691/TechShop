@@ -157,12 +157,11 @@ public class BrandDAO extends DBContext {
         return list;
     }
 
-    // Hàm Map dữ liệu chuẩn Template
     private Brand mapResultSet(ResultSet rs) throws Exception {
         Brand b = new Brand();
         b.setBrandId(rs.getInt("brand_id"));
         b.setBrandName(rs.getString("brand_name"));
-        b.setImageUrl(rs.getString("image_url")); // Lấy đường dẫn ảnh từ DB
+        b.setImageUrl(rs.getString("image_url"));
         b.setIsActive(rs.getBoolean("is_active"));
         return b;
     }

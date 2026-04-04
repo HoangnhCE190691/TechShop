@@ -15,7 +15,7 @@ import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
-import model.ProductSpecificationValues;
+import java.util.List;
 
 /**
  *
@@ -94,6 +94,15 @@ public class specificationValueServlet extends HttpServlet {
                     request.setAttribute("val", vdao.getSpecValueById(detPid, detSid));
                     page = "/pages/SpecificationValueManagementPage/detailSpecificationValue.jsp";
                     break;
+                case "getSpecsByProductId":
+                    int productId = Integer.parseInt(request.getParameter("productId"));
+                    model.Product p = pdao.getProductById(productId);
+                    List<model.SpecificationDefinition> specsByCat = sdao.getGeneralSpecsByCategoryId(p.getCategoryId());
+                    response.setContentType("application/json");
+                    response.setCharacterEncoding("UTF-8");
+                    String json = new com.google.gson.Gson().toJson(specsByCat);
+                    response.getWriter().write(json);
+                    return;
                 case "all":
                 default:
                     request.setAttribute("listdata", vdao.getAllProductSpecs());
@@ -120,49 +129,89 @@ public class specificationValueServlet extends HttpServlet {
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         String action = request.getParameter("action");
-        ProductSpecificationValueDAO vdao = new ProductSpecificationValueDAO();
+        ProductSpecificationValueDAO valueDao = new ProductSpecificationValueDAO();
+        ProductDAO productDao = new ProductDAO();
+        SpecificationDefinitionDAO specDao = new SpecificationDefinitionDAO();
         HttpSession session = request.getSession();
 
         try {
-            if ("add".equals(action)) {
+            if ("add".equals(action) || "update".equals(action)) {
+                // 1. Lấy dữ liệu từ Request
                 int productId = Integer.parseInt(request.getParameter("productId"));
                 int specId = Integer.parseInt(request.getParameter("specId"));
                 String specValue = request.getParameter("specValue").trim();
 
-                if (vdao.isProductSpecExists(productId, specId)) {
-                    session.setAttribute("msg", "Error: This product has already been assigned this specification!");
-                    session.setAttribute("msgType", "danger");
-                    response.sendRedirect("specificationValueServlet?action=add");
-                    return; //
+                // 2. Lấy thông tin Spec (tên và đơn vị)
+                model.SpecificationDefinition specDef = specDao.getSpecById(specId);
+                String specName = specDef.getSpecName();
+                String unit = (specDef.getUnit() != null && !specDef.getUnit().equals("-")) ? specDef.getUnit() : "";
+
+                // 3. Lấy tên sản phẩm để đối chiếu
+                model.Product product = productDao.getProductById(productId);
+                String productName = product.getName();
+
+                // 4. KIỂM TRA RÀNG BUỘC (Validation Logic)
+                if ("RAM".equalsIgnoreCase(specName) || "Storage".equalsIgnoreCase(specName) || "Color".equalsIgnoreCase(specName)) {
+
+                    // CHÚ Ý: Giữ nguyên khoảng trắng của tên sản phẩm, chỉ chuyển về chữ thường
+                    String cleanProductName = productName.toLowerCase();
+                    String valueToMatch = (specValue + unit).toLowerCase();
+
+                    String regex = "";
+                    if ("Color".equalsIgnoreCase(specName)) {
+                        // Dùng word boundary \b để "Red" không khớp nhầm với "Redmi"
+                        regex = "(?i).*\\b" + java.util.regex.Pattern.quote(valueToMatch) + "\\b.*";
+                    } else {
+                        // Chặn khớp một phần (vd: nhập '6' không khớp với '256')
+                        // Phía trước và sau con số không được là một chữ số khác
+                        regex = "(?i).*(^|[^0-9])" + java.util.regex.Pattern.quote(valueToMatch) + "([^0-9]|$).*";
+                    }
+
+                    if (!cleanProductName.matches(regex)) {
+                        session.setAttribute("msg", "ERROR: Value '" + (specValue + unit) + "' does not match product name '" + productName + "'!");
+                        session.setAttribute("msgType", "danger");
+
+                        // Quay lại trang tương ứng tùy theo hành động
+                        String redirectUrl = "add".equals(action) ? "action=add" : "action=edit&pid=" + productId + "&sid=" + specId;
+                        response.sendRedirect("specificationValueServlet?" + redirectUrl);
+                        return; // Ngăn không cho lưu dữ liệu sai
+                    }
                 }
 
-                ProductSpecificationValues v = new ProductSpecificationValues();
-                v.setProductId(productId);
-                v.setSpecId(specId);
-                v.setSpecValue(specValue);
-
-                vdao.insertProductSpec(v);
-                session.setAttribute("msg", "Value assigned successfully!");
-                session.setAttribute("msgType", "success");
-
-            } else if ("update".equals(action)) {
-                ProductSpecificationValues v = new ProductSpecificationValues();
-                v.setProductId(Integer.parseInt(request.getParameter("productId")));
-                v.setSpecId(Integer.parseInt(request.getParameter("specId")));
-                v.setSpecValue(request.getParameter("specValue").trim());
-
-                vdao.updateProductSpec(v);
-                session.setAttribute("msg", "Specification value updated!");
+                // 5. Thực hiện lưu vào Database
+                if ("add".equals(action)) {
+                    if (valueDao.isProductSpecExists(productId, specId)) {
+                        session.setAttribute("msg", "Error: Specification already assigned!");
+                        session.setAttribute("msgType", "danger");
+                        response.sendRedirect("specificationValueServlet?action=add");
+                        return;
+                    }
+                    model.ProductSpecificationValues newVal = new model.ProductSpecificationValues();
+                    newVal.setProductId(productId);
+                    newVal.setSpecId(specId);
+                    newVal.setSpecValue(specValue);
+                    valueDao.insertProductSpec(newVal);
+                    session.setAttribute("msg", "Value assigned successfully!");
+                } else {
+                    model.ProductSpecificationValues updateVal = new model.ProductSpecificationValues();
+                    updateVal.setProductId(productId);
+                    updateVal.setSpecId(specId);
+                    updateVal.setSpecValue(specValue);
+                    valueDao.updateProductSpec(updateVal);
+                    session.setAttribute("msg", "Specification value updated!");
+                }
                 session.setAttribute("msgType", "success");
 
             } else if ("delete".equals(action)) {
+                // Xử lý xóa
                 int pId = Integer.parseInt(request.getParameter("productId"));
                 int sId = Integer.parseInt(request.getParameter("specId"));
-                vdao.deleteProductSpec(pId, sId);
+                valueDao.deleteProductSpec(pId, sId);
                 session.setAttribute("msg", "Removed specification from product!");
+                session.setAttribute("msgType", "success");
             }
         } catch (Exception e) {
-            session.setAttribute("msg", "Error: Invalid data format!");
+            session.setAttribute("msg", "Error: " + e.getMessage());
             session.setAttribute("msgType", "danger");
         }
         response.sendRedirect("specificationValueServlet?action=all");

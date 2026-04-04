@@ -120,34 +120,83 @@ public class specificationServlet extends HttpServlet {
         if ("add".equals(action)) {
             String specName = request.getParameter("specName").trim();
             int categoryId = Integer.parseInt(request.getParameter("categoryId"));
+            boolean isVariantRequested = "1".equals(request.getParameter("isVariant"));
 
-            // KIỂM TRA TRÙNG LẶP
+            // Kiểm tra trùng tên thông số
             if (sdao.isSpecDuplicate(specName, categoryId, 0)) {
-                session.setAttribute("msg", "Error: This parameter name is already used in the category!");
+                session.setAttribute("msg", "Error: Parameter name already exists in this category!");
                 session.setAttribute("msgType", "danger");
                 response.sendRedirect("specificationServlet?action=add");
                 return;
             }
 
+            if (isVariantRequested) {
+                // RÀNG BUỘC 1: Nếu đã có sản phẩm thì không cho thêm Variant mới (tránh hỏng dữ liệu cũ)
+                int productCount = sdao.countProductsInCategory(categoryId);
+                if (productCount > 0) {
+                    session.setAttribute("msg", "ERROR: Cannot add a variant because this category already contains " + productCount + " products!");
+                    session.setAttribute("msgType", "danger");
+                    response.sendRedirect("specificationServlet?action=add");
+                    return;
+                }
+
+                // RÀNG BUỘC 2: CHỖ BỊ THIẾU - Kiểm tra xem Category này đã có Variant nào chưa
+                if (sdao.hasExistingVariantInCategory(categoryId, 0)) {
+                    session.setAttribute("msg", "ERROR: This category already has a variant specification! (Only 1 variant per category allowed)");
+                    session.setAttribute("msgType", "danger");
+                    response.sendRedirect("specificationServlet?action=add");
+                    return;
+                }
+            }
+
+            // Nếu ok hết thì mới Insert
             SpecificationDefinition s = new SpecificationDefinition();
             s.setCategoryId(categoryId);
             s.setSpecName(specName);
             s.setUnit(request.getParameter("unit"));
             s.setIsActive(true);
-            s.setIsVariant("1".equals(request.getParameter("isVariant")));
+            s.setIsVariant(isVariantRequested);
 
             sdao.insertSpec(s);
             session.setAttribute("msg", "Specification added successfully!");
             session.setAttribute("msgType", "success");
-
         } else if ("update".equals(action)) {
             int specId = Integer.parseInt(request.getParameter("specId"));
             String specName = request.getParameter("specName").trim();
             int categoryId = Integer.parseInt(request.getParameter("categoryId"));
+            boolean isVariantRequested = "1".equals(request.getParameter("isVariant"));
 
-            // KIỂM TRA TRÙNG LẶP (Trừ ID hiện tại)
+            SpecificationDefinition oldSpec = sdao.getSpecById(specId);
+
+            if (oldSpec.isIsVariant() != isVariantRequested) {
+                int productCount = sdao.countProductsInCategory(categoryId);
+                if (productCount > 0) {
+                    session.setAttribute("msg", "ERROR: Cannot change Spec Type! This category already contains " + productCount + " products.");
+                    session.setAttribute("msgType", "danger");
+                    response.sendRedirect("specificationServlet?action=edit&id=" + specId);
+                    return; // Dừng xử lý ngay lập tức
+                }
+            }
+
+            if (oldSpec.isIsVariant() && !isVariantRequested) {
+                int usedCount = sdao.countSpecUsedAsVariant(specId);
+                if (usedCount > 0) {
+                    session.setAttribute("msg", "Error: Cannot change to General Spec! This variant is already assigned to " + usedCount + " product variants.");
+                    session.setAttribute("msgType", "danger");
+                    response.sendRedirect("specificationServlet?action=edit&id=" + specId);
+                    return;
+                }
+            }
+
             if (sdao.isSpecDuplicate(specName, categoryId, specId)) {
-                session.setAttribute("msg", "Error: This parameter name is already used in the category!");
+                session.setAttribute("msg", "Error: Parameter name already exists in this category!");
+                session.setAttribute("msgType", "danger");
+                response.sendRedirect("specificationServlet?action=edit&id=" + specId);
+                return;
+            }
+
+            if (isVariantRequested && sdao.hasExistingVariantInCategory(categoryId, specId)) {
+                session.setAttribute("msg", "Error: This category already has a variant specification!");
                 session.setAttribute("msgType", "danger");
                 response.sendRedirect("specificationServlet?action=edit&id=" + specId);
                 return;
@@ -159,12 +208,11 @@ public class specificationServlet extends HttpServlet {
             s.setSpecName(specName);
             s.setUnit(request.getParameter("unit"));
             s.setIsActive("1".equals(request.getParameter("isActive")));
-            s.setIsVariant("1".equals(request.getParameter("isVariant")));
+            s.setIsVariant(isVariantRequested);
 
             sdao.updateSpec(s);
             session.setAttribute("msg", "Specification updated successfully!");
             session.setAttribute("msgType", "success");
-
         } else if ("delete".equals(action)) {
             int id = Integer.parseInt(request.getParameter("specId"));
             if (sdao.countSpecUsedInProducts(id) > 0) {

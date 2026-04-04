@@ -162,4 +162,23 @@ public class ProductSpecificationValueDAO extends DBContext {
         }
         return false;
     }
+
+    public String getValueByProductIdAndSpecName(int productId, String specName) {
+        String value = null;
+        String sql = "SELECT v.spec_value FROM product_spec_values v "
+                + "JOIN specification_definitions s ON v.spec_id = s.spec_id "
+                + "WHERE v.product_id = ? AND s.spec_name = ?";
+        try {
+            java.sql.PreparedStatement ps = conn.prepareStatement(sql);
+            ps.setInt(1, productId);
+            ps.setString(2, specName);
+            java.sql.ResultSet rs = ps.executeQuery();
+            if (rs.next()) {
+                value = rs.getString("spec_value");
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return value;
+    }
 }

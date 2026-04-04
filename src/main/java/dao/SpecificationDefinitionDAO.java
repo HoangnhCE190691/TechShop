@@ -249,6 +249,7 @@ public class SpecificationDefinitionDAO extends DBContext {
         }
         return list;
     }
+
     public List<String> getVariantSpecNamesByCategoryId(int categoryId) {
         List<String> list = new ArrayList<>();
         String sql = "SELECT spec_name "
@@ -266,5 +267,52 @@ public class SpecificationDefinitionDAO extends DBContext {
             e.printStackTrace();
         }
         return list;
+    }
+
+    public boolean hasExistingVariantInCategory(int categoryId, int excludeSpecId) {
+        String sql = "SELECT COUNT(*) FROM specification_definitions "
+                + "WHERE category_id = ? AND is_variant = 1 AND is_active = 1 AND spec_id != ?";
+        try {
+            PreparedStatement ps = conn.prepareStatement(sql);
+            ps.setInt(1, categoryId);
+            ps.setInt(2, excludeSpecId); // Dùng 0 khi thêm mới, dùng ID hiện tại khi sửa
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) {
+                return rs.getInt(1) > 0;
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+    public int countSpecUsedAsVariant(int specId) {
+        String sql = "SELECT COUNT(*) FROM variant_spec_values WHERE spec_id = ?";
+        try {
+            PreparedStatement ps = conn.prepareStatement(sql);
+            ps.setInt(1, specId);
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) {
+                return rs.getInt(1);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return 0;
+    }
+
+    public int countProductsInCategory(int categoryId) {
+        String sql = "SELECT COUNT(*) FROM products WHERE category_id = ?";
+        try {
+            PreparedStatement ps = conn.prepareStatement(sql);
+            ps.setInt(1, categoryId);
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) {
+                return rs.getInt(1);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return 0;
     }
 }

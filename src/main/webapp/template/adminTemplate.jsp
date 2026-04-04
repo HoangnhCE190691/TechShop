@@ -148,7 +148,7 @@
                                 <svg class="w-5 h-5 transition duration-75 ${isPayment ? 'text-blue-600' : 'text-gray-500 group-hover:text-blue-600'}" fill="currentColor" viewBox="0 0 20 20">
                                 <path d="M11.074 4 8.442.47a1 1 0 0 0-1.588 0L4.223 4H11.074ZM2 6v4a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V6H2Zm14 3a1 1 0 1 1 0 2 1 1 0 0 1 0-2ZM5 9a1 1 0 1 1 0 2 1 1 0 0 1 0-2Z"/>
                                 </svg>
-                                <span class="ms-3">Payment method</span>
+                                <span class="ms-3">Payment Method</span>
                             </a>
 
                         </div>

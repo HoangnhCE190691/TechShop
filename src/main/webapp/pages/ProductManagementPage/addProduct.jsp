@@ -83,7 +83,7 @@
                                class="w-full mt-1 p-3 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none transition-all"
                                placeholder="Enter product name..."
                                required
-                               pattern="^[a-zA-Z0-9](?:[a-zA-Z0-9\s\-]*[a-zA-Z0-9])?$"                               
+                               pattern="^[a-zA-Z0-9](?:[a-zA-Z0-9\s\-\/\|\(\)]*[a-zA-Z0-9])?$"                               
                                title="Letters, numbers, spaces, and hyphens (-) only. Cannot start or end with a hyphen." />
                     </div>
 
