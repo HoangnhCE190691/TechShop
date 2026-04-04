@@ -91,7 +91,6 @@ public class registerServlet extends HttpServlet {
             String errorNumber = utils.IO.CheckNumber(phone) ? "" : "Invalid phone (10 digits required)";
             String errorEmail = utils.IO.checkDuplicationGmail(email) ? "" : "Gmail already exists";
             String errorConfirmPassword = password.equalsIgnoreCase(confirmPassword) ? "" : "Password does not match";
-            
 
             // 5. Tạo đối tượng User mới
             Customer u = new Customer();
@@ -102,7 +101,7 @@ public class registerServlet extends HttpServlet {
             u.setPassword(password); // Thực tế nên mã hóa MD5/BCrypt trước khi set
 
             // --- CÁC GIÁ TRỊ HỆ THỐNG TỰ GÁN CHO KHÁCH HÀNG ---
-            u.setStatus("ACTIVE"); // Mặc định tài khoản kích hoạt luôn
+            u.setStatus("VERIFY"); // Mặc định tài khoản kích hoạt luôn
 
             // 6. Lưu vào Database
 //            boolean isSuccess = cdao.addCustomer(u);
@@ -113,6 +112,7 @@ public class registerServlet extends HttpServlet {
                 session.setAttribute("code", code);
                 session.setAttribute("customer", u);
 
+                cdao.addCustomer(u);
                 try {
                     utils.EmailUtils.sendEmail(email, "TechShop", "OTP : " + code);
                 } catch (Exception e) {
@@ -130,7 +130,7 @@ public class registerServlet extends HttpServlet {
                 request.setAttribute("errorUsername", errorUsername);
                 request.setAttribute("errorPhone", errorNumber);
                 request.setAttribute("errorEmail", errorEmail);
-                
+
                 request.setAttribute("oldUsername", username);
                 request.setAttribute("oldFullName", fullName);
                 request.setAttribute("oldEmail", email);

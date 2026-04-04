@@ -147,9 +147,18 @@ public class loginServlet extends HttpServlet {
             request.getSession().setAttribute("customerId", customer.getCustomerID());
 
             // Kiểm tra tài khoản bị khóa (phần của người kia)
-            if (!customer.getStatus().equalsIgnoreCase("ACTIVE")) {
+            if (customer.getStatus().equalsIgnoreCase("LOCKED")) {
                 request.setAttribute("username", customer.getUserName());
                 request.setAttribute("error", "Your account has been banned!");
+                request.setAttribute("ContentPage", "/pages/MainPage/loginPage.jsp");
+                request.getRequestDispatcher("/template/userTemplate.jsp").forward(request, response);
+                return;
+            }
+
+            if (customer.getStatus().equalsIgnoreCase("VERIFY")) {
+                request.setAttribute("username", customer.getUserName());
+                request.setAttribute("verifyPOPUP", true);
+                request.setAttribute("error", "Your account need VERIFY!");
                 request.setAttribute("ContentPage", "/pages/MainPage/loginPage.jsp");
                 request.getRequestDispatcher("/template/userTemplate.jsp").forward(request, response);
                 return;

@@ -12,6 +12,7 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 import model.Customer;
 import model.CustomerAddress;
 import model.Employees;
@@ -28,6 +29,18 @@ public class IO {
     private static VoucherDAO vdao = new VoucherDAO();
     private static CustomerAddressDAO addressDAO = new CustomerAddressDAO();
 
+    public static String generate8DigitPassword() {
+        Random random = new Random();
+        StringBuilder password = new StringBuilder(8);
+        
+        for (int i = 0; i < 8; i++) {
+            // Lấy ngẫu nhiên một số từ 0 đến 9 ghép vào chuỗi
+            password.append(random.nextInt(10));
+        }
+        
+        return password.toString();
+    }
+    
     public static boolean CheckDuplicationUsername(String username) {
 
         List<Customer> listC = cdao.getAllCustomer();

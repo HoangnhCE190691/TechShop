@@ -6,6 +6,7 @@ package controller.User;
 
 import dao.CustomerAddressDAO;
 import dao.CustomerDAO;
+import jakarta.mail.MessagingException;
 import java.io.IOException;
 import java.io.PrintWriter;
 import jakarta.servlet.ServletException;
@@ -13,6 +14,8 @@ import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
+import java.io.UnsupportedEncodingException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -129,7 +132,7 @@ public class userDashboardServlet extends HttpServlet {
      */
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
+            throws ServletException, IOException, UnsupportedEncodingException {
         String action = request.getParameter("action");
         CustomerDAO cdao = new CustomerDAO();
 
@@ -162,7 +165,7 @@ public class userDashboardServlet extends HttpServlet {
                 String newFullname = request.getParameter("fullname");
                 String newEmail = request.getParameter("email");
                 String newPhone = request.getParameter("phoneNumber");
-
+                String oldGmail = currentCust.getEmail();
                 // 2. Kiểm tra lỗi ngay lập tức
                 // Lúc này currentCust.getEmail() VẪN ĐANG GIỮ EMAIL CŨ trong DB -> Check sẽ chuẩn xác 100%
                 String errorGmail = utils.IO.checkDuplicationGmailInEdit(newEmail, currentCust.getEmail()) ? "" : "Gmail already exists";
@@ -175,11 +178,37 @@ public class userDashboardServlet extends HttpServlet {
 
                 // 4. CHỈ LƯU DATABASE KHI KHÔNG CÓ LỖI NÀO
                 if (errorGmail.isEmpty() && errorPhone.isEmpty()) {
+
+                    // TRƯỜNG HỢP 1: CÓ THAY ĐỔI EMAIL -> Phải xác thực email mới
+                    if (!newEmail.equalsIgnoreCase(oldGmail)) {
+                        HttpSession session = request.getSession();
+                        String code = utils.EmailUtils.generateToken();
+                        session.setMaxInactiveInterval(300); // Code sống 5 phút
+                        session.setAttribute("code", code);
+                        session.setAttribute("customer", currentCust);
+
+                        try {
+                            // Gửi mã Code về email MỚI để xác minh (bạn nhớ sửa lại nội dung cho phù hợp)
+                            utils.EmailUtils.sendEmail(newEmail, "Xác nhận đổi Email TechShop", "Mã xác minh của bạn là: <b>" + code + "</b>");
+                        } catch (MessagingException ex) {
+                            System.getLogger(userDashboardServlet.class.getName()).log(System.Logger.Level.ERROR, (String) null, ex);
+                        }
+
+                        // Chuyển hướng sang trang nhập mã xác nhận
+                        request.setAttribute("HeaderComponent", "/components/navbar.jsp");
+                        request.setAttribute("FooterComponent", "/components/footer.jsp");
+                        request.setAttribute("ContentPage", "/pages/MainPage/verificationEditCustomer.jsp");
+                        request.getRequestDispatcher("/template/userTemplate.jsp").forward(request, response);
+
+                        return; // BẮT BUỘC PHẢI CÓ: Dừng luôn code ở đây, đợi người dùng nhập đúng code ở trang Verify rồi mới tính tiếp!
+                    }
+
+                    // TRƯỜNG HỢP 2: KHÔNG ĐỔI EMAIL -> Chỉ đổi tên/số điện thoại -> Update Database luôn
                     boolean SuccessUpdate = cdao.updateCustomerNopassword(currentCust);
 
                     if (SuccessUpdate) {
                         response.sendRedirect("userdashboardservlet");
-                        return; // Chuyển trang xong thì dừng luôn
+                        return;
                     }
                 }
 
@@ -218,7 +247,9 @@ public class userDashboardServlet extends HttpServlet {
                     // Nhớ đảm bảo trong hàm cdao.changePassword() bạn ĐÃ MÃ HÓA (MD5) cái newPass này rồi nhé!
                     // Nếu DAO chưa mã hóa, bạn phải tự hash ở đây: cdao.changePassword(currentUserId, cdao.hashMD5(newPass))
                     cdao.changePassword(currentUserId, newPass);
-                    response.sendRedirect("userdashboardservlet");
+                    
+                    response.sendRedirect("logoutservlet");
+                    
 
                 } else {
                     // Có lỗi -> Báo lỗi trên màn hình

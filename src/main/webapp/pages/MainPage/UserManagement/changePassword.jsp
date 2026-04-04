@@ -20,15 +20,19 @@
 
             <hr class="border-gray-100">
 
-            <div>
+           <div>
                 <label class="block text-sm font-semibold text-gray-700 mb-1">New password</label>
                 <input type="password" name="newPassword" id="newPassword" required
+                       pattern="^(?=.*[A-Z])(?=.*[\W_]).{8,}$" 
+                       title="Mật khẩu phải có ít nhất 8 ký tự, bao gồm ít nhất 1 chữ cái viết hoa và 1 ký tự đặc biệt."
                        class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition">
             </div>
 
             <div>
                 <label class="block text-sm font-semibold text-gray-700 mb-1">Confirm new password</label>
                 <input type="password" name="confirmPassword" id="confirmPassword" required
+                       pattern="^(?=.*[A-Z])(?=.*[\W_]).{8,}$" 
+                       title="Mật khẩu phải có ít nhất 8 ký tự, bao gồm ít nhất 1 chữ cái viết hoa và 1 ký tự đặc biệt."
                        class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition">
                   <c:if test="${not empty errorNewPass}">
                             <p class="mt-1 text-xs text-red-600 font-medium">${errorNewPass}</p>

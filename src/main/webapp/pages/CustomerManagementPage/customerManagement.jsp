@@ -61,12 +61,22 @@
 
                             <c:choose>
                                 <c:when test="${cus.status eq 'Active' || cus.status eq 'Hoạt động' || cus.status eq 'ACTIVE'}">
-                                    <span class="px-2 py-1 text-xs font-semibold text-green-700 bg-green-100 rounded-full">
+                                    <span class="px-2.5 py-1 text-xs font-medium text-green-700 bg-green-50 border border-green-200 rounded-full">
                                         Active
                                     </span>
                                 </c:when>
+                                <c:when test="${cus.status eq 'INACTIVE'}">
+                                    <span class="px-2.5 py-1 text-xs font-medium text-gray-600 bg-gray-50 border border-gray-200 rounded-full">
+                                        Inactive
+                                    </span>
+                                </c:when>
+                                <c:when test="${cus.status eq 'VERIFY'}">
+                                    <span class="px-2.5 py-1 text-xs font-medium text-blue-700 bg-blue-50 border border-blue-200 rounded-full">
+                                        Verify
+                                    </span>
+                                </c:when>
                                 <c:otherwise>
-                                    <span class="px-2 py-1 text-xs font-semibold text-red-700 bg-red-100 rounded-full">
+                                    <span class="px-2.5 py-1 text-xs font-medium text-red-700 bg-red-50 border border-red-200 rounded-full">
                                         Locked
                                     </span>
                                 </c:otherwise>
@@ -93,6 +103,31 @@
                                     <span class="ml-1 text-xs font-bold uppercase hidden md:inline">Edit</span>
                                 </a>
 
+                                <c:choose>
+                                    <c:when test="${cus.status eq 'ACTIVE' || cus.status eq 'Active' ||  cus.status eq 'VERIFY' || cus.status eq 'INACTIVE'}">
+                                        <a href="customerservlet?action=lock&id=${cus.customerID}" 
+                                           onclick="return confirm('Bạn có chắc chắn muốn KHÓA tài khoản này không?')"
+                                           class="inline-flex items-center p-1.5 text-slate-600 bg-slate-100 rounded-lg hover:bg-slate-700 hover:text-white transition-all duration-200" 
+                                           title="Lock Account">
+                                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
+                                            </svg>
+                                            <span class="ml-1 text-xs font-bold uppercase hidden md:inline">Lock</span>
+                                        </a>
+                                    </c:when>
+                                    <c:when test="${cus.status eq 'LOCKED' || cus.status eq 'Locked'}">
+                                        <a href="customerservlet?action=unlock&id=${cus.customerID}" 
+                                           onclick="return confirm('Bạn có chắc chắn muốn MỞ KHÓA tài khoản này không?')"
+                                           class="inline-flex items-center p-1.5 text-teal-600 bg-teal-50 rounded-lg hover:bg-teal-600 hover:text-white transition-all duration-200" 
+                                           title="Unlock Account">
+                                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 11V7a4 4 0 118 0m-4 8v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2z"></path>
+                                            </svg>
+                                            <span class="ml-1 text-xs font-bold uppercase hidden md:inline">Unlock</span>
+                                        </a>
+                                    </c:when>
+                                </c:choose>
+
                                 <a href="customerservlet?action=delete&id=${cus.customerID}" 
                                    onclick="return confirm('Are you sure you want to delete this customer?')"
                                    class="inline-flex items-center p-1.5 text-red-600 bg-red-50 rounded-lg hover:bg-red-600 hover:text-white transition-all duration-200" 
@@ -103,15 +138,14 @@
                                     <span class="ml-1 text-xs font-bold uppercase hidden md:inline">Delete</span>
                                 </a>
                             </div>
-                        </td>
-                    </tr>
-                </c:forEach>
+                        </td>                    </tr>
+                    </c:forEach>
 
                 <%-- Hiển thị thông báo nếu danh sách trống --%>
                 <c:if test="${empty listdata}">
                     <tr>
                         <td colspan="6" class="px-4 py-10 text-center text-gray-500">
-                         No customer data was found.
+                            No customer data was found.
                         </td>
                     </tr>
                 </c:if>

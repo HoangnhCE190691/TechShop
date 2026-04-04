@@ -133,14 +133,14 @@ public class CustomerDAO extends DBContext {
         }
         return false;
     }
-    
+
     public boolean softDeleteCustomer(int id) {
         // Cập nhật status thành 'Locked' thay vì xóa bản ghi
-        String sql = "UPDATE customers SET status = 'Locked' WHERE customer_id = ?";
+        String sql = "UPDATE customers SET status = 'INACTIVE' WHERE customer_id = ?";
         try {
             PreparedStatement ps = conn.prepareStatement(sql);
             ps.setInt(1, id);
-            
+
             return ps.executeUpdate() > 0;
         } catch (Exception e) {
             e.printStackTrace();
@@ -215,6 +215,23 @@ public class CustomerDAO extends DBContext {
         }
         return false;
     }
+// Hàm tìm customer_id theo username
+
+    public int getCustomerIdByUsername(String username) {
+        String sql = "SELECT customer_id FROM customers WHERE username = ?";
+        try {
+            PreparedStatement ps = conn.prepareStatement(sql);
+            ps.setString(1, username);
+
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) {
+                return rs.getInt("customer_id"); // Trả về ID nếu tìm thấy
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return -1; // Trả về -1 nếu không có username này trong Database
+    }
 
     public Customer login(String user, String pass) {
         Customer u = new Customer();
@@ -270,6 +287,49 @@ public class CustomerDAO extends DBContext {
             e.printStackTrace();
         }
         return list;
+    }
+
+    public boolean lockCustomer(int id) {
+        String sql = "UPDATE customers SET status = 'LOCKED' WHERE customer_id = ?";
+        try {
+            PreparedStatement ps = conn.prepareStatement(sql);
+            ps.setInt(1, id);
+
+            return ps.executeUpdate() > 0;
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+    public boolean unlockCustomer(int id) {
+        String sql = "UPDATE customers SET status = 'ACTIVE' WHERE customer_id = ?";
+        try {
+            PreparedStatement ps = conn.prepareStatement(sql);
+            ps.setInt(1, id);
+
+            return ps.executeUpdate() > 0;
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+    // Hàm cập nhật trạng thái bất kỳ cho Customer dựa vào ID
+    public boolean changeCustomerStatus(int id, String newStatus) {
+        String sql = "UPDATE customers SET status = ? WHERE customer_id = ?";
+        try {
+            PreparedStatement ps = conn.prepareStatement(sql);
+            // Set trạng thái mới (VD: "ACTIVE", "LOCKED", "INACTIVE")
+            ps.setString(1, newStatus);
+            // Set ID của customer cần đổi
+            ps.setInt(2, id);
+
+            return ps.executeUpdate() > 0;
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return false;
     }
 
     public static void main(String[] args) {

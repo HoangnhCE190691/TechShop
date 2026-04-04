@@ -37,23 +37,9 @@
                         <c:if test="${not empty errorEmail}">
                             <p class="mt-1 text-xs text-red-600 font-medium">${errorEmail}</p>
                         </c:if>
-                    </div>
+                    </div>            
 
-                    <div class="relative z-0 w-full mb-6 group">
-                        <input type="password" name="password" id="password" value="${customer.password}"
-                               class="block py-2.5 px-0 w-full text-sm text-gray-900 bg-transparent border-0 border-b-2 border-gray-300 appearance-none focus:outline-none focus:ring-0 focus:border-blue-600 peer pr-10" placeholder=" "  required=""/>
-
-                        <label for="password" class="peer-focus:font-medium absolute text-sm text-gray-500 duration-300 transform -translate-y-6 scale-75 top-3 -z-10 origin-[0] peer-focus:start-0 peer-focus:text-blue-600 peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale-75 peer-focus:-translate-y-6">Password</label>
-
-                        <button type="button" onclick="togglePasswordVisibility()" class="absolute right-0 top-3 text-gray-400 hover:text-blue-600 focus:outline-none">
-                            <svg id="eyeIcon" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
-                            </svg>
-                        </button>
-                    </div>          
-
-                    <div class="grid md:grid-cols-2 md:gap-8">
+                    <div class="grid md:grid-cols-1 md:gap-8">
                         <div class="relative z-0 w-full mb-6 group">
                             <input type="tel" pattern="^0(3|5|7|8|9)[0-9]{8}$"  title="Số điện thoại phải bắt đầu bằng 0, theo sau là 3, 5, 7, 8, 9 và đủ 10 chữ số." name="phone_number" id="phone_number" value="${customer.phoneNumber}" 
                                    class="block py-2.5 px-0 w-full text-sm text-gray-900 bg-transparent border-0 border-b-2 border-gray-300 appearance-none focus:outline-none focus:ring-0 focus:border-blue-600 peer" placeholder=" " required />
@@ -63,13 +49,7 @@
                             </c:if>
                         </div>
 
-                        <div class="relative z-0 w-full mb-6 group">
-                            <select name="status" id="status" class="block py-2.5 px-0 w-full text-sm text-gray-900 bg-transparent border-0 border-b-2 border-gray-300 focus:outline-none focus:ring-0 focus:border-blue-600 peer">
-                                <option value="Active" ${customer.status == 'Active' ? 'selected' : ''}>Active</option>
-                                <option value="Locked" ${customer.status == 'Locked' ? 'selected' : ''}>Locked</option>
-                            </select>
-                            <label for="status" class="peer-focus:font-medium absolute text-xs text-blue-600 duration-300 transform -translate-y-6 scale-75 top-3 -z-10 origin-[0]">Account Status</label>
-                        </div>
+
                     </div>
 
                     <div class="flex items-center justify-end space-x-3 pt-6 border-t border-gray-50">

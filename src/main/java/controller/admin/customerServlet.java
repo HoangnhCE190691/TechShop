@@ -75,6 +75,18 @@ public class customerServlet extends HttpServlet {
 
         if (action != null) {
             switch (action) {
+                case "unlock":
+                    int idUL = Integer.parseInt(request.getParameter("id"));
+                    cdao.unlockCustomer(idUL);
+                    page = "/pages/CustomerManagementPage/customerManagement.jsp";
+                    listData = new CustomerDAO().getAllCustomer();
+                    break;
+                case "lock":
+                    int idL = Integer.parseInt(request.getParameter("id"));
+                    cdao.lockCustomer(idL);
+                    page = "/pages/CustomerManagementPage/customerManagement.jsp";
+                    listData = new CustomerDAO().getAllCustomer();
+                    break;
                 case "search":
                     String name = request.getParameter("name");
                     page = "/pages/CustomerManagementPage/customerManagement.jsp";
@@ -92,20 +104,12 @@ public class customerServlet extends HttpServlet {
                 case "delete":
                     int idD = Integer.parseInt(request.getParameter("id"));
                     boolean isDeleted = cdao.deleteCustomer(idD);
-                    OrderDAO a = new OrderDAO();
-                    InventoryItemDAO c = new InventoryItemDAO();
+
                     if (!isDeleted) {
                         // Nếu xóa thất bại
                         request.setAttribute("errorMessage", "Deletion failed! This customer has related data (address, order details, etc.) so it cannot be deleted.");
                         cdao.softDeleteCustomer(idD);
-                        List<Order> listOrder = a.getOrdersByCustomerWithSummary(idD);
-                        for (Order order : listOrder) {
-                            if (!order.getStatus().equalsIgnoreCase("Shipped")) {
-                                a.updateOrderFull(idD, order.getShippingAddress(), "Cancelled", "UNPAID", "Account locked");
 
-                                a.updateInventoryStatusByOrderId(order.getOrderId(), "IN_STOCK");
-                            }
-                        }
                     } else {
                         request.setAttribute("successMessage", "Customer successfully deleted!");
                     }
@@ -167,9 +171,9 @@ public class customerServlet extends HttpServlet {
                     String username = request.getParameter("username");
                     String fullName = request.getParameter("full_name");
                     String email = request.getParameter("email");
-                    String password = request.getParameter("password");
+                    String password = utils.IO.generate8DigitPassword();
                     String phone = request.getParameter("phone_number");
-                    String status = request.getParameter("status");
+                    String status = "VERIFY";
 
                     String errorUsername = utils.IO.CheckDuplicationUsername(username) ? "" : "Username already exists!";
                     String errorNumber = utils.IO.CheckNumber(phone) ? "" : "Invalid phone (10 digits required)";
@@ -180,7 +184,13 @@ public class customerServlet extends HttpServlet {
                         response.sendRedirect("customerservlet?action=all");
 
                         try {
-                            utils.EmailUtils.sendEmail(email, "Test TechShop", "<h1>Chào " + fullName + "!</h1><p>Tài khoản và mật khẩu của bạn là: <b>" + username + "</b>" + " và " + password + "</p>");
+                            String loginUrl = "http://localhost:8080/your_project_name/login"; // Sửa lại thành link thực tế của bạn
+
+                            String emailContent = "<h1>Chào " + fullName + "!</h1>"
+                                    + "<p>Tài khoản và mật khẩu của bạn là: <b>" + username + "</b> và <b>" + password + "</b></p>"
+                                    + "<p>Vui lòng truy cập vào đường link sau để đăng nhập: <a href='" + loginUrl + "'>Nhấn vào đây để đăng nhập</a></p>";
+
+                            utils.EmailUtils.sendEmail(email, "Test TechShop", emailContent);
                         } catch (MessagingException ex) {
                             System.getLogger(employeeServlet.class.getName()).log(System.Logger.Level.ERROR, (String) null, ex);
                         }
@@ -195,7 +205,6 @@ public class customerServlet extends HttpServlet {
                         request.setAttribute("oldFullName", fullName);
                         request.setAttribute("oldEmail", email);
                         request.setAttribute("oldPhone", phone);
-                        request.setAttribute("oldPassword", password);
 
                         request.setAttribute("contentPage", "/pages/CustomerManagementPage/addCustomer.jsp");
                         request.getRequestDispatcher("/template/adminTemplate.jsp").forward(request, response);
@@ -209,40 +218,23 @@ public class customerServlet extends HttpServlet {
                     String fullNameE = request.getParameter("full_name");
                     String emailE = request.getParameter("email");
                     String phoneE = request.getParameter("phone_number");
-                    String statusE = request.getParameter("status");
-                    String passwordE = request.getParameter("password");
-                    String errorEmailE = utils.IO.checkDuplicationGmailInEdit(emailE, customer.getEmail()) ? "" : "Gmail already exists";
 
+                    String errorEmailE = utils.IO.checkDuplicationGmailInEdit(emailE, customer.getEmail()) ? "" : "Gmail already exists";
                     String errorNumberE = utils.IO.CheckNumber(phoneE) ? "" : "Invalid phone (10 digits required)";
 
                     if (errorNumberE.isEmpty() && errorEmailE.isEmpty()) {
 
                         Customer updatedCus = cdao.getCustomerById(idE);
-
-                        if (!updatedCus.getPassword().equalsIgnoreCase(passwordE)) {
-                            updatedCus.setCustomerID(idE);
-                            updatedCus.setUserName(usernameE);
-                            updatedCus.setFullname(fullNameE);
-                            updatedCus.setEmail(emailE);
-                            updatedCus.setPhoneNumber(phoneE);
-                            updatedCus.setStatus(statusE);
-                            updatedCus.setPassword(passwordE);
-                            cdao.updateCustomer(updatedCus);
-                            cdao.changePassword(idE, passwordE);
-                            response.sendRedirect("customerservlet?action=all");
-                        } else {
-                            updatedCus.setCustomerID(idE);
-                            updatedCus.setUserName(usernameE);
-                            updatedCus.setFullname(fullNameE);
-                            updatedCus.setEmail(emailE);
-                            updatedCus.setPhoneNumber(phoneE);
-                            updatedCus.setStatus(statusE);
-                            updatedCus.setPassword(passwordE);
-                            cdao.updateCustomer(updatedCus);
-
-                            response.sendRedirect("customerservlet?action=all");
-                        }
-
+                        
+                        
+                        updatedCus.setUserName(usernameE);
+                        updatedCus.setFullname(fullNameE);
+                        updatedCus.setEmail(emailE);
+                        updatedCus.setPhoneNumber(phoneE);
+                        
+                        
+                        cdao.updateCustomer(updatedCus);
+                        response.sendRedirect("customerservlet?action=all");
                     } else {
 
                         request.setAttribute("errorNumber", errorNumberE);
