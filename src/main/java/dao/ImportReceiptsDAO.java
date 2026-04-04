@@ -17,7 +17,6 @@ import model.ImportReceipts;
 import utils.DBContext;
 
 /**
- *
  * @author LE HOANG NHAN
  */
 public class ImportReceiptsDAO extends DBContext {
@@ -27,6 +26,7 @@ public class ImportReceiptsDAO extends DBContext {
     private String receiptItemsTable;
     private Boolean createdAtIsIntType;
 
+    // Xác định tên bảng lưu đầu phiếu nhập trong cơ sở dữ liệu.
     private String resolveReceiptsTable() {
         if (receiptsTable != null) {
             return receiptsTable;
@@ -55,6 +55,7 @@ public class ImportReceiptsDAO extends DBContext {
         return receiptsTable;
     }
 
+    // Xác định tên bảng các dòng hàng trên phiếu (dùng khi cần cộng tiền từ các dòng).
     private String resolveReceiptItemsTable() {
         if (receiptItemsTable != null) {
             return receiptItemsTable;
@@ -83,6 +84,7 @@ public class ImportReceiptsDAO extends DBContext {
         return receiptItemsTable;
     }
 
+    // Thử từng tên cột có thể có, trả về tên cột thật sự tồn tại trong bảng.
     private String resolveColumn(String... candidates) {
         String table = resolveReceiptsTable();
         try {
@@ -105,6 +107,7 @@ public class ImportReceiptsDAO extends DBContext {
         return candidates[0];
     }
 
+    // Các hàm sau chỉ trả về tên cột đúng trong bảng (mã phiếu, nhà cung cấp, nhân viên, ngày, ghi chú).
     private String receiptIdCol() {
         return resolveColumn("receipt_id", "receiptId", "id");
     }
@@ -141,6 +144,7 @@ public class ImportReceiptsDAO extends DBContext {
         return resolveColumn("created_at", "createdAt");
     }
 
+    // Kiểm tra cột thời điểm tạo có phải kiểu số nguyên không (một số bản thiết kế lưu dạng năm tháng ngày gộp).
     private boolean isCreatedAtIntType() {
         if (createdAtIsIntType != null) {
             return createdAtIsIntType;
@@ -169,6 +173,7 @@ public class ImportReceiptsDAO extends DBContext {
         return createdAtIsIntType;
     }
 
+    // Đọc thời điểm tạo: nếu trong bảng là số nguyên tám chữ số năm-tháng-ngày thì đổi sang dạng thời gian đầy đủ.
     private Timestamp readCreatedAt(ResultSet rs) throws Exception {
         if (!isCreatedAtIntType()) {
             return rs.getTimestamp("created_at");
@@ -177,7 +182,6 @@ public class ImportReceiptsDAO extends DBContext {
         if (raw <= 0) {
             return null;
         }
-        // Support yyyymmdd integer format.
         String s = String.valueOf(raw);
         if (s.length() == 8) {
             int y = Integer.parseInt(s.substring(0, 4));
@@ -188,6 +192,7 @@ public class ImportReceiptsDAO extends DBContext {
         return null;
     }
 
+    // Xác định tên cột lưu tổng tiền trên bảng đầu phiếu (nếu có).
     private String resolveTotalCostColumn() {
         if (totalCostColumn != null) {
             return totalCostColumn;
@@ -196,11 +201,13 @@ public class ImportReceiptsDAO extends DBContext {
         return totalCostColumn;
     }
 
+    // Có cột tổng tiền thật trên bảng đầu phiếu hay không; nếu không thì chỉ tính khi truy vấn.
     private boolean hasRealTotalCostColumn() {
         String col = resolveTotalCostColumn();
         return !"total_cost".equals(col) && !"totalCost".equals(col) ? true : hasColumn("total_cost", "totalCost");
     }
 
+    // Kiểm tra trong bảng đầu phiếu có tồn tại một trong các tên cột cho trước hay không.
     private boolean hasColumn(String... candidates) {
         String table = resolveReceiptsTable();
         try {
@@ -223,6 +230,7 @@ public class ImportReceiptsDAO extends DBContext {
         return false;
     }
 
+    // Ghép câu truy vấn lấy phiếu, luôn đặt tên cột kết quả thống nhất để hàm đọc kết quả dễ xử lý.
     private String buildSelectBase() {
         String totalExpr = hasRealTotalCostColumn()
                 ? resolveTotalCostColumn()
@@ -242,6 +250,7 @@ public class ImportReceiptsDAO extends DBContext {
                 + "FROM " + resolveReceiptsTable();
     }
 
+    // Chuyển một dòng kết quả truy vấn thành đối tượng phiếu nhập trong chương trình.
     private ImportReceipts mapReceipt(ResultSet rs) throws Exception {
         ResultSetMetaData md = rs.getMetaData();
         if (md.getColumnCount() >= 5) {
@@ -261,6 +270,7 @@ public class ImportReceiptsDAO extends DBContext {
         throw new IllegalArgumentException("ResultSet is missing expected columns for import receipt.");
     }
 
+    // Lấy danh sách tất cả phiếu nhập (bảng điều khiển hoặc màn hình quản lý).
     public List<ImportReceipts> getAllReceipts() {
         List<ImportReceipts> list = new ArrayList<>();
         String sql = buildSelectBase();
@@ -274,6 +284,7 @@ public class ImportReceiptsDAO extends DBContext {
         return list;
     }
 
+    // Lấy một phiếu theo mã số (xem chi tiết, xác nhận, sửa phần đầu phiếu...).
     public ImportReceipts getReceiptById(int id) {
         String sql = buildSelectBase() + " WHERE " + receiptIdCol() + " = ?";
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
@@ -289,6 +300,7 @@ public class ImportReceiptsDAO extends DBContext {
         return null;
     }
 
+    // Thêm phiếu mới (thường ở trạng thái nháp), trả về mã phiếu vừa tạo để chuyển sang trang chi tiết.
     public int insertReceiptReturnId(ImportReceipts p) {
         String sql = "INSERT INTO " + resolveReceiptsTable()
                 + " (" + supplierIdCol() + ", " + employeeIdCol()
@@ -333,6 +345,7 @@ public class ImportReceiptsDAO extends DBContext {
         return 0;
     }
 
+    // Tạo mã phiếu theo tháng hiện tại, bốn số thứ tự tăng dần; bỏ qua mã cũ không đọc được số.
     private String generateNextReceiptCode() {
         LocalDate now = LocalDate.now();
         String ym = now.format(DateTimeFormatter.ofPattern("yyyyMM"));
@@ -353,10 +366,7 @@ public class ImportReceiptsDAO extends DBContext {
         return prefix + String.format("%04d", next);
     }
 
-    public void insertReceipt(ImportReceipts p) {
-        insertReceiptReturnId(p);
-    }
-
+    // Cập nhật phần đầu phiếu (sau khi đã xác nhận thường ít chỉnh).
     public void updateReceipt(ImportReceipts p) {
         String sql = "UPDATE " + resolveReceiptsTable()
                 + " SET " + supplierIdCol() + "=?, " + employeeIdCol() + "=?"
@@ -382,6 +392,7 @@ public class ImportReceiptsDAO extends DBContext {
         }
     }
 
+    // Nếu bảng có cột tổng tiền thì ghi lại bằng tổng tiền các dòng hàng; gọi sau khi thêm, sửa hoặc xóa dòng.
     public void recalculateTotalCost(int receiptId) {
         if (!hasRealTotalCostColumn()) {
             return;
@@ -404,6 +415,7 @@ public class ImportReceiptsDAO extends DBContext {
         }
     }
 
+    // Xóa bản ghi đầu phiếu. Nên xóa hết dòng hàng và tồn kho liên quan trước nếu không muốn bị chặn bởi ràng buộc dữ liệu.
     public boolean deleteReceipt(int id) {
         String sql = "DELETE FROM " + resolveReceiptsTable() + " WHERE " + receiptIdCol() + " = ?";
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
@@ -413,63 +425,5 @@ public class ImportReceiptsDAO extends DBContext {
             e.printStackTrace();
             return false;
         }
-    }
-
-    public double getTotalImportCostByMonth(int month, int year) {
-        String sql;
-        if (hasRealTotalCostColumn()) {
-            sql = """
-                     SELECT COALESCE(SUM(%s), 0) AS total
-                     FROM %s
-                     WHERE (? = 0 OR MONTH(%s) = ?)
-                       AND (? = 0 OR YEAR(%s) = ?)
-                     """.formatted(resolveTotalCostColumn(), resolveReceiptsTable(), importDateCol(), importDateCol());
-        } else {
-            sql = """
-                     SELECT COALESCE(SUM(i.import_price * i.quantity), 0) AS total
-                     FROM %s r
-                     JOIN %s i ON i.receipt_id = r.%s
-                     WHERE (? = 0 OR MONTH(r.%s) = ?)
-                       AND (? = 0 OR YEAR(r.%s) = ?)
-                     """.formatted(resolveReceiptsTable(), resolveReceiptItemsTable(), receiptIdCol(), importDateCol(), importDateCol());
-        }
-        double total = 0;
-        try (PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setInt(1, month);
-            ps.setInt(2, month);
-            ps.setInt(3, year);
-            ps.setInt(4, year);
-            try (ResultSet rs = ps.executeQuery()) {
-                if (rs.next()) {
-                    total = rs.getDouble("total");
-                }
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return total;
-    }
-
-    // --- MAIN TEST ---
-    public static void main(String[] args) {
-        ImportReceiptsDAO dao = new ImportReceiptsDAO();
-
-        // 1. Xem danh sach
-        System.out.println("--- LIST ALL ---");
-        List<ImportReceipts> list = dao.getAllReceipts();
-        for (ImportReceipts item : list) {
-            System.out.println(item);
-        }
-
-        // 2. Insert (Chèn)
-        // LƯU Ý: Thay ID 1, 1 bang ID Supplier/Employee CO THAT cua ban
-        dao.insertReceipt(new ImportReceipts(0, 1, 1, 550000, null));
-        System.out.println("Da them phieu nhap.");
-
-        // 3. Update (Sửa) - Thay ID = 1 bang ID phieu nhap CO THAT
-        // dao.updateReceipt(new ImportReceipts(1, 1, 1, 888888, null));
-        // System.out.println("Da update phieu ID = 1.");
-        // 4. Get By ID
-        // System.out.println(dao.getReceiptById(1));
     }
 }

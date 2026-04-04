@@ -1,8 +1,12 @@
 <%@page contentType="text/html" pageEncoding="UTF-8"%>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
-
+<%--
+  Danh sách nhà cung cấp: GET staffservlet?action=supplierManagement (tìm keyword).
+  Thao tác CRUD / kích hoạt qua supplier?action=...
+--%>
 <c:if test="${not empty sessionScope.msg}">
+    <%-- Flash sau redirect: servlet gán sessionScope.msg + msgType --%>
     <div id="supplier-toast"
          class="fixed top-6 left-1/2 -translate-x-1/2 z-[9999] w-[420px] max-w-[calc(100vw-2rem)] rounded-2xl border shadow-lg
          ${sessionScope.msgType == 'danger' ? 'bg-red-50 text-red-800 border-red-200' : 'bg-gray-50 text-gray-800 border-emerald-200'}">
@@ -34,19 +38,27 @@
     <c:remove var="msgType" scope="session" />
 
     <script>
-        // toast tự tắt sau redirect
-        setTimeout(function () {
+        /*
+         * Toast một lần: servlet redirect xong set session msg rồi JSP render.
+         * Tự ẩn sau vài giây để không che bảng / nút.
+         */
+        /** Gỡ phần tử toast khỏi DOM nếu vẫn còn (gọi bởi timer). */
+        function removeSupplierFlashToastIfPresent() {
             var toast = document.getElementById('supplier-toast');
             if (toast) {
                 toast.remove();
             }
-        }, 3500);
+        }
+        /** Lên lịch ẩn toast flash sau 3500 ms. */
+        function scheduleSupplierFlashToastAutoHide() {
+            setTimeout(removeSupplierFlashToastIfPresent, 3500);
+        }
+        scheduleSupplierFlashToastAutoHide();
     </script>
 </c:if>
 
 <div class="bg-white rounded-xl shadow-lg p-5">
-
-    <!-- Search + Add (giống Inventory) -->
+    <%-- Thanh tìm (staffservlet) + nút thêm (supplier?action=add) --%>
     <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-5">
         <form class="w-full md:w-1/3 md:max-w-[520px]" action="staffservlet" method="GET">
             <input type="hidden" name="action" value="supplierManagement">
@@ -81,7 +93,7 @@
         </a>
     </div>
 
-    <!-- Bảng NCC: colgroup % để các cột trải đều theo chiều ngang -->
+    <%-- Bảng: colgroup cố định % chiều rộng cột; hàng rỗng khi listSuppliers trống --%>
     <div class="overflow-x-auto rounded-xl border border-gray-200/90 bg-white shadow-sm ring-1 ring-gray-100/80">
         <table class="w-full table-fixed text-sm text-left text-gray-700">
             <colgroup>

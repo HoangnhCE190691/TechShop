@@ -1,6 +1,7 @@
 <%@page contentType="text/html" pageEncoding="UTF-8"%>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
+<%-- Checkout: listCart + totalAmount từ orderpageServlet (cùng getCartDisplayByCustomerId như trang giỏ). --%>
 <c:set var="listCart" value="${requestScope.listCart != null ? requestScope.listCart : []}"/>
 <c:set var="totalAmount" value="${requestScope.totalAmount != null ? requestScope.totalAmount : 0}"/>
 <%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
@@ -227,7 +228,7 @@
         </form>
     </div>
 </div>
-<%-- Huy thanh toan vnpay --%>            
+<%-- Thanh toán cổng trả lỗi / hủy: servlet ghi vnpayError, hiện toast rồi xóa session --%>
 <c:if test="${not empty sessionScope.vnpayError}">
     <div id="vnpay-toast" class="fixed top-10 left-1/2 -translate-x-1/2 z-[9999] min-w-[360px] transition-all duration-500">
         <div class="flex items-center gap-3 p-4 rounded-xl shadow-2xl border-2 bg-red-50 text-red-800 border-red-200 ">
@@ -239,6 +240,7 @@
     </div>
     <c:remove var="vnpayError" scope="session"/>
     <script>
+        /* Ẩn dần và gỡ toast lỗi thanh toán sau vài giây */
         setTimeout(() => {
             const t = document.getElementById('vnpay-toast');
             if (t) {
@@ -273,22 +275,25 @@
 </div>
 
 <script>
-
+    /*
+     * Checkout: đổi kiểu chọn địa chỉ (onclick trên radio),
+     * áp voucher trên giao diện (đồng bộ hidden appliedVoucherId gửi post),
+     * phí ship và tổng cuối, modal đặt hàng thành công.
+     */
+    /** Khi chọn một địa chỉ: bỏ highlight cũ, tô đỏ thẻ label chứa radio vừa chọn. */
     function changeSelectedAddress(radioElement) {
-        // 1. Tìm tất cả các thẻ label có class address-card và reset về viền xám nền trắng
         let allCards = document.querySelectorAll('.address-card');
         allCards.forEach(card => {
             card.classList.remove('border-red-600', 'bg-red-50');
             card.classList.add('border-gray-100', 'bg-white');
         });
 
-        // 2. Tìm thẻ label đang bọc cái radio vừa được click và đổi sang viền đỏ nền đỏ
         let selectedCard = radioElement.closest('.address-card');
         selectedCard.classList.remove('border-gray-100', 'bg-white');
         selectedCard.classList.add('border-red-600', 'bg-red-50');
     }
 
-    // --- 1. SCRIPT ĐỔI ĐỊA CHỈ ---
+    /* Lắng nghe đổi radio name="address" (nếu có trên trang — tương thích layout cũ) */
     const addressLabels = document.querySelectorAll('input[name="address"]');
     addressLabels.forEach(radio => {
         radio.addEventListener('change', function () {
@@ -303,12 +308,10 @@
         });
     });
 
-    // --- 2. SCRIPT XỬ LÝ VOUCHER (Tính toán giao diện) ---
-
     let subTotal = ${totalAmount != null ? totalAmount : 0};
     let currentDiscount = 0;
 
-    // 1. CHUYỂN JAVA LIST SANG JAVASCRIPT ARRAY
+    /** Danh sách mã giảm từ server (JSTL forEach sinh mảng JS). */
     const availableVouchers = [
     <c:forEach items="${listVoucher}" var="v" varStatus="loop">
     {
@@ -317,11 +320,12 @@
             discountPercent: ${v.discountPercent},
             maxDiscountAmount: ${v.maxDiscountAmount},
             minOrderValue: ${v.minOrderValue},
-            isAvailable: ${v.available} // Gọi hàm isAvailable() của Java trả về boolean (true/false)
+            isAvailable: ${v.available}
     }${!loop.last ? ',' : ''}
     </c:forEach>
     ];
     const formatMoney = (amount) => amount.toLocaleString('vi-VN') + 'đ';
+    /** Chạy một lần khi tải trang: tính phí ship và tổng ban đầu theo subTotal (chưa voucher). */
     (function () {
         const shippingDisplay = document.getElementById('shippingDisplay');
         const totalDisplay = document.getElementById('totalDisplay');
@@ -332,54 +336,49 @@
                 : 'font-semibold text-green-600 text-base';
         totalDisplay.innerText = formatMoney(subTotal + shipCost);
     })();
+    /**
+     * Đọc mã voucher, tìm trong availableVouchers, kiểm tra còn dùng được và đủ giá trị đơn tối thiểu.
+     * Cập nhật currentDiscount, hidden appliedVoucherId, dòng giảm giá, phí ship (theo ngưỡng 500k), tổng cuối.
+     */
     function applyVoucher() {
         const inputCode = document.getElementById('voucherInput').value.trim().toUpperCase();
         const messageDiv = document.getElementById('voucherMessage');
         const discountDisplay = document.getElementById('discountDisplay');
         const totalDisplay = document.getElementById('totalDisplay');
 
-        // Hàm format số thành tiền VNĐ
         const formatMoney = (amount) => amount.toLocaleString('vi-VN') + 'đ';
 
         if (inputCode === '') {
             currentDiscount = 0;
-            document.getElementById('appliedVoucherId').value = "0"; // Xóa ID
+            document.getElementById('appliedVoucherId').value = "0";
             messageDiv.innerHTML = '<span class="text-red-500 font-medium">Please enter a discount code.</span>';
         } else {
-            // 2. TÌM VOUCHER TRONG MẢNG
             const foundVoucher = availableVouchers.find(v => v.code.toUpperCase() === inputCode);
 
             if (foundVoucher) {
-                // Bước 2.1: Kiểm tra voucher còn khả dụng không (Status, Số lượt dùng, Thời gian)
                 if (!foundVoucher.isAvailable) {
                     currentDiscount = 0;
-                    document.getElementById('appliedVoucherId').value = "0"; // Xóa ID
+                    document.getElementById('appliedVoucherId').value = "0";
                     messageDiv.innerHTML = '<span class="text-red-500 font-medium">This voucher has expired or reached its usage limit!</span>';
                 }
-                // Bước 2.2: Kiểm tra đơn hàng có đạt mức tối thiểu không
                 else if (subTotal < foundVoucher.minOrderValue) {
                     currentDiscount = 0;
-                    document.getElementById('appliedVoucherId').value = "0"; // Xóa ID
+                    document.getElementById('appliedVoucherId').value = "0";
                     messageDiv.innerHTML = `<span class="text-red-500 font-medium">Minimum order to apply this code is ` + formatMoney(foundVoucher.minOrderValue) + `!</span>`;
                 }
-                // Bước 2.3: Nếu thỏa mãn mọi điều kiện -> Tiến hành tính tiền
                 else {
-                    // Tính mức giảm dựa trên phần trăm (%)
                     let calculatedDiscount = subTotal * (foundVoucher.discountPercent / 100);
 
-                    // So sánh với mức giảm tối đa (Cap)
                     if (foundVoucher.maxDiscountAmount > 0 && calculatedDiscount > foundVoucher.maxDiscountAmount) {
-                        currentDiscount = foundVoucher.maxDiscountAmount; // Giới hạn số tiền giảm
+                        currentDiscount = foundVoucher.maxDiscountAmount;
                     } else {
                         currentDiscount = calculatedDiscount;
                     }
 
-                    // Đề phòng trường hợp tiền giảm vượt quá tổng tiền
                     if (currentDiscount > subTotal) {
                         currentDiscount = subTotal;
                     }
 
-                    // Gán ID để gửi về Servlet
                     document.getElementById('appliedVoucherId').value = foundVoucher.voucherId;
 
                     messageDiv.innerHTML = `<span class="text-green-600 font-medium flex items-center gap-1">
@@ -388,12 +387,11 @@
                 }
             } else {
                 currentDiscount = 0;
-                document.getElementById('appliedVoucherId').value = "0"; // Xóa ID
+                document.getElementById('appliedVoucherId').value = "0";
                 messageDiv.innerHTML = '<span class="text-red-500 font-medium">Invalid discount code!</span>';
             }
         }
 discountDisplay.innerText = '-' + formatMoney(currentDiscount);
-        // 3. Cập nhật lại HTML hiển thị giá tiền
         let afterDiscount = subTotal - currentDiscount;
         const SHIP_FEE = 30000;
         const shippingDisplay = document.getElementById('shippingDisplay');
@@ -406,10 +404,10 @@ discountDisplay.innerText = '-' + formatMoney(currentDiscount);
         totalDisplay.innerText = formatMoney(finalTotal);
     }
 
-    // --- 3. SCRIPT HIỂN THỊ MODAL THÀNH CÔNG ---
     const modal = document.getElementById('successModal');
     const modalContent = document.getElementById('modalContent');
 
+    /** Hiện lớp phủ đặt hàng thành công (có hiệu ứng scale). */
     function showSuccessModal() {
         modal.classList.remove('hidden');
         setTimeout(() => {
@@ -419,6 +417,7 @@ discountDisplay.innerText = '-' + formatMoney(currentDiscount);
         }, 10);
     }
 
+    /** Đóng modal rồi chuyển trang (trang chủ hoặc lịch sử đơn). */
     function closeModalAndRedirect(targetUrl) {
         modal.classList.add('opacity-0');
         modalContent.classList.remove('scale-100');
@@ -430,7 +429,6 @@ discountDisplay.innerText = '-' + formatMoney(currentDiscount);
         }, 300);
     }
 
-    // Hiện popup khi vừa đặt hàng thành công (redirect với ?orderSuccess=1)
     if (window.location.search.includes('orderSuccess=1')) {
         showSuccessModal();
     }

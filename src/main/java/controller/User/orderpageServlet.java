@@ -26,20 +26,13 @@ import model.OrderItem;
 import model.PaymentMethod;
 
 /**
- *
  * @author ASUS
  */
 @WebServlet(name = "orderpageServlet", urlPatterns = {"/orderpageservlet"})
 public class orderpageServlet extends HttpServlet {
 
     /**
-     * <<<<<<< Updated upstream Processes requests for both HTTP <code>GET</code> and <code>POST</code> methods. ======= Processes requests for both HTTP <code>GET</code> and <code>POST</code>
-     * methods. >>>>>>> Stashed changes
-     *
-     * @param request servlet request
-     * @param response servlet response
-     * @throws ServletException if a servlet-specific error occurs
-     * @throws IOException if an I/O error occurs
+     * Giữ mẫu NetBeans; không dùng trong luồng chính.
      */
     protected void processRequest(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
@@ -60,12 +53,8 @@ public class orderpageServlet extends HttpServlet {
 
     // <editor-fold defaultstate="collapsed" desc="HttpServlet methods. Click on the + sign on the left to edit the code.">
     /**
-     * Handles the HTTP <code>GET</code> method.
-     *
-     * @param request servlet request
-     * @param response servlet response
-     * @throws ServletException if a servlet-specific error occurs
-     * @throws IOException if an I/O error occurs
+     * Lấy mã khách hàng từ phiên làm việc; không có thì thử đọc từ cookie đăng
+     * nhập.
      */
     private int getCustomerId(HttpServletRequest request) {
         Object sid = request.getSession(false) != null ? request.getSession().getAttribute("customerId") : null;
@@ -109,7 +98,7 @@ public class orderpageServlet extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        // 1. Xác thực người dùng
+        // Bắt buộc đã đăng nhập (theo cookie mã người dùng).
         int currentUserId = getCurrentUserId(request);
         if (currentUserId == -1) {
             response.sendRedirect("userservlet?action=loginPage");
@@ -126,6 +115,7 @@ public class orderpageServlet extends HttpServlet {
         response.setHeader("Cache-Control", "no-store, no-cache, must-revalidate, max-age=0");
         response.setHeader("Pragma", "no-cache");
         int customerId = getCustomerId(request);
+        // Hiển thị giỏ giống trang giỏ hàng; chỉ xóa giỏ sau khi đặt hàng hoặc thanh toán thành công.
         List<CartItemDisplay> listCart = new java.util.ArrayList<>();
         long totalAmount = 0;
         if (customerId > 0) {
@@ -153,19 +143,10 @@ public class orderpageServlet extends HttpServlet {
         PaymentMethodDAO pdao = new PaymentMethodDAO();
         List<PaymentMethod> activeMethods = pdao.getActivePaymentMethods();
         request.setAttribute("paymentMethods", activeMethods);
-        // 5. Forward đến Template duy nhất
-
+        // Gửi nội dung qua khung trang người dùng chung.
         request.getRequestDispatcher("/template/userTemplate.jsp").forward(request, response);
     }
 
-    /**
-     * Handles the HTTP <code>POST</code> method.
-     *
-     * @param request servlet request
-     * @param response servlet response
-     * @throws ServletException if a servlet-specific error occurs
-     * @throws IOException if an I/O error occurs
-     */
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
@@ -195,7 +176,7 @@ public class orderpageServlet extends HttpServlet {
         } catch (NumberFormatException ignored) {
         }
 
-        // Tính lại tổng tiền từ giỏ hàng
+        // Luôn tính lại tiền từ giỏ trong cơ sở dữ liệu, không tin số tiền gửi từ trình duyệt.
         CartItemDAO cartDao = new CartItemDAO();
         List<CartItemDisplay> listCart = cartDao.getCartDisplayByCustomerId(customerId);
         long subtotal = 0;
@@ -233,13 +214,13 @@ public class orderpageServlet extends HttpServlet {
 
         BigDecimal totalAmount = BigDecimal.valueOf(subtotal - Math.round(discount));
 
-        // Check VNPAY trước khi tạo order
+        // Nếu chọn thanh toán qua cổng trực tuyến thì chưa tạo đơn ở bước này.
         PaymentMethodDAO pdao = new PaymentMethodDAO();
         PaymentMethod selectedMethod = pdao.getPaymentMethodById(paymentMethodId);
         boolean isVNPay = selectedMethod != null
                 && selectedMethod.getMethod_name().toUpperCase().contains("VNPAY");
 
-        // BƯỚC VALIDATE: Kiểm tra tồn kho trước khi tạo order
+        // So từng món trong giỏ với số hàng còn trong kho; thiếu thì quay lại trang đặt hàng kèm thông báo.
         InventoryItemDAO inventoryDAO = new InventoryItemDAO();
         for (CartItemDisplay item : listCart) {
             int availableCount = Math.max(0, inventoryDAO.countAvailableByVariantId(item.getVariantId()));
@@ -254,7 +235,7 @@ public class orderpageServlet extends HttpServlet {
         }
 
         if (isVNPay) {
-            // VNPAY: lưu thông tin vào session, CHƯA tạo order
+            // Lưu tạm thông tin đơn vào phiên làm việc, chuyển sang trang thanh toán; đơn chỉ tạo khi cổng báo thành công.
             jakarta.servlet.http.HttpSession sess = request.getSession();
             sess.setAttribute("vnpay_customerId", customerId);
             sess.setAttribute("vnpay_shippingAddress", shippingAddress);
@@ -263,7 +244,7 @@ public class orderpageServlet extends HttpServlet {
             sess.setAttribute("vnpay_voucherId", voucherId);
             response.sendRedirect("vnpayservlet?action=pay&amount=" + totalAmount.longValue());
         } else {
-            // COD hoặc method khác: tạo order ngay
+            // Thanh toán khi nhận hoặc phương thức khác: tạo đơn ngay trong cơ sở dữ liệu.
             OrderDAO orderDAO = new OrderDAO();
             model.Order newOrder = new model.Order(
                     customerId, appliedVoucher, paymentMethodId, shippingAddress, totalAmount);
@@ -278,23 +259,14 @@ public class orderpageServlet extends HttpServlet {
                 int variantId = item.getVariantId();
                 int qty = item.getQuantity();
                 BigDecimal sellingPrice = BigDecimal.valueOf(item.getSellingPrice());
-//<<<<<<< Updated upstream
-//                List<Integer> inventoryIds = inventoryDAO.getAvailableInventoryIdsByVariantId(variantId, qty);
-//                for (Integer invId : inventoryIds) {
-//                    orderItemDAO.insertOrderItem(new OrderItem(orderId, invId, sellingPrice));
-//                        // COD/không VNPay: chỉ chuyển sang SOLD khi đơn được SHIPPED.
-//                        // Trước đó coi như "RESERVED" để đúng nghiệp vụ theo yêu cầu.
-//                        inventoryDAO.updateStatus(invId, "RESERVED");
-//=======
 
                 for (int i = 0; i < qty; i++) {
                     OrderItem oi = new OrderItem();
                     oi.setOrderId(orderId);
                     oi.setVariantId(variantId);
-                    oi.setInventoryId(0); 
+                    oi.setInventoryId(0);
                     oi.setSellingPrice(sellingPrice);
                     orderItemDAO.insertOrderItem(oi);
-//>>>>>>> Stashed changes
                 }
             }
 
@@ -304,24 +276,21 @@ public class orderpageServlet extends HttpServlet {
                 vdao.incrementUsedQuantity(appliedVoucher.getVoucherId());
             }
 
+            // Đơn tạo xong thì xóa giỏ khách (giống bước sau khi thanh toán trực tuyến thành công).
             cartDao.deleteCartByCustomerId(customerId);
             response.sendRedirect("orderpageservlet?orderSuccess=1&orderId=" + orderId);
         }
 
     }
 
-    /**
-     * Returns a short description of the servlet.
-     *
-     * @return a String containing servlet description
-     */
     @Override
     public String getServletInfo() {
         return "Short description";
     }// </editor-fold>
 
     /**
-     * Lấy userId từ cookie "cookieID". Trả về -1 nếu không tìm thấy hoặc cookie không hợp lệ.
+     * Đọc mã người dùng từ cookie đăng nhập; không có hoặc sai định dạng thì
+     * trả về âm một.
      */
     private int getCurrentUserId(HttpServletRequest request) {
         Cookie[] cookies = request.getCookies();

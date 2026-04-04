@@ -2,6 +2,11 @@
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
 <%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
+<%--
+  Trang chi tiết phiếu nhập kho (staff).
+  Dữ liệu: receipt, receiptItems, listVariants, listSuppliers, listEmployees, inventoryByReceiptItemId, serialDraftMap.
+  Chế độ param.mode = add cho phép thêm dòng / sửa header / nhập seri / xác nhận đưa hàng vào tồn kho; CONFIRMED chỉ xem.
+--%>
 <c:if test="${not empty sessionScope.msg}">
     <c:set var="isDangerToast" value="${sessionScope.msgType == 'danger'}"/>
     <div id="toast-detail"
@@ -47,7 +52,9 @@
     </div>
     <c:remove var="msg" scope="session"/>
     <c:remove var="msgType" scope="session"/>
+    <%-- Toast flash: servlet ghi sessionScope.msg rồi redirect về đây --%>
     <script>
+        /** Ẩn và xóa hộp thông báo góc màn hình (nút đóng hoặc hết giờ). */
         function closeToastDetail() {
             var t = document.getElementById('toast-detail');
             if (!t)
@@ -62,6 +69,7 @@
     </script>
 </c:if>
 
+<%-- Phần đầu phiếu: mã, tổng tiền, NCC, trạng thái; nút Confirm gắn validate seri + hộp thoại xác nhận --%>
 <div id="receipt-top" class="bg-white rounded-xl shadow-lg p-6">
     <c:set var="hasReceiptItems" value="${not empty receiptItems}"/>
     <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
@@ -69,7 +77,7 @@
         <div class="flex gap-2">
             <c:if test="${param.mode == 'add' && !isConfirmedReceipt}">
                 <form id="confirm-receipt-form" action="${pageContext.request.contextPath}/staffservlet" method="post"
-                      onsubmit="return validateManualSerialBeforeConfirm() && confirm('Confirm this receipt and move items to inventory using serial format SN-123456789?');">
+                      onsubmit="return validateManualSerialBeforeConfirm() && confirm('Confirm this receipt and add items to inventory? Serials must be SN- followed by 9 digits (e.g. SN-123456789).');">
                     <input type="hidden" name="action" value="inventoryReceiptConfirm"/>
                     <input type="hidden" name="receipt_id" value="${receipt.receipt_id}"/>
                     <button type="submit"
@@ -179,10 +187,14 @@
         <p class="text-gray-700 whitespace-pre-wrap">${displayNote}</p>
     </div>
 
+    <%-- Bảng nhập seri bắt buộc trước khi bấm Confirm: mỗi ô = một thiết bị, định dạng SN- + 9 số --%>
     <c:if test="${param.mode == 'add' && !isConfirmedReceipt}">
         <div id="manual-serial-panel" class="hidden mb-8 p-4 bg-blue-50 border border-blue-200 rounded-xl">
-            <p class="text-sm font-semibold text-blue-800 mb-2">Manual Serial IDs (required)</p>
-            <p class="text-xs text-blue-700 mb-3">Each line has one field per unit (quantity). Format: <strong>SN-123456789</strong>.</p>
+            <p class="text-sm font-semibold text-blue-800 mb-2">Serial numbers (required)</p>
+            <p class="text-xs text-blue-700 mb-3 leading-relaxed">
+                For each line below you get <strong>one box per unit</strong> — fill every box, each box is <strong>one device</strong>.
+                Type <strong>SN-</strong> then exactly <strong>9 digits</strong>, no spaces. Example: <strong>SN-123456789</strong>.
+            </p>
             <div class="space-y-3 max-h-72 overflow-y-auto pr-1">
                 <c:forEach items="${receiptItems}" var="it" varStatus="st">
                     <c:set var="variantSkuMs" value="—"/>
@@ -197,7 +209,7 @@
                         <p class="text-xs text-gray-700 mb-2">
                             #${st.count} <strong>${variantSkuMs}</strong>
                             <c:if test="${not empty variantProductNameMs}"> - ${variantProductNameMs}</c:if>
-                            | Quantity: <strong>${it.quantity}</strong>
+                            | Qty: <strong>${it.quantity}</strong> — enter <strong>${it.quantity}</strong> serials
                         </p>
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
                             <c:forEach begin="1" end="${it.quantity}" var="serialIdx">
@@ -210,7 +222,7 @@
                                        data-item-id="${it.receipt_item_id}"
                                        data-item-label="${variantSkuMs}"
                                        value="${serialDraftMap[serialDraftKey]}"
-                                       placeholder="Serial #${serialIdx} (SN-123456789)"
+                                       placeholder="Unit ${serialIdx}: SN-123456789"
                                        class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm"/>
                             </c:forEach>
                         </div>
@@ -234,10 +246,11 @@
                 </div>
                 <div>
                     <label class="block text-sm font-bold text-gray-700 mb-1">Supplier</label>
+                    <%-- Chỉ NCC đang hoạt động; nếu phiếu gắn NCC đã ngưng thì vẫn hiện đúng 1 dòng đó (listSuppliersForReceiptSelect) --%>
                     <select name="supplier_id" class="w-full px-4 py-2 border border-gray-200 rounded-lg">
-                        <c:forEach items="${listSuppliers}" var="s">
+                        <c:forEach items="${listSuppliersForReceiptSelect}" var="s">
                             <option value="${s.supplier_id}" <c:if test="${s.supplier_id == receipt.supplier_id}">selected</c:if>>
-                                ${s.supplier_name}
+                                ${s.supplier_name}<c:if test="${!s.is_active}"> (inactive)</c:if>
                             </option>
                         </c:forEach>
                     </select>
@@ -262,6 +275,7 @@
         </form>
     </div>
 
+    <%-- Bảng các dòng hàng trên phiếu; cột thao tác (seri / sửa) chỉ khi đang nháp và mode add --%>
     <h3 class="text-lg font-bold text-gray-800 mb-3">Receipt Items</h3>
     <div class="overflow-x-auto rounded-lg border border-gray-200 mb-6">
             <table class="w-full text-sm text-left text-gray-600">
@@ -304,7 +318,7 @@
                                     <div class="inline-flex items-center gap-2">
                                         <button type="button"
                                                 class="inline-flex items-center text-blue-500 hover:text-blue-700"
-                                                title="Manual Serial IDs"
+                                                title="Open serial entry for this line"
                                                 onclick="openManualSerialForItem('${it.receipt_item_id}')">
                                             <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                                                 <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6M9 16h6M9 8h6M7 3h10a2 2 0 012 2v14a2 2 0 01-2 2H7a2 2 0 01-2-2V5a2 2 0 012-2z"/>
@@ -383,8 +397,6 @@
             </form>
         </div>
 
-        <p class="text-sm text-gray-600 mb-3">On the same receipt, each SKU has only <strong>one line</strong>; the system <strong>merges quantities</strong> only. A product cannot have multiple different import prices on one receipt.</p>
-
         <h3 id="add-item-form" class="text-lg font-bold text-gray-800 mb-3">Add Item to Receipt</h3>
         <form id="add-item-receipt-form"
               action="${pageContext.request.contextPath}/staffservlet"
@@ -444,6 +456,7 @@
         </div>
     </c:if>
 
+    <%-- Nguồn dữ liệu ẩn: toàn bộ biến thể để JavaScript lọc cascade danh mục → sản phẩm → SKU --%>
     <select id="variant-master-data" class="hidden" aria-hidden="true" tabindex="-1">
         <c:forEach items="${listVariants}" var="v">
             <option value="${v.variantId}"
@@ -460,6 +473,14 @@
     </select>
 
     <script>
+        /*
+         * Script trang chi tiết phiếu nhập:
+         * - Kiểm tra giá nhập / chống double-submit khi thêm dòng
+         * - Panel seri tay + validate trước khi submit form xác nhận phiếu
+         * - Form sửa dòng: cascade danh mục / sản phẩm / biến thể (thêm mới + sửa)
+         * - Giữ bản nháp seri trong hidden khi submit sửa dòng (gửi serialDraft lên servlet)
+         */
+        /** Kiểm tra giá nhập > 0 trước khi gửi form thêm dòng hàng. */
         function validateAddReceiptItemForm(formEl) {
             var inp = formEl.querySelector('input.import-price-input[name="import_price"]')
                     || formEl.querySelector('input[name="import_price"]');
@@ -475,6 +496,7 @@
             return true;
         }
 
+        /** Khóa nút Add và đổi chữ sau lần bấm đầu để tránh gửi form trùng liên tiếp. */
         function preventAddSpamSubmit(formEl) {
             var btn = formEl.querySelector('button[data-add-submit-btn]');
             if (!btn) {
@@ -490,6 +512,7 @@
             return true;
         }
 
+        /** Hiện/ẩn khối nhập seri và cuộn tới khối đó. */
         function toggleManualSerialPanel() {
             var panel = document.getElementById('manual-serial-panel');
             if (!panel) {
@@ -501,6 +524,10 @@
             }
         }
 
+        /**
+         * Gọi trước khi submit "Confirm": duyệt mọi ô input[data-serial-input].
+         * Kiểm tra không rỗng, đúng mẫu SN-9số, không trùng trong một dòng và không trùng giữa các dòng.
+         */
         function validateManualSerialBeforeConfirm() {
             var inputs = Array.from(document.querySelectorAll('input[data-serial-input="true"]'));
             var allSet = new Set();
@@ -512,12 +539,12 @@
                 var s = (input.value || '').trim().toUpperCase();
 
                 if (!s) {
-                            alert(itemLabel + ': missing serial — please fill all fields.');
+                    alert('Line SKU ' + itemLabel + ': some serials are empty. Please fill all boxes.');
                     input.focus();
                     return false;
                 }
                 if (!/^SN-\d{9}$/.test(s)) {
-                    alert(itemLabel + ': serial must match SN-123456789 -> ' + s);
+                    alert('Line SKU ' + itemLabel + ': "' + s + '" is not valid. Use SN- plus 9 digits, e.g. SN-123456789.');
                     input.focus();
                     return false;
                 }
@@ -525,12 +552,12 @@
                     localSetsByItem[itemId] = new Set();
                 }
                 if (localSetsByItem[itemId].has(s)) {
-                    alert(itemLabel + ': duplicate serial within this line -> ' + s);
+                    alert('Line SKU ' + itemLabel + ': serial "' + s + '" is duplicated on this line.');
                     input.focus();
                     return false;
                 }
                 if (allSet.has(s)) {
-                    alert('Duplicate serial across lines -> ' + s);
+                    alert('Serial "' + s + '" is already used on another line. Each unit needs a unique serial.');
                     input.focus();
                     return false;
                 }
@@ -540,6 +567,7 @@
             return true;
         }
 
+        /** Mở panel seri và focus ô đầu tiên của một dòng phiếu (khi redirect kèm serialItem). */
         function openManualSerialForItem(receiptItemId) {
             var panel = document.getElementById('manual-serial-panel');
             if (!panel) {
@@ -553,6 +581,10 @@
             }
         }
 
+        /**
+         * Trước khi gửi form sửa dòng: bắt buộc đủ danh mục / sản phẩm / biến thể, giá > 0, số lượng nguyên dương.
+         * Đồng thời đổ giá trị seri đang nhập vào các input hidden serialDraft để servlet lưu bản nháp trong phiên.
+         */
         function validateEditReceiptItemForm() {
             var categorySelect = document.getElementById('edit-category-select');
             var productSelect = document.getElementById('edit-product-select');
@@ -596,7 +628,6 @@
                 return false;
             }
 
-            // Preserve current serial drafts on page while editing line item.
             var holder = document.getElementById('edit-serial-drafts-holder');
             if (holder) {
                 holder.innerHTML = '';
@@ -620,6 +651,7 @@
             return true;
         }
 
+        /** Hiện hoặc ẩn panel sửa phần đầu phiếu (NCC, ghi chú...). */
         function toggleReceiptHeaderEdit(show) {
             var panel = document.getElementById('receipt-header-edit-panel');
             if (!panel) {
@@ -633,6 +665,7 @@
             }
         }
 
+        /** Đóng panel sửa một dòng hàng (không lưu). */
         function closeEditPanel() {
             var panel = document.getElementById('edit-item-panel');
             if (panel) {
@@ -640,6 +673,7 @@
             }
         }
 
+        /** Lọc mảng theo khóa do hàm getKey trả về, giữ phần tử đầu tiên mỗi khóa. */
         function uniqueBy(items, getKey) {
             var map = new Map();
             items.forEach(function (item) {
@@ -651,6 +685,10 @@
             return Array.from(map.values());
         }
 
+        /**
+         * Xây lại thẻ select: option rỗng + danh sách items; valueKey là tên thuộc tính làm value;
+         * labelBuilder(item) tạo chữ hiển thị; onOptionBuilt tùy chọn để gắn data-* lên option.
+         */
         function fillSelect(select, placeholder, items, valueKey, labelBuilder, selectedValue, onOptionBuilt) {
             select.innerHTML = '';
             var placeholderOption = document.createElement('option');
@@ -675,6 +713,7 @@
         }
 
         (function () {
+            /* --- Khối khởi tạo: đọc masterOptions từ #variant-master-data, gắn picker thêm dòng và panel sửa dòng --- */
             var masterOptions = Array.from(document.querySelectorAll('#variant-master-data option')).map(function (option) {
                 var sp = parseFloat(option.dataset.sellingPrice);
                 return {
@@ -692,6 +731,7 @@
                 return variant.isActive;
             });
 
+            /** Khi đổi danh mục ở form sửa dòng: lọc sản phẩm rồi gọi refresh biến thể. */
             function refreshEditProductsByCategory(categorySelect, productSelect, variantSelect, hint, selectedProductId, selectedVariantId) {
                 var categoryName = categorySelect.value;
                 var products = uniqueBy(editVariants.filter(function (variant) {
@@ -713,6 +753,7 @@
                 refreshEditVariantsByProduct(categorySelect, productSelect, variantSelect, hint, selectedVariantId);
             }
 
+            /** Sau khi chọn sản phẩm ở form sửa: đổ danh sách SKU và cập nhật dòng gợi ý. */
             function refreshEditVariantsByProduct(categorySelect, productSelect, variantSelect, hint, selectedVariantId) {
                 var categoryName = categorySelect.value;
                 var productId = productSelect.value;
@@ -741,6 +782,10 @@
                 }
             }
 
+            /**
+             * Mở panel sửa dòng phiếu: điền id dòng, giá, số lượng; chọn sẵn danh mục/sản phẩm/SKU theo variantId hiện tại.
+             * Gắn sự kiện đổi danh mục / sản phẩm để lọc lại select.
+             */
             window.editReceiptItem = function (itemId, variantId, oldPrice, oldQty) {
                 var panel = document.getElementById('edit-item-panel');
                 var title = document.getElementById('edit-item-title');
@@ -795,6 +840,10 @@
                 panel.scrollIntoView({behavior: 'smooth', block: 'center'});
             };
 
+            /**
+             * Khởi tạo một khối form có data-variant-picker: cascade category → product → variant,
+             * đồng bộ gợi ý giá bán (tham chiếu) dưới ô giá nhập.
+             */
             function initVariantPicker(container) {
                 var categorySelect = container.querySelector('[data-category-select]');
                 var productSelect = container.querySelector('[data-product-select]');
@@ -820,6 +869,7 @@
                     return item.categoryName;
                 }, selectedVariant ? selectedVariant.categoryName : '');
 
+                /** Lọc sản phẩm theo danh mục đang chọn trong picker thêm dòng. */
                 function refreshProducts(selectedProductId) {
                     var categoryName = categorySelect.value;
                     var products = uniqueBy(availableVariants.filter(function (variant) {
@@ -839,6 +889,7 @@
                     }
                 }
 
+                /** Cập nhật dòng gợi ý giá bán lẻ theo biến thể đang chọn (chỉ tham khảo, không khóa max cứng). */
                 function syncImportPriceLimit() {
                     var inp = container.querySelector('input.import-price-input[name="import_price"]');
                     var hintPrice = container.querySelector('.import-price-hint');
@@ -865,6 +916,7 @@
                     }
                 }
 
+                /** Lọc danh sách SKU theo danh mục + sản phẩm; gọi syncImportPriceLimit sau khi vẽ option. */
                 function refreshVariants(selectedId) {
                     var categoryName = categorySelect.value;
                     var productId = productSelect.value;
@@ -918,6 +970,7 @@
                 }
             }
 
+            /* Mỗi form thêm dòng (có data-variant-picker) được khởi tạo cascade riêng */
             Array.from(document.querySelectorAll('[data-variant-picker]')).forEach(initVariantPicker);
 
             var serialItem = '${param.serialItem}';

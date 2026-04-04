@@ -14,11 +14,11 @@ import model.CartItemDisplay;
 import utils.DBContext;
 
 /**
- *
  * @author LE HOANG NHAN
  */
 public class CartItemDAO extends DBContext {
 
+    // Đọc một dòng bảng giỏ hàng thành đối tượng trong chương trình (chưa ghép tên sản phẩm hay ảnh).
     private CartItem mapCartItem(ResultSet rs) throws SQLException {
         return new CartItem(
                 rs.getInt("cart_item_id"),
@@ -29,15 +29,14 @@ public class CartItemDAO extends DBContext {
         );
     }
 
-    // 1) Lấy toàn bộ cart_items (ít dùng, chủ yếu debug/admin)
+    // Lấy toàn bộ dòng trong bảng giỏ (thường chỉ dùng khi kiểm thử hoặc gỡ lỗi).
     public List<CartItem> getAllCartItems() {
         List<CartItem> list = new ArrayList<>();
         if (conn == null) {
             return list;
         }
         String sql = "SELECT cart_item_id, customer_id, variant_id, quantity, created_at FROM cart_items";
-        try (PreparedStatement ps = conn.prepareStatement(sql);
-                ResultSet rs = ps.executeQuery()) {
+        try (PreparedStatement ps = conn.prepareStatement(sql); ResultSet rs = ps.executeQuery()) {
             while (rs.next()) {
                 list.add(mapCartItem(rs));
             }
@@ -47,7 +46,7 @@ public class CartItemDAO extends DBContext {
         return list;
     }
 
-    // 2) Lấy giỏ hàng (raw) của 1 khách
+    // Lấy giỏ của một khách dưới dạng danh sách đơn giản; giao diện thường dùng hàm có đủ tên sản phẩm và ảnh.
     public List<CartItem> getCartByCustomerId(int customerId) {
         List<CartItem> list = new ArrayList<>();
         if (conn == null) {
@@ -67,7 +66,7 @@ public class CartItemDAO extends DBContext {
         return list;
     }
 
-    // 3) Lấy 1 dòng cart_item theo id
+    // Lấy một dòng giỏ theo mã dòng; trước khi sửa hoặc xóa nên kiểm tra đúng khách đang đăng nhập.
     public CartItem getCartItemById(int id) {
         if (conn == null) {
             return null;
@@ -86,7 +85,7 @@ public class CartItemDAO extends DBContext {
         return null;
     }
 
-    // 4) Thêm item vào giỏ
+    // Thêm dòng mới vào giỏ khi chưa có cùng khách và cùng biến thể; nếu đã có thì thường chỉ cập nhật số lượng.
     public boolean insertCartItem(CartItem item) {
         if (conn == null || item == null) {
             return false;
@@ -103,7 +102,7 @@ public class CartItemDAO extends DBContext {
         return false;
     }
 
-    // 5) Update số lượng theo cart_item_id
+    // Chỉ đổi số lượng trên dòng có sẵn; đổi sang sản phẩm khác thì tầng trên phải xóa dòng cũ hoặc thêm dòng mới.
     public boolean updateCartItem(CartItem item) {
         if (conn == null || item == null) {
             return false;
@@ -119,7 +118,7 @@ public class CartItemDAO extends DBContext {
         return false;
     }
 
-    // 6) Xóa 1 dòng khỏi giỏ
+    // Xóa một dòng khỏi giỏ hàng.
     public void deleteCartItem(int id) {
         if (conn == null) {
             return;
@@ -133,9 +132,7 @@ public class CartItemDAO extends DBContext {
         }
     }
 
-    /**
-     * Xóa toàn bộ giỏ hàng của một khách (sau khi đặt hàng thành công).
-     */
+    // Sau khi thanh toán thành công, xóa sạch giỏ của khách đó.
     public void deleteCartByCustomerId(int customerId) {
         if (conn == null) {
             return;
@@ -149,7 +146,7 @@ public class CartItemDAO extends DBContext {
         }
     }
 
-    // 7) Lấy 1 dòng theo (customer_id, variant_id) để check tồn tại trước khi add
+    // Tìm dòng giỏ theo khách và biến thể sản phẩm; có sẵn thì cộng số lượng thay vì thêm dòng mới.
     public CartItem getByCustomerAndVariant(int customerId, int variantId) {
         if (conn == null) {
             return null;
@@ -169,13 +166,12 @@ public class CartItemDAO extends DBContext {
         return null;
     }
 
-    // 8) Lấy giỏ để hiển thị trang cart (kèm tên sp, sku, giá, thumbnail)
+    // Lấy giỏ để hiển thị: tên sản phẩm, mã biến thể, giá bán, ảnh đại diện (một ảnh làm mặt cho sản phẩm).
     public List<CartItemDisplay> getCartDisplayByCustomerId(int customerId) {
         List<CartItemDisplay> list = new ArrayList<>();
         if (conn == null) {
             return list;
         }
-        // Lấy thumbnail bằng subquery TOP 1 để khỏi phải GROUP BY/MAX.
         String sql = "SELECT c.cart_item_id, c.variant_id, c.quantity, "
                 + "p.name AS product_name, pv.sku, pv.selling_price, "
                 + "(SELECT TOP 1 pi.image_url "
@@ -207,9 +203,7 @@ public class CartItemDAO extends DBContext {
         return list;
     }
 
-    /**
-     * Tổng số lượng sản phẩm trong giỏ (tổng quantity các dòng)
-     */
+    // Tổng số lượng món trong giỏ (ví dụ hai áo cộng một tai nghe bằng ba món).
     public int getCartTotalQuantityByCustomerId(int customerId) {
         if (conn == null) {
             return 0;
@@ -228,9 +222,7 @@ public class CartItemDAO extends DBContext {
         return 0;
     }
 
-    /**
-     * Số dòng sản phẩm trong giỏ (số sản phẩm khác nhau)
-     */
+    // Số dòng trong giỏ (mỗi biến thể một dòng), dùng hiển thị kiểu “ba loại hàng trong giỏ”.
     public int getCartItemCountByCustomerId(int customerId) {
         if (conn == null) {
             return 0;

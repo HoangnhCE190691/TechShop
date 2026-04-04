@@ -18,15 +18,11 @@ import model.InventorySummary;
 import utils.DBContext;
 
 /**
- *
  * @author LE HOANG NHAN
  */
 public class InventoryItemDAO extends DBContext {
 
-    /**
-     * Lấy danh sách inventory (IMEI-level) kèm tên sản phẩm + người mua (nếu đã
-     * bán).
-     */
+    // Danh sách toàn bộ tồn kho cho nhân viên; ghép lỏng để không mất dòng khi thiếu liên kết phụ.
     public List<InventoryItem> getAllInventory() {
         List<InventoryItem> list = new ArrayList<>();
         if (conn == null) {
@@ -56,9 +52,7 @@ public class InventoryItemDAO extends DBContext {
         return list;
     }
 
-    /**
-     * Tìm inventory theo tên sản phẩm.
-     */
+    // Tìm theo tên sản phẩm gần đúng; không nhập gì thì trả về như lấy hết danh sách.
     public List<InventoryItem> searchInventory(String keyword) {
         List<InventoryItem> list = new ArrayList<>();
         String k = (keyword == null) ? "" : keyword.trim();
@@ -98,6 +92,7 @@ public class InventoryItemDAO extends DBContext {
         return list;
     }
 
+    // Chuyển một dòng kết quả truy vấn thành đối tượng tồn kho; cột phụ có thể không có nên đọc từng cột an toàn.
     private InventoryItem mapRow(ResultSet rs) throws SQLException {
         InventoryItem item = new InventoryItem(
                 rs.getInt("inventory_id"),
@@ -107,7 +102,6 @@ public class InventoryItemDAO extends DBContext {
                 rs.getDouble("import_price"),
                 rs.getString("status")
         );
-        // Một số query không join đủ cột -> đọc "best-effort"
         try {
             item.setProductName(rs.getString("product_name"));
         } catch (Exception ignored) {
@@ -127,9 +121,7 @@ public class InventoryItemDAO extends DBContext {
         return item;
     }
 
-    /**
-     * Lấy inventory theo id.
-     */
+    // Lấy một bản ghi tồn kho theo mã số nội bộ.
     public InventoryItem getInventoryById(int id) {
         if (conn == null) {
             return null;
@@ -154,10 +146,7 @@ public class InventoryItemDAO extends DBContext {
         return null;
     }
 
-    /**
-     * Tất cả dòng tồn kho thuộc một phiếu nhập (theo receipt_id), dùng cho
-     * trang chi tiết: serial + status theo từng receipt_item.
-     */
+    // Mọi chiếc hàng đã nhập thuộc một phiếu nhập; dùng ở trang chi tiết phiếu, gom theo từng dòng hàng.
     public List<InventoryItem> getInventoryByReceiptId(int receiptId) {
         List<InventoryItem> list = new ArrayList<>();
         if (conn == null) {
@@ -184,10 +173,7 @@ public class InventoryItemDAO extends DBContext {
         return list;
     }
 
-    /**
-     * Map receipt_item_id → các bản ghi inventory (serial/status) cho một phiếu
-     * nhập.
-     */
+    // Gom danh sách trên theo từng dòng phiếu nhập để giao diện hiển thị từng dòng và các seri bên dưới.
     public Map<Integer, List<InventoryItem>> getInventoryGroupedByReceiptItemId(int receiptId) {
         Map<Integer, List<InventoryItem>> map = new HashMap<>();
         for (InventoryItem inv : getInventoryByReceiptId(receiptId)) {
@@ -197,9 +183,7 @@ public class InventoryItemDAO extends DBContext {
         return map;
     }
 
-    /**
-     * Thêm 1 dòng inventory. Serial ID không được trùng.
-     */
+    // Thêm một chiếc vào tồn kho; số seri không được trùng trong cơ sở dữ liệu, trùng thì thêm thất bại.
     public boolean insertInventory(InventoryItem item) {
         if (conn == null || item == null) {
             return false;
@@ -219,9 +203,7 @@ public class InventoryItemDAO extends DBContext {
         }
     }
 
-    /**
-     * Cập nhật inventory theo inventory_id.
-     */
+    // Cập nhật thông tin một bản ghi tồn kho theo mã nội bộ của nó.
     public boolean updateInventory(InventoryItem item) {
         if (conn == null || item == null) {
             return false;
@@ -241,10 +223,7 @@ public class InventoryItemDAO extends DBContext {
         }
     }
 
-    /**
-     * Xóa inventory theo id (hard delete). Lưu ý: có thể fail nếu đang bị FK
-     * reference.
-     */
+    // Xóa hẳn một bản ghi tồn kho; nếu đã gắn vào đơn hàng có thể không xóa được.
     public boolean deleteInventory(int id) {
         if (conn == null) {
             return false;
@@ -259,10 +238,7 @@ public class InventoryItemDAO extends DBContext {
         }
     }
 
-    /**
-     * Xóa toàn bộ inventory_items gắn với 1 receipt_item_id (dùng khi xóa dòng
-     * phiếu nhập).
-     */
+    // Xóa hết các chiếc tồn kho thuộc một dòng trên phiếu nhập; thường làm trước khi xóa dòng đó khỏi phiếu.
     public int deleteByReceiptItemId(int receiptItemId) {
         if (conn == null) {
             return 0;
@@ -277,11 +253,7 @@ public class InventoryItemDAO extends DBContext {
         }
     }
 
-    /**
-     * Kiểm tra xem receipt_item_id có inventory nào KHÔNG còn IN_STOCK hay
-     * không. Trả về true nếu có ít nhất 1 bản ghi khác IN_STOCK (đã bán /
-     * reserved...).
-     */
+    // Trả về đúng nếu có ít nhất một chiếc không còn trạng thái đang nằm trong kho (ví dụ đã bán); khi đó không nên xóa dòng phiếu.
     public boolean hasNonInStockByReceiptItemId(int receiptItemId) {
         if (conn == null) {
             return true;
@@ -294,14 +266,11 @@ public class InventoryItemDAO extends DBContext {
             }
         } catch (SQLException e) {
             e.printStackTrace();
-            return true; // an toàn: nếu lỗi thì coi như có ràng buộc, không cho xóa
+            return true; // Nếu truy vấn lỗi thì coi như có ràng buộc để tránh xóa nhầm.
         }
     }
 
-    /**
-     * Lấy danh sách inventory_id còn tồn (IN_STOCK) theo variant_id, giới hạn
-     * số lượng. Dùng khi tạo đơn hàng để gán sản phẩm từ kho vào order_items.
-     */
+    // Lấy tối đa một số mã tồn kho đang còn trong kho và chưa gắn đơn chưa hủy; dùng khi tạo đơn để gán chiếc cụ thể.
     public List<Integer> getAvailableInventoryIdsByVariantId(int variantId, int limit) {
         List<Integer> list = new ArrayList<>();
         if (conn == null) {
@@ -331,9 +300,7 @@ public class InventoryItemDAO extends DBContext {
         return list;
     }
 
-    /**
-     * Đếm số lượng tồn kho hiện tại (IN_STOCK) theo variant_id.
-     */
+    // Đếm số chiếc còn trong kho theo biến thể; kiểm tra giỏ hàng hoặc đặt hàng không vượt quá.
     public int countAvailableByVariantId(int variantId) {
         if (conn == null) {
             return 0;
@@ -352,6 +319,7 @@ public class InventoryItemDAO extends DBContext {
         return 0;
     }
 
+    // Đếm đã tạo bao nhiêu bản ghi tồn kho cho một dòng phiếu; so với số lượng trên dòng để biết đã đủ seri chưa.
     public int countByReceiptItemId(int receiptItemId) {
         if (conn == null) {
             return 0;
@@ -370,6 +338,7 @@ public class InventoryItemDAO extends DBContext {
         return 0;
     }
 
+    // Kiểm tra số seri đã có trong tồn kho chưa. Tên hàm giữ từ phiên bản cũ; tham số thực chất là chuỗi seri. Lỗi kết nối thì coi như đã tồn tại để an toàn.
     public boolean existsByImei(String imei) {
         if (conn == null) {
             return true;
@@ -386,9 +355,7 @@ public class InventoryItemDAO extends DBContext {
         }
     }
 
-    /**
-     * Cập nhật trạng thái tồn kho (vd: SOLD sau khi bán).
-     */
+    // Đổi trạng thái một chiếc (ví dụ sang đã bán sau khi thanh toán xong).
     public boolean updateStatus(int inventoryId, String status) {
         if (conn == null) {
             return false;
@@ -404,10 +371,12 @@ public class InventoryItemDAO extends DBContext {
         }
     }
 
+    // Seri nhập tay hợp lệ theo đúng mẫu quy định trong biểu thức kiểm tra (tiền tố cố định và chín chữ số).
     private boolean isValidStandardSerial(String serial) {
         return serial != null && serial.matches("^SN-\\d{9}$");
     }
 
+    // Tạo seri ngẫu nhiên theo mẫu chuẩn, không trùng trong đợt đang nhập và không trùng trong cơ sở dữ liệu.
     private String generateStandardSerial(Set<String> usedInBatch) {
         while (true) {
             int number = (int) (Math.random() * 1_000_000_000);
@@ -422,11 +391,8 @@ public class InventoryItemDAO extends DBContext {
         }
     }
 
-    /**
-     * Tạo inventory_items từ receipt items khi confirm phiếu nhập. Hỗ trợ
-     * truyền serial thủ công theo từng receipt_item_id, phần còn lại sẽ tự sinh
-     * theo chuẩn SN-123456789.
-     */
+    // Khi xác nhận phiếu nhập: với mỗi dòng hàng, mỗi đơn vị số lượng tạo một bản ghi tồn kho.
+    // Seri nhập tay theo danh sách gửi vào; thiếu thì tự sinh theo mẫu chuẩn. Seri sai định dạng hoặc trùng thì bỏ qua ô đó.
     public int generateInventoryFromReceiptWithManualSerials(int receiptId, Map<Integer, List<String>> manualSerialsByReceiptItem) {
         if (conn == null || receiptId <= 0) {
             return 0;
@@ -473,17 +439,12 @@ public class InventoryItemDAO extends DBContext {
         return inserted;
     }
 
-    /**
-     * Tạo inventory_items từ receipt items khi confirm phiếu nhập.
-     */
+    // Xác nhận phiếu và tạo tồn kho khi không có danh sách seri nhập tay.
     public int generateInventoryFromReceipt(int receiptId) {
         return generateInventoryFromReceiptWithManualSerials(receiptId, null);
     }
 
-    /**
-     * Thống kê số lượng tồn kho theo trạng thái để hiển thị donut chart trên
-     * dashboard staff. Kết quả: [inStock, sold, other].
-     */
+    // Thống kê ba con số cho biểu đồ: đang trong kho, đã bán, các trạng thái khác.
     public int[] getInventoryStatusCounts() {
         if (conn == null) {
             return new int[]{0, 0, 0};
@@ -508,14 +469,13 @@ public class InventoryItemDAO extends DBContext {
         return new int[]{inStock, sold, other};
     }
 
-    /**
-     * Summary nhập / bán / tồn theo variant (1 dòng / variant).
-     */
+    // Tổng hợp theo từng biến thể: đã nhập, đã bán, đang giữ chỗ, còn trong kho.
     public List<InventorySummary> getInventorySummary() {
         List<InventorySummary> list = new ArrayList<>();
         if (conn == null) {
             return list;
         }
+        // Cột giữ chỗ gom cả trạng thái giữ chỗ và tên cũ viết sai để không mất số liệu cũ.
         String sql = "SELECT "
                 + "pv.variant_id, "
                 + "p.name AS product_name, "
@@ -547,6 +507,7 @@ public class InventoryItemDAO extends DBContext {
         return list;
     }
 
+    // Giống tổng hợp trên nhưng lọc theo tên sản phẩm, mã biến thể hoặc mã số biến thể.
     public List<InventorySummary> getInventorySummaryByKeyword(String keyword) {
         List<InventorySummary> list = new ArrayList<>();
         if (conn == null) {

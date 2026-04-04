@@ -16,20 +16,27 @@ import jakarta.servlet.http.HttpSession;
 import model.Supplier;
 
 @WebServlet(name = "SupplierServlet", urlPatterns = {"/supplier"})
+// Quản lý nhà cung cấp: danh sách, thêm, xem, sửa, khóa, mở lại, xóa (khi chưa dùng trên phiếu nhập).
 public class SupplierServlet extends HttpServlet {
 
+    /**
+     * Lớp truy cập cơ sở dữ liệu cho nhà cung cấp.
+     */
     private SupplierDAO dao;
 
     @Override
     public void init() {
-        dao = new SupplierDAO(); // một DAO cho cả servlet
+        dao = new SupplierDAO();
     }
 
     private void redirectToSupplierManagement(HttpServletRequest request, HttpServletResponse response) throws IOException {
-        response.sendRedirect(request.getContextPath() + "/staffservlet?action=supplierManagement"); // về list NCC
+        response.sendRedirect(request.getContextPath() + "/staffservlet?action=supplierManagement");
     }
 
-    private int parseIntSafe(String s, int defaultValue) { // id từ query, sai format → default
+    /**
+     * Đọc số nguyên từ chuỗi; sai định dạng thì trả về giá trị mặc định.
+     */
+    private int parseIntSafe(String s, int defaultValue) {
         if (s == null) {
             return defaultValue;
         }
@@ -40,7 +47,10 @@ public class SupplierServlet extends HttpServlet {
         }
     }
 
-    private String trimToNull(String s) { // sau trim → null
+    /**
+     * Cắt khoảng trắng hai đầu; sau khi cắt mà không còn ký tự thì trả về null.
+     */
+    private String trimToNull(String s) {
         if (s == null) {
             return null;
         }
@@ -48,21 +58,30 @@ public class SupplierServlet extends HttpServlet {
         return t.isEmpty() ? null : t;
     }
 
-    private String normalizeSupplierName(String raw) { // trim + gộp whitespace
+    /**
+     * Chuẩn hóa tên: bỏ thừa khoảng trắng giữa các chữ.
+     */
+    private String normalizeSupplierName(String raw) {
         if (raw == null) {
             return "";
         }
         return raw.trim().replaceAll("\\s+", " ");
     }
 
-    private String normalizePhoneDigits(String raw) { // chỉ giữ số
+    /**
+     * Chỉ giữ lại chữ số trong số điện thoại.
+     */
+    private String normalizePhoneDigits(String raw) {
         if (raw == null) {
             return "";
         }
         return raw.replaceAll("\\D", "");
     }
 
-    private String normalizeAddress(String raw) { // trim + gộp space, giống tên
+    /**
+     * Chuẩn hóa địa chỉ giống cách xử lý tên.
+     */
+    private String normalizeAddress(String raw) {
         String t = trimToNull(raw);
         if (t == null) {
             return null;
@@ -70,7 +89,10 @@ public class SupplierServlet extends HttpServlet {
         return t.replaceAll("\\s+", " ");
     }
 
-    private String normalizeEmail(String raw) { // trim + lowercase, rỗng → null
+    /**
+     * Email: viết thường, bỏ trống thì coi như không nhập.
+     */
+    private String normalizeEmail(String raw) {
         if (raw == null) {
             return null;
         }
@@ -78,14 +100,20 @@ public class SupplierServlet extends HttpServlet {
         return t.isEmpty() ? null : t.toLowerCase(Locale.ROOT);
     }
 
-    private boolean isValidEmailOrEmpty(String emailNormalized) { // null/"" ok; có thì regex
+    /**
+     * Email để trống được; có nhập thì kiểm tra định dạng.
+     */
+    private boolean isValidEmailOrEmpty(String emailNormalized) {
         if (emailNormalized == null || emailNormalized.isEmpty()) {
             return true;
         }
         return emailNormalized.matches("^[a-z0-9+_.-]+@[a-z0-9.-]+\\.[a-z]{2,}$");
     }
 
-    private boolean isValidSupplierName(String nameNormalized) { // khớp filter JSP
+    /**
+     * Tên chỉ cho phép chữ, số, tiếng Việt, vài ký tự đặc biệt như trên form.
+     */
+    private boolean isValidSupplierName(String nameNormalized) {
         if (nameNormalized == null) {
             return false;
         }
@@ -108,14 +136,13 @@ public class SupplierServlet extends HttpServlet {
             return;
         }
 
-        // add/view/edit → forward JSP qua staffTemplate; deactivate/restore/delete → redirect + flash
         String page = "/pages/SupplierManagementPage/supplierManagement.jsp";
         switch (action) {
             case "add":
                 page = "/pages/SupplierManagementPage/addSupplier.jsp";
                 break;
             case "view": {
-                int id = parseIntSafe(request.getParameter("id"), 0); // ?id=
+                int id = parseIntSafe(request.getParameter("id"), 0);
                 if (id > 0) {
                     Supplier s = (Supplier) dao.getSupplierById(id);
                     request.setAttribute("supplier", s);
@@ -132,7 +159,8 @@ public class SupplierServlet extends HttpServlet {
                 page = "/pages/SupplierManagementPage/editSupplier.jsp";
                 break;
             }
-            case "deactivate": { // soft: is_active = 0
+            case "deactivate": {
+                // Đánh dấu ngừng hoạt động, không xóa bản ghi.
                 int id = parseIntSafe(request.getParameter("id"), 0);
                 if (id > 0) {
                     if (!dao.hasConnection()) {
@@ -148,7 +176,8 @@ public class SupplierServlet extends HttpServlet {
                 redirectToSupplierManagement(request, response);
                 return;
             }
-            case "restore": { // is_active = 1
+            case "restore": {
+                // Bật lại nhà cung cấp đã bị khóa.
                 int id = parseIntSafe(request.getParameter("id"), 0);
                 if (id > 0) {
                     if (!dao.hasConnection()) {
@@ -164,7 +193,8 @@ public class SupplierServlet extends HttpServlet {
                 redirectToSupplierManagement(request, response);
                 return;
             }
-            case "delete": { // hard delete nếu không có phiếu nhập
+            case "delete": {
+                // Xóa hẳn chỉ khi chưa có phiếu nhập nào trỏ tới nhà cung cấp này.
                 int id = parseIntSafe(request.getParameter("id"), 0);
                 if (id > 0) {
                     if (!dao.hasConnection()) {
@@ -186,7 +216,7 @@ public class SupplierServlet extends HttpServlet {
             }
         }
 
-        request.setAttribute("contentPage", page); // staffTemplate include JSP này
+        request.setAttribute("contentPage", page);
         request.getRequestDispatcher("/template/staffTemplate.jsp").forward(request, response);
     }
 
@@ -204,14 +234,15 @@ public class SupplierServlet extends HttpServlet {
         }
 
         switch (action) {
-            case "add": { // form add → insert; thứ tự check: tên, SĐT, email, trùng mail, trùng tên+địa chỉ
+            case "add": {
+                // Kiểm tra lần lượt: tên, số điện thoại, email, trùng email, trùng tên cùng địa chỉ, rồi mới lưu.
                 String name = normalizeSupplierName(request.getParameter("supplier_name"));
                 String phone = normalizePhoneDigits(request.getParameter("phone"));
                 String email = normalizeEmail(request.getParameter("email"));
                 String address = normalizeAddress(request.getParameter("address"));
                 String isActive = request.getParameter("is_active");
 
-                if (!name.isEmpty() && phone.length() == 10) {
+                if (!name.isEmpty() && phone.length() == 10 && address != null && !address.isEmpty()) {
                     if (!dao.hasConnection()) {
                         setMsg(request.getSession(), "Cannot connect to the database. Please try again later.", "danger");
                     } else if (!isValidSupplierName(name)) {
@@ -222,6 +253,8 @@ public class SupplierServlet extends HttpServlet {
                         setMsg(request.getSession(), "Invalid email format.", "danger");
                     } else if (email != null && dao.existsSupplierEmail(email, 0)) {
                         setMsg(request.getSession(), "This email is already in use by another supplier.", "danger");
+                    } else if (dao.existsSupplierPhone(phone, 0)) {
+                        setMsg(request.getSession(), "This phone number is already in use by another supplier.", "danger");
                     } else if (dao.existsSameNameAndAddress(name, address, 0)) {
                         setMsg(request.getSession(), "Another supplier already has the same name and address. Same name is allowed if the address differs.", "danger");
                     } else {
@@ -233,11 +266,12 @@ public class SupplierServlet extends HttpServlet {
                         }
                     }
                 } else {
-                    setMsg(request.getSession(), "Please enter name and phone.", "danger");
+                    setMsg(request.getSession(), "Please enter name, phone, and address.", "danger");
                 }
                 break;
             }
-            case "update": { // giống add + supplier_id; existsEmail/NameAddress loại trừ id hiện tại
+            case "update": {
+                // Giống thêm mới nhưng có mã nhà cung cấp; kiểm tra trùng bỏ qua chính bản ghi đang sửa.
                 String idStr = request.getParameter("supplier_id");
                 String name = normalizeSupplierName(request.getParameter("supplier_name"));
                 String phone = normalizePhoneDigits(request.getParameter("phone"));
@@ -245,7 +279,8 @@ public class SupplierServlet extends HttpServlet {
                 String address = normalizeAddress(request.getParameter("address"));
                 String isActive = request.getParameter("is_active");
 
-                if (idStr != null && !idStr.isEmpty() && !name.isEmpty() && phone.length() == 10) {
+                if (idStr != null && !idStr.isEmpty() && !name.isEmpty() && phone.length() == 10
+                        && address != null && !address.isEmpty()) {
                     int id = parseIntSafe(idStr, 0);
                     if (id <= 0) {
                         setMsg(request.getSession(), "Invalid supplier id.", "danger");
@@ -259,6 +294,8 @@ public class SupplierServlet extends HttpServlet {
                         setMsg(request.getSession(), "Invalid email format.", "danger");
                     } else if (email != null && dao.existsSupplierEmail(email, id)) {
                         setMsg(request.getSession(), "This email is already in use by another supplier.", "danger");
+                    } else if (dao.existsSupplierPhone(phone, id)) {
+                        setMsg(request.getSession(), "This phone number is already in use by another supplier.", "danger");
                     } else if (dao.existsSameNameAndAddress(name, address, id)) {
                         setMsg(request.getSession(), "Another supplier already has the same name and address. Same name is allowed if the address differs.", "danger");
                     } else {
@@ -279,10 +316,13 @@ public class SupplierServlet extends HttpServlet {
             }
         }
 
-        redirectToSupplierManagement(request, response); // post xong luôn về list (flash msg session)
+        redirectToSupplierManagement(request, response);
     }
 
-    private void setMsg(HttpSession session, String msg, String type) { // danger / success cho toast
+    /**
+     * Ghi thông báo tạm trên phiên làm việc để trang danh sách hiển thị.
+     */
+    private void setMsg(HttpSession session, String msg, String type) {
         session.setAttribute("msg", msg);
         session.setAttribute("msgType", type);
     }

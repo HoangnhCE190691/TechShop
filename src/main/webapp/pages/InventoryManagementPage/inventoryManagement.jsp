@@ -335,6 +335,10 @@
 
 <script>
     (function () {
+        // Luồng màn hình:
+        // 1) summaryView: bảng tổng theo variant.
+        // 2) detailView: bảng nhóm theo lô nhập + giá + status sau khi bấm "View detail".
+        // 3) modal: danh sách serial trong từng nhóm.
         const summaryView = document.getElementById('inventory-summary-view');
         const detailView = document.getElementById('inventory-detail-view');
         const detailTbody = document.getElementById('inventory-detail-tbody');
@@ -353,7 +357,7 @@
             return;
         }
 
-        // Snapshot all inventory rows from DOM
+        // Chụp dữ liệu gốc từ DOM 1 lần để render lại nhanh bằng JS (không gọi server thêm).
         const allItems = [];
         if (detailRows) {
             detailRows.forEach(function (row) {
@@ -410,13 +414,14 @@
                 return;
             currentGroupedMap = {};
 
+            // Lọc theo variant khi đi từ summary -> detail.
             const items = allItems.filter(function (it) {
                 if (!filterVariantId)
                     return true;
                 return String(it.variantId) === String(filterVariantId);
             });
 
-            // Group key: same import batch (receipt_item_id) + same import price + same status + same product
+            // Group key: cùng receipt_item + giá nhập + status + product.
             const groups = new Map();
             items.forEach(function (it) {
                 const key = [it.receiptItemId, it.importPrice, it.status, it.productName].join('|');
@@ -446,6 +451,7 @@
             });
 
             groups.forEach(function (g) {
+                // Đồng bộ rule với modal: serial trùng chỉ tính 1 để tránh lệch Quantity.
                 g.items = dedupeInventoryItemsBySerial(g.items);
                 g.quantity = g.items.length;
                 g.firstInventoryId = null;
@@ -476,7 +482,7 @@
                 return String(a.productName || '').localeCompare(String(b.productName || ''));
             });
 
-            // Helper: render status badge same style as before
+            // Render badge status thống nhất giữa detail table và modal.
             function statusBadge(status) {
                 const s = String(status || '');
                 if (s === 'IN_STOCK') {
@@ -491,7 +497,7 @@
                 return '<span class="px-2 py-1 text-xs font-semibold rounded-full text-gray-700 bg-gray-100">' + s + '</span>';
             }
 
-            // Rebuild tbody
+            // Mỗi lần filter/group sẽ build lại tbody từ đầu để dữ liệu luôn nhất quán.
             detailTbody.innerHTML = '';
             if (grouped.length === 0) {
                 detailTbody.innerHTML = '<tr><td colspan="6" class="px-4 py-12 text-center text-gray-500 italic">No inventory data.</td></tr>';
@@ -570,7 +576,7 @@
 
             groupItemsModalTitle.textContent = data.productName || 'Grouped inventory';
             const items = data.items || [];
-            // Safety: hide duplicated serial rows caused by legacy dirty data.
+            // Safety layer: nếu DB còn dữ liệu cũ bị trùng serial thì modal chỉ hiển thị unique serial.
             const seenSerial = new Set();
             const uniqueItems = [];
             items.forEach(function (it) {
@@ -680,7 +686,7 @@
             }
         });
 
-        // From summary row: view detail for a specific variant
+        // Từ summary row, mở detail của đúng variant đang chọn.
         if (btnRowDetails) {
             btnRowDetails.forEach(function (btn) {
                 btn.addEventListener('click', function () {
@@ -689,7 +695,7 @@
                         return;
                     }
 
-                    // Set big title from summary row product name
+                    // Lấy product name từ dòng summary để làm tiêu đề detail.
                     const summaryRow = btn.closest('tr');
                     const productCell = summaryRow ? summaryRow.querySelector('td[data-col="product"]') : null;
                     const productName = productCell ? productCell.textContent.trim() : '';
@@ -697,7 +703,7 @@
                         detailTitle.textContent = productName ? productName : 'Inventory details';
                     }
 
-                    // Show detail view
+                    // Chuyển từ summary sang detail view.
                     summaryView.classList.add('hidden');
                     detailView.classList.remove('hidden');
 
@@ -705,7 +711,7 @@
                         btnBack.classList.remove('hidden');
                     }
 
-                    // Render grouped rows for this variant
+                    // Render nhóm cho đúng variant vừa chọn.
                     renderGroupedRows(variantId);
 
                     // Scroll to detail table
@@ -714,7 +720,7 @@
             });
         }
 
-        // Back from detail to summary: show all summary + all detail rows
+        // Quay lại summary list.
         if (btnBack) {
             btnBack.addEventListener('click', function () {
                 // Show summary, hide detail

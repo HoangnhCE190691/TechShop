@@ -86,7 +86,7 @@
                 <%-- Variant Selectors --%>
                 <div id="variantSelectors" class="mb-8"></div>
 
-                <%-- Form Add to Cart --%>
+                <%-- Thêm giỏ: POST cartservlet action=add; JS intercept → fetch JSON (ajax) + refresh badge ?action=count. --%>
                 <form id="addToCartForm"
                       action="${pageContext.request.contextPath}/cartservlet"
                       method="post"
@@ -593,6 +593,7 @@
 
                                 var addToCartOverlay = null;
 
+                                // Spinner khi gọi cartservlet (add) bằng fetch — không reload trang.
                                 function showAddToCartLoading() {
                                     if (!addToCartOverlay) {
                                         addToCartOverlay = document.createElement('div');
@@ -616,6 +617,7 @@
                                 }
 
                                 function refreshNavbarCartCount() {
+                                    // cartCount = số dòng SKU trong giỏ (không phải tổng quantity).
                                     fetch('${pageContext.request.contextPath}/cartservlet?action=count', {credentials: 'same-origin'})
                                             .then(r => r.json())
                                             .then(data => {
@@ -694,6 +696,7 @@
                                         e.preventDefault();
                                         showAddToCartLoading();
 
+                                        // Giống cartServlet.isAjax: ajax=1 + header → nhận JSON success/message.
                                         var url = form.getAttribute('action') + (form.getAttribute('action').indexOf('?') >= 0 ? '&' : '?') + 'ajax=1';
                                         var params = new URLSearchParams(new FormData(form));
                                         params.append('ajax', '1');

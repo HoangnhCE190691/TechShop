@@ -39,12 +39,14 @@ import dao.ProductVariantDAO;
 import model.ProductVariant;
 
 /**
- *
  * @author ASUS
  */
 @WebServlet(name = "staffServlet", urlPatterns = {"/staffservlet"})
+// Trung tâm điều hướng nhân viên: bảng điều khiển, phiếu nhập kho, tồn kho, nhà cung cấp (qua servlet riêng), đơn hàng, sản phẩm...
+// Tham số action trên địa chỉ quyết định màn hình hoặc thao tác (get hiển thị, post lưu hoặc xác nhận phiếu).
 public class staffServlet extends HttpServlet {
 
+    /** Bản nháp seri nhập tay theo từng phiếu, lưu trong phiên làm việc để không mất khi tải lại trang. */
     @SuppressWarnings("unchecked")
     private java.util.Map<Integer, java.util.Map<String, String>> getSerialDraftsByReceipt(jakarta.servlet.http.HttpSession session) {
         Object obj = session.getAttribute("serialDraftsByReceipt");
@@ -56,6 +58,7 @@ public class staffServlet extends HttpServlet {
         return created;
     }
 
+    /** Đọc các ô seri từ form gửi lên và ghi vào bản nháp trong phiên. */
     private void saveSerialDraftsFromRequest(HttpServletRequest request, int receiptId) {
         if (receiptId <= 0) {
             return;
@@ -80,6 +83,7 @@ public class staffServlet extends HttpServlet {
         }
     }
 
+    /** Xóa bản nháp seri thuộc một dòng hàng trên phiếu (khi xóa hoặc sửa dòng). */
     private void removeSerialDraftsForItem(HttpServletRequest request, int receiptId, int receiptItemId) {
         if (receiptId <= 0 || receiptItemId <= 0) {
             return;
@@ -142,9 +146,8 @@ public class staffServlet extends HttpServlet {
         response.setContentType("text/html;charset=UTF-8");
         OrderDAO orderDAO = new OrderDAO();
 
-        // 2. Lấy tham số 'action' từ URL (ví dụ: adminservlet?action=dashboard)
         String action = request.getParameter("action");
-        String page = "/pages/staffDashboard.jsp"; // Trang mặc định khi mới vào
+        String page = "/pages/staffDashboard.jsp";
         if (action == null || action.trim().isEmpty()) {
             action = "dashboard";
         }
@@ -160,8 +163,7 @@ public class staffServlet extends HttpServlet {
             }
             return;
         }
-        List<?> listData = null; // Dấu <?> cho phép gán bất kỳ List nào (Customer, Employee...)
-        // 3. Logic điều hướng (Switch-case sẽ sạch sẽ hơn if-else)
+        List<?> listData = null;
         if (action != null) {
             switch (action) {
                 case "dashboard":
@@ -220,7 +222,6 @@ public class staffServlet extends HttpServlet {
                         request.setAttribute("star" + i, reviewStats.get(i));
                     }
 
-                    // Supplier + Inventory receipts cards
                     request.setAttribute("listSuppliers", new SupplierDAO().getAllSuppliers());
                     List<ImportReceipts> allReceiptsDashboard = new ImportReceiptsDAO().getAllReceipts();
                     List<ImportReceipts> filteredReceiptsDashboard = new ArrayList<>();
@@ -247,13 +248,12 @@ public class staffServlet extends HttpServlet {
                         }
                         return b.getImport_date().compareTo(a.getImport_date());
                     });
-                    int limitDashboard = 5; // end="4" in JSP
+                    int limitDashboard = 5;
                     if (filteredReceiptsDashboard.size() > limitDashboard) {
                         filteredReceiptsDashboard = filteredReceiptsDashboard.subList(0, limitDashboard);
                     }
                     request.setAttribute("listImportReceipts", filteredReceiptsDashboard);
 
-                    // Inventory summary for dashboard card
                     List<InventorySummary> dashboardInventorySummary = new InventoryItemDAO().getInventorySummary();
                     int dashboardInventoryImportedTotal = 0;
                     int dashboardInventorySoldTotal = 0;
@@ -285,7 +285,6 @@ public class staffServlet extends HttpServlet {
                     } catch (NumberFormatException e) {
                         month = -1;
                     }
-                    // value "Select" (0) -> coi như "All"
                     if (month <= 0) {
                         month = -1;
                     }
@@ -559,6 +558,7 @@ public class staffServlet extends HttpServlet {
                     listData = importVariantDao.getAllVariant();
                     break;
 
+                // --- Phiếu nhập kho: danh sách theo nhà cung cấp, tạo phiếu, mở phiếu nháp, chi tiết, lịch sử, xóa ---
                 case "inventoryReceiptManagement":
                     page = "/pages/InventoryReceiptManagementPage/inventoryReceiptManagement.jsp";
                     ImportReceiptsDAO rdao = new ImportReceiptsDAO();
@@ -595,7 +595,6 @@ public class staffServlet extends HttpServlet {
                     List<ImportReceipts> dedupedReceipts = new ArrayList<>();
                     for (java.util.Map.Entry<Integer, ImportReceipts> entry : latestBySupplier.entrySet()) {
                         int supplierId = entry.getKey();
-                        // If supplier has any DRAFT receipt, outside list must show DRAFT first.
                         ImportReceipts display = latestDraftBySupplier.get(supplierId);
                         if (display == null) {
                             display = latestConfirmedBySupplier.get(supplierId);
@@ -612,7 +611,7 @@ public class staffServlet extends HttpServlet {
                     break;
                 case "inventoryReceiptAdd":
                     page = "/pages/InventoryReceiptManagementPage/addInventoryReceipt.jsp";
-                    request.setAttribute("listSuppliers", new SupplierDAO().getAllSuppliers());
+                    request.setAttribute("listSuppliers", new SupplierDAO().getActiveSuppliers());
                     request.setAttribute("listEmployees", new EmployeesDAO().getAllEmployeeses());
                     break;
                 case "inventoryReceiptStartBySupplier":
@@ -623,6 +622,14 @@ public class staffServlet extends HttpServlet {
                         supplierIdStart = 0;
                     }
                     if (supplierIdStart <= 0) {
+                        response.sendRedirect(request.getContextPath() + "/staffservlet?action=inventoryReceiptAdd");
+                        return;
+                    }
+                    SupplierDAO supplierDaoStart = new SupplierDAO();
+                    if (!supplierDaoStart.isSupplierActive(supplierIdStart)) {
+                        request.getSession().setAttribute("msg",
+                                "This supplier is inactive. Only active suppliers can be used for new receipts.");
+                        request.getSession().setAttribute("msgType", "danger");
                         response.sendRedirect(request.getContextPath() + "/staffservlet?action=inventoryReceiptAdd");
                         return;
                     }
@@ -699,7 +706,23 @@ public class staffServlet extends HttpServlet {
                             = getSerialDraftsByReceipt(request.getSession());
                     request.setAttribute("serialDraftMap", serialDraftsAll.get(ridDetail));
                     request.setAttribute("listVariants", new dao.ProductVariantDAO().getAllVariant());
-                    request.setAttribute("listSuppliers", new SupplierDAO().getAllSuppliers());
+                    SupplierDAO supplierDaoDetail = new SupplierDAO();
+                    request.setAttribute("listSuppliers", supplierDaoDetail.getAllSuppliers());
+                    java.util.List<Supplier> suppliersForHeaderSelect = new java.util.ArrayList<>(supplierDaoDetail.getActiveSuppliers());
+                    Supplier currentReceiptSupplier = supplierDaoDetail.getSupplierById(receipt.getSupplier_id());
+                    if (currentReceiptSupplier != null && !currentReceiptSupplier.getIs_active()) {
+                        boolean alreadyIn = false;
+                        for (Supplier sx : suppliersForHeaderSelect) {
+                            if (sx.getSupplier_id() == currentReceiptSupplier.getSupplier_id()) {
+                                alreadyIn = true;
+                                break;
+                            }
+                        }
+                        if (!alreadyIn) {
+                            suppliersForHeaderSelect.add(0, currentReceiptSupplier);
+                        }
+                    }
+                    request.setAttribute("listSuppliersForReceiptSelect", suppliersForHeaderSelect);
                     request.setAttribute("listEmployees", new EmployeesDAO().getAllEmployeeses());
                     page = "/pages/InventoryReceiptManagementPage/detailInventoryReceipt.jsp";
                     break;
@@ -718,8 +741,6 @@ public class staffServlet extends HttpServlet {
                         if (r == null || r.getSupplier_id() != supplierIdHistory) {
                             continue;
                         }
-                        // Show all receipts of this supplier (DRAFT/CONFIRMED/CANCELLED...)
-                        // so draft receipts appear here immediately without confirmation.
                         supplierHistoryReceipts.add(r);
                     }
                     supplierHistoryReceipts.sort((a, b) -> {
@@ -745,9 +766,7 @@ public class staffServlet extends HttpServlet {
                     InventoryItemDAO invDaoForReceipt = new InventoryItemDAO();
                     int totalInvDeleted = 0;
                     for (ImportReceiptItem it : itemDao.getItemsByReceiptId(ridDel)) {
-                        // delete all inventory rows for each receipt item
                         totalInvDeleted += invDaoForReceipt.deleteByReceiptItemId(it.getReceipt_item_id());
-                        // stop if delete fails (FK constraint)
                         if (!itemDao.deleteItem(it.getReceipt_item_id())) {
                             request.getSession().setAttribute("msg", "Cannot delete this receipt because one of its items is still referenced by other data.");
                             request.getSession().setAttribute("msgType", "danger");
@@ -863,6 +882,7 @@ public class staffServlet extends HttpServlet {
             throws ServletException, IOException {
         request.setCharacterEncoding("UTF-8");
         String action = request.getParameter("action");
+        // Xác nhận phiếu: kiểm tra đủ seri, không trùng, tạo tồn kho, chuyển trạng thái phiếu sang đã xác nhận.
         if ("inventoryReceiptConfirm".equals(action)) {
             String rp = request.getParameter("receipt_id");
             int receiptId = (rp != null && !rp.isEmpty()) ? Integer.parseInt(rp) : 0;
@@ -939,13 +959,27 @@ public class staffServlet extends HttpServlet {
         }
         if ("inventoryReceiptAdd".equals(action)) {
             String sp = request.getParameter("supplier_id");
-            int supplierId = (sp != null && !sp.isEmpty()) ? Integer.parseInt(sp) : 0;
+            int supplierId = 0;
+            try {
+                supplierId = (sp != null && !sp.isEmpty()) ? Integer.parseInt(sp) : 0;
+            } catch (NumberFormatException e) {
+                supplierId = 0;
+            }
+            SupplierDAO supplierDaoPostAdd = new SupplierDAO();
+            if (supplierId <= 0 || !supplierDaoPostAdd.isSupplierActive(supplierId)) {
+                request.getSession().setAttribute("msg",
+                        supplierId <= 0
+                                ? "Please select an active supplier."
+                                : "This supplier is inactive. Only active suppliers can be used for new receipts.");
+                request.getSession().setAttribute("msgType", "danger");
+                response.sendRedirect(request.getContextPath() + "/staffservlet?action=inventoryReceiptAdd");
+                return;
+            }
             String receiptCode = request.getParameter("receipt_code");
             String status = request.getParameter("status");
             String note = request.getParameter("note");
             int empId = getStaffEmployeeId(request);
             if (empId <= 0) {
-                // Fallback: use first employee in system to avoid FK error
                 try {
                     EmployeesDAO ed = new EmployeesDAO();
                     java.util.List<Employees> emps = ed.getAllEmployeeses();
@@ -976,6 +1010,7 @@ public class staffServlet extends HttpServlet {
             }
             return;
         }
+        // Cập nhật thông tin header phiếu (NCC, trạng thái, ghi chú) khi còn sửa được.
         if ("inventoryReceiptEdit".equals(action)) {
             String rp = request.getParameter("receipt_id");
             int receiptId = (rp != null && !rp.isEmpty()) ? Integer.parseInt(rp) : 0;
@@ -991,18 +1026,27 @@ public class staffServlet extends HttpServlet {
                 request.getSession().setAttribute("msg", "Receipt not found.");
                 request.getSession().setAttribute("msgType", "danger");
             } else {
-                old.setSupplier_id(supplierId > 0 ? supplierId : old.getSupplier_id());
-                old.setStatus(status);
-                old.setNote(note);
-                dao.updateReceipt(old);
-                request.getSession().setAttribute("msg", "Receipt information updated successfully.");
-                request.getSession().setAttribute("msgType", "success");
+                int newSupplierId = supplierId > 0 ? supplierId : old.getSupplier_id();
+                SupplierDAO supplierDaoEdit = new SupplierDAO();
+                if (newSupplierId != old.getSupplier_id() && !supplierDaoEdit.isSupplierActive(newSupplierId)) {
+                    request.getSession().setAttribute("msg",
+                            "Cannot switch to an inactive supplier. Choose an active supplier.");
+                    request.getSession().setAttribute("msgType", "danger");
+                } else {
+                    old.setSupplier_id(newSupplierId);
+                    old.setStatus(status);
+                    old.setNote(note);
+                    dao.updateReceipt(old);
+                    request.getSession().setAttribute("msg", "Receipt information updated successfully.");
+                    request.getSession().setAttribute("msgType", "success");
+                }
             }
 
             String redirectMode = (mode != null && !mode.isEmpty()) ? "&mode=" + mode : "";
             response.sendRedirect(request.getContextPath() + "/staffservlet?action=inventoryReceiptDetail&id=" + receiptId + redirectMode);
             return;
         }
+        // Thêm dòng SKU: một SKU một giá trên phiếu — trùng SKU thì merge quantity (DAO).
         if ("receiptItemAdd".equals(action)) {
             String rp = request.getParameter("receipt_id");
             int receiptId = (rp != null && !rp.isEmpty()) ? Integer.parseInt(rp) : 0;
@@ -1052,7 +1096,7 @@ public class staffServlet extends HttpServlet {
                         itemDao.mergeOrInsertLine(receiptId, variantId, importPrice, qty);
                         new ImportReceiptsDAO().recalculateTotalCost(receiptId);
                         request.getSession().setAttribute("msg",
-                                "Line added or merged (one line per SKU; quantities are summed).");
+                                "Line added successfully.");
                         request.getSession().setAttribute("msgType", "success");
                     }
                 }
@@ -1060,6 +1104,7 @@ public class staffServlet extends HttpServlet {
             response.sendRedirect(request.getContextPath() + "/staffservlet?action=inventoryReceiptDetail&id=" + receiptId + "&mode=add#add-item-form");
             return;
         }
+        // Sửa dòng: có thể gộp hai dòng cùng SKU thành một; lưu draft serial trong session trước redirect.
         if ("receiptItemEdit".equals(action)) {
             String rp = request.getParameter("receipt_id");
             int receiptId = (rp != null && !rp.isEmpty()) ? Integer.parseInt(rp) : 0;
@@ -1113,14 +1158,14 @@ public class staffServlet extends HttpServlet {
                     boolean skuChanged = (variantId != oldItem.getVariant_id());
                     ImportReceiptItem sameVariantLine = itemDao.getFirstItemByReceiptAndVariant(oldItem.getReceipt_id(), variantId);
 
-                    // If editing causes duplicate SKU line in the same receipt, merge into one line.
+                    // Duplicate variant on same receipt: combine into the existing line.
                     if (sameVariantLine != null && sameVariantLine.getReceipt_item_id() != itemId) {
                         sameVariantLine.setQuantity(sameVariantLine.getQuantity() + qty);
                         sameVariantLine.setImport_price(importPrice);
                         itemDao.updateItem(sameVariantLine);
                         itemDao.deleteItem(itemId);
                         removeSerialDraftsForItem(request, receiptId, itemId);
-                        request.getSession().setAttribute("msg", "Receipt lines merged into one SKU line.");
+                        request.getSession().setAttribute("msg", "Receipt line updated.");
                     } else {
                         ImportReceiptItem updated = new ImportReceiptItem(itemId, oldItem.getReceipt_id(), variantId, importPrice, qty);
                         itemDao.updateItem(updated);
@@ -1136,6 +1181,7 @@ public class staffServlet extends HttpServlet {
             response.sendRedirect(request.getContextPath() + "/staffservlet?action=inventoryReceiptDetail&id=" + receiptId + "&mode=add#add-item-form");
             return;
         }
+        // Xóa dòng: xóa inventory gắn receipt_item (nếu có) trước khi DELETE dòng phiếu.
         if ("receiptItemDelete".equals(action)) {
             String ip = request.getParameter("receipt_item_id");
             int itemId = (ip != null && !ip.isEmpty()) ? Integer.parseInt(ip) : 0;

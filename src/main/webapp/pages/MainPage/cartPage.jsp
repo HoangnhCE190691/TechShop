@@ -1,6 +1,7 @@
 <%@page contentType="text/html" pageEncoding="UTF-8"%>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
+<%-- Trang giỏ: listCart + variantStockMap từ cartServlet; +/- gửi POST AJAX action=update để đồng bộ tổng tiền và badge. --%>
 <c:set var="listCart" value="${requestScope.listCart != null ? requestScope.listCart : []}"/>
 <c:set var="totalAmount" value="0"/>
 <c:forEach var="item" items="${listCart}">
@@ -130,7 +131,7 @@
                             <span>Subtotal:</span>
                             <span id="cartSubtotal" class="cart-summary-subtotal font-semibold text-gray-900 text-base"><fmt:formatNumber value="${totalAmount}" groupingUsed="true"/>đ</span>
                         </div>
-                        
+
                     </div>
 
                     <div class="flex justify-between items-end mb-8">
@@ -163,14 +164,22 @@
 
 <script>
     (function () {
+        /*
+         * Giỏ hàng: nút +/− không submit form ngay mà gọi cartservlet (ajax=1) để cập nhật số lượng.
+         * Cập nhật subtotal từng dòng, tổng giỏ, badge số món trên navbar; hết hàng thì banner đỏ + khôi phục số cũ.
+         */
         var container = document.getElementById('cartItemsContainer');
         if (!container)
             return;
 
+        /** Định dạng số tiền hiển thị kiểu Việt Nam + ký hiệu đ. */
         function formatVnd(num) {
             return Number(num).toLocaleString('vi-VN') + 'đ';
         }
 
+        /**
+         * Hiển thị (hoặc cập nhật chữ) banner lỗi đỏ phía trên danh sách giỏ — dùng khi máy chủ từ chối đổi số lượng.
+         */
         function showCartErrorBanner(message) {
             if (!message)
                 return;
@@ -199,6 +208,10 @@
                 textEl.textContent = message;
         }
 
+        /**
+         * Gửi POST action=update kèm ajax=1; đọc JSON trả về.
+         * Thành công: cập nhật subtotal dòng, tổng giỏ, badge. Thất bại: trả input về oldQty và gọi showCartErrorBanner.
+         */
         function submitCartQtyAjax(form, newQty, oldQty) {
             var url = form.getAttribute('action');
             url = url + (url.indexOf('?') >= 0 ? '&' : '?') + 'ajax=1';
@@ -235,7 +248,6 @@
                 if (!data)
                     return;
                 if (data.success !== true) {
-                    // revert UI
                     var qtyInput = form.querySelector('input[name="quantity"]');
                     var displayEl = form.querySelector('.cart-qty-display');
                     if (qtyInput)
@@ -246,7 +258,6 @@
                         showCartErrorBanner(data.message);
                     return;
                 }
-                // update subtotal & totals
                 if (subtotalEl && unitPrice > 0) {
                     subtotalEl.textContent = formatVnd(unitPrice * newQty);
                 }
@@ -271,7 +282,7 @@
             });
         }
 
-        // Gán click listener trực tiếp cho nút +/-
+        /** Ủy quyền click: chỉ xử lý khi bấm nút class cart-qty-minus hoặc cart-qty-plus. */
         container.addEventListener('click', function (e) {
             var btn = e.target.closest('.cart-qty-minus, .cart-qty-plus');
             if (!btn)
@@ -310,12 +321,10 @@
                 return;
             }
 
-            // Update UI ngay lập tức
             qtyInput.value = newQty;
             if (displayEl)
                 displayEl.textContent = newQty;
 
-            // Gửi AJAX để sync với server / kiểm tra kho
             submitCartQtyAjax(form, newQty, cur);
         });
     })();

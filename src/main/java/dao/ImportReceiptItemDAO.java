@@ -13,13 +13,14 @@ import model.ImportReceiptItem;
 import utils.DBContext;
 
 /**
- *
  * @author LE HOANG NHAN
  */
+
 public class ImportReceiptItemDAO extends DBContext {
 
     private String itemsTable;
 
+    // Hỏi cơ sở dữ liệu xem bảng dòng phiếu tên chính xác là gì, nhớ lại lần sau khỏi hỏi lại.
     private String resolveItemsTable() {
         if (itemsTable != null) {
             return itemsTable;
@@ -48,29 +49,7 @@ public class ImportReceiptItemDAO extends DBContext {
         return itemsTable;
     }
 
-    // 1. READ ALL
-    public List<ImportReceiptItem> getAllItems() {
-        List<ImportReceiptItem> list = new ArrayList<>();
-        String sql = "SELECT * FROM " + resolveItemsTable();
-        try {
-            PreparedStatement ps = conn.prepareStatement(sql);
-            ResultSet rs = ps.executeQuery();
-            while (rs.next()) {
-                list.add(new ImportReceiptItem(
-                        rs.getInt("receipt_item_id"),
-                        rs.getInt("receipt_id"),
-                        rs.getInt("variant_id"),
-                        rs.getDouble("import_price"),
-                        rs.getInt("quantity")
-                ));
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return list;
-    }
-
-    /** Lấy tất cả item theo receipt_id (để hiển thị trong detail phiếu nhập), sắp xếp tăng dần theo ID. */
+    // Lấy hết các dòng hàng thuộc một phiếu nhập (theo mã phiếu). Dùng ở trang chi tiết phiếu và lúc nhập số seri trước khi xác nhận.
     public List<ImportReceiptItem> getItemsByReceiptId(int receiptId) {
         List<ImportReceiptItem> list = new ArrayList<>();
         String sql = "SELECT * FROM " + resolveItemsTable() + " WHERE receipt_id = ? ORDER BY receipt_item_id ASC";
@@ -93,7 +72,7 @@ public class ImportReceiptItemDAO extends DBContext {
         return list;
     }
 
-    /** Returns first receipt_item_id for default use (e.g. add inventory without choosing receipt). 0 if none. */
+    // Khi form không chọn dòng phiếu cụ thể thì lấy mã dòng đầu tiên trong hệ thống; không có thì trả về 0.
     public int getFirstReceiptItemId() {
         String sql = "SELECT TOP 1 receipt_item_id FROM " + resolveItemsTable() + " ORDER BY receipt_item_id ASC";
         try (PreparedStatement ps = conn.prepareStatement(sql); ResultSet rs = ps.executeQuery()) {
@@ -104,7 +83,7 @@ public class ImportReceiptItemDAO extends DBContext {
         return 0;
     }
 
-    // 2. GET BY ID
+    // Lấy đúng một dòng hàng theo mã số dòng (để sửa hoặc xóa dòng đó).
     public ImportReceiptItem getItemById(int id) {
         String sql = "SELECT * FROM " + resolveItemsTable() + " WHERE receipt_item_id = ?";
         try {
@@ -126,21 +105,7 @@ public class ImportReceiptItemDAO extends DBContext {
         return null;
     }
 
-    // 3. INSERT
-    public void insertItem(ImportReceiptItem item) {
-        String sql = "INSERT INTO " + resolveItemsTable() + " (receipt_id, variant_id, import_price, quantity) VALUES (?, ?, ?, ?)";
-        try {
-            PreparedStatement ps = conn.prepareStatement(sql);
-            ps.setInt(1, item.getReceipt_id());
-            ps.setInt(2, item.getVariant_id());
-            ps.setDouble(3, item.getImport_price());
-            ps.setInt(4, item.getQuantity());
-            ps.executeUpdate();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-
+    // Cùng một phiếu và cùng một biến thể sản phẩm thì lấy một dòng đại diện (dòng đầu tiên). Dùng để kiểm tra đã có dòng chưa hoặc so giá nhập.
     public ImportReceiptItem getFirstItemByReceiptAndVariant(int receiptId, int variantId) {
         String sql = "SELECT TOP 1 receipt_item_id, receipt_id, variant_id, import_price, quantity "
                 + "FROM " + resolveItemsTable()
@@ -165,9 +130,8 @@ public class ImportReceiptItemDAO extends DBContext {
         return null;
     }
 
-    /**
-     * Cùng một phiếu nhập: cùng SKU luôn gộp quantity vào một dòng (không tách theo giá nhập).
-     */
+    // Khi nhân viên thêm hàng: trước hết thử cộng thêm số lượng vào dòng đã có; nếu chưa có dòng thì chèn dòng mới.
+    // Gói trong một giao dịch để tránh lưu dở. Số lượng không dương thì không làm gì.
     public void mergeOrInsertLine(int receiptId, int variantId, double importPrice, int qty) {
         if (qty <= 0) {
             return;
@@ -177,6 +141,7 @@ public class ImportReceiptItemDAO extends DBContext {
             oldAutoCommit = conn.getAutoCommit();
             conn.setAutoCommit(false);
 
+            // Ưu tiên cộng số lượng vào dòng đã có cùng sản phẩm trên phiếu.
             String updateSql = "UPDATE " + resolveItemsTable()
                     + " SET quantity = quantity + ? WHERE receipt_id = ? AND variant_id = ?";
             int updatedRows;
@@ -214,7 +179,7 @@ public class ImportReceiptItemDAO extends DBContext {
         }
     }
 
-    // 4. UPDATE
+    // Cập nhật toàn bộ thông tin một dòng khi người dùng sửa trực tiếp trên giao diện (khác với cộng dồn số lượng).
     public void updateItem(ImportReceiptItem item) {
         String sql = "UPDATE " + resolveItemsTable() + " SET receipt_id=?, variant_id=?, import_price=?, quantity=? WHERE receipt_item_id=?";
         try {
@@ -230,7 +195,7 @@ public class ImportReceiptItemDAO extends DBContext {
         }
     }
 
-    // 5. DELETE - trả về true nếu xóa thành công, false nếu lỗi (ví dụ dính khóa ngoại)
+    // Xóa một dòng phiếu. Nếu đã có bản ghi tồn kho gắn với dòng này thì có thể xóa không được; lớp điều khiển cần xóa tồn kho trước.
     public boolean deleteItem(int id) {
         String sql = "DELETE FROM " + resolveItemsTable() + " WHERE receipt_item_id = ?";
         try {
@@ -243,37 +208,4 @@ public class ImportReceiptItemDAO extends DBContext {
         }
     }
 
-    // --- MAIN TEST ---
-    public static void main(String[] args) {
-        ImportReceiptItemDAO dao = new ImportReceiptItemDAO();
-
-        // 1. Xem danh sach
-        System.out.println("--- LIST ALL ---");
-        List<ImportReceiptItem> list = dao.getAllItems();
-        for (ImportReceiptItem item : list) {
-            System.out.println(item);
-        }
-
-        // 2. Insert (Chèn)
-        // LƯU Ý: receipt_id = 1 và variant_id = 1 PHẢI TỒN TẠI trong DB rồi mới chạy được lệnh này
-        // Nếu chưa có, bạn hãy sửa số 1 thành ID nào đang có thật.
-        ImportReceiptItem newItem = new ImportReceiptItem(0, 1, 1, 5000000, 10);
-        dao.insertItem(newItem);
-        System.out.println("Da them item moi.");
-
-        // 3. Update (Sửa)
-        // Sửa item có ID = 1 (Nhớ thay ID thực tế của bạn vào)
-        ImportReceiptItem updateItem = new ImportReceiptItem(1, 1, 1, 4500000, 20);
-        dao.updateItem(updateItem);
-        System.out.println("Da update item ID = 1.");
-
-        // 4. Delete (Xóa)
-        // Xóa item có ID = 2
-        dao.deleteItem(2);
-        System.out.println("Da xoa item ID = 2.");
-
-        // 5. Get by ID
-        System.out.println("--- GET BY ID 1 ---");
-        System.out.println(dao.getItemById(1));
-    }
 }

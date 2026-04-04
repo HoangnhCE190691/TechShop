@@ -96,7 +96,8 @@ public class Supplier {
         return s;
     }
 
-    public String getAddressDisplaySingleLine() { // gộp whitespace — hiển thị ô địa chỉ gọn
+    // gộp whitespace - hiển thị ô địa chỉ gọn
+    public String getAddressDisplaySingleLine() {
         String s = getAddressDisplay();
         if (s.isEmpty()) {
             return "";
@@ -116,9 +117,7 @@ public class Supplier {
         return is_active;
     }
 
-    /**
-     * Cho EL trong JSP: ${s.is_active}
-     */
+    // Cho EL trong JSP: ${s.is_active}
     public boolean getIs_active() {
         return is_active;
     }

@@ -17,6 +17,7 @@ import java.io.IOException;
 import model.InventoryItem;
 
 @WebServlet(name = "InventoryServlet", urlPatterns = {"/inventory"})
+// Nhân viên thêm, xem, sửa, xóa từng bản ghi tồn kho (thường kèm chọn biến thể và dòng phiếu nhập).
 public class InventoryServlet extends HttpServlet {
 
     private InventoryItemDAO dao;
@@ -30,6 +31,7 @@ public class InventoryServlet extends HttpServlet {
         response.sendRedirect(request.getContextPath() + "/staffservlet?action=inventoryManagement");
     }
 
+    /** Đọc số nguyên an toàn từ tham số. */
     private int parseIntSafe(String s, int defaultValue) {
         if (s == null) {
             return defaultValue;
@@ -41,6 +43,7 @@ public class InventoryServlet extends HttpServlet {
         }
     }
 
+    /** Tạo mã nội bộ tạm khi thêm tay một chiếc vào kho (khác luồng xác nhận phiếu tự sinh seri). */
     private String generateInternalCode(int variantId, int receiptItemId) {
         return "INV-" + variantId + "-" + receiptItemId + "-" + System.currentTimeMillis();
     }
@@ -82,6 +85,7 @@ public class InventoryServlet extends HttpServlet {
                 break;
             }
             case "delete": {
+                // Xóa hẳn một dòng tồn kho; nếu đang được đơn hàng dùng thì có thể thất bại.
                 boolean ok = false;
                 int id = parseIntSafe(request.getParameter("id"), 0);
                 if (id > 0) {
@@ -189,6 +193,7 @@ public class InventoryServlet extends HttpServlet {
         }
     }
 
+    /** Lấy một bản ghi tồn kho theo tham số id trên địa chỉ. */
     private InventoryItem getByIdSafe(HttpServletRequest request) {
         String idStr = request.getParameter("id");
         if (idStr == null || idStr.isBlank()) {
@@ -202,6 +207,7 @@ public class InventoryServlet extends HttpServlet {
         }
     }
 
+    /** Thông báo tạm cho màn quản lý kho sau chuyển hướng. */
     private void setMsg(HttpSession session, String msg, String type) {
         session.setAttribute("msg", msg);
         session.setAttribute("msgType", type);

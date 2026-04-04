@@ -17,12 +17,15 @@ import java.util.List;
 import java.util.Map;
 
 @WebServlet(name = "cartServlet", urlPatterns = {"/cartservlet"})
+// Giỏ hàng khách: truy vấn hiển thị danh sách và số hàng còn kho theo từng biến thể.
+// Gửi bằng phương thức thêm, đổi số lượng, xóa; trình duyệt có thể gọi dạng không tải lại trang để nhận dữ liệu dạng chữ cho máy đọc.
 public class cartServlet extends HttpServlet {
 
     private void redirectToCart(HttpServletRequest request, HttpServletResponse response) throws IOException {
         response.sendRedirect(request.getContextPath() + "/cartservlet");
     }
 
+    /** Chuyển sang đăng nhập, có thể kèm tham số để sau đăng nhập quay lại giỏ. */
     private void redirectToLogin(HttpServletRequest request, HttpServletResponse response, String from) throws IOException {
         String url = request.getContextPath() + "/userservlet?action=loginPage";
         if (from != null && !from.isBlank()) {
@@ -31,11 +34,13 @@ public class cartServlet extends HttpServlet {
         response.sendRedirect(url);
     }
 
+    /** Thông báo tạm trên phiên làm việc. */
     private void setMsg(HttpServletRequest request, String msg, String type) {
         request.getSession().setAttribute("msg", msg);
         request.getSession().setAttribute("msgType", type);
     }
 
+    /** Đọc số nguyên an toàn. */
     private int parseIntSafe(String s, int defaultValue) {
         if (s == null) {
             return defaultValue;
@@ -47,11 +52,13 @@ public class cartServlet extends HttpServlet {
         }
     }
 
+    /** Xem có phải yêu cầu từ script trên trang (cần trả lời dạng chữ máy đọc). */
     private boolean isAjax(HttpServletRequest request) {
         return "XMLHttpRequest".equals(request.getHeader("X-Requested-With"))
                 || "1".equals(request.getParameter("ajax"));
     }
 
+    /** Mã khách trong phiên; không có thì đọc cookie đăng nhập khách (cùng cách các trang người dùng khác). */
     private int getCustomerId(HttpServletRequest request) {
         Object sid = request.getSession(false) != null ? request.getSession().getAttribute("customerId") : null;
         if (sid instanceof Integer) {
@@ -70,6 +77,7 @@ public class cartServlet extends HttpServlet {
         return fromCookie;
     }
 
+    /** Đọc mã khách và vai trò từ cookie trình duyệt. */
     private int getCustomerIdFromCookie(HttpServletRequest request) {
         jakarta.servlet.http.Cookie[] cookies = request.getCookies();
         if (cookies == null) {
@@ -96,8 +104,7 @@ public class cartServlet extends HttpServlet {
     }
 
     /**
-     * Trả về customerId hợp lệ (>0) và tồn tại trong DB. Nếu session/cookie bị
-     * "cũ" (customer không còn), sẽ auto clear session và trả về -1.
+     * Chỉ trả về mã khách thật sự còn trong hệ thống; phiên hoặc cookie lỗi thời thì xóa và trả về âm một.
      */
     private int getValidCustomerId(HttpServletRequest request) {
         int customerId = getCustomerId(request);
@@ -120,6 +127,7 @@ public class cartServlet extends HttpServlet {
 
         int customerId = getValidCustomerId(request);
         List<CartItemDisplay> listCart = new java.util.ArrayList<>();
+        // Số chiếc còn trong kho theo từng biến thể — trang giỏ dùng để không cho tăng quá tồn (cả trên máy khách và máy chủ).
         Map<Integer, Integer> variantStockMap = new HashMap<>();
         if (customerId > 0) {
             CartItemDAO cartDao = new CartItemDAO();
@@ -131,7 +139,7 @@ public class cartServlet extends HttpServlet {
         }
         int cartCount = listCart.size();
 
-        // API chỉ trả số giỏ (JSON) để client cập nhật badge không cần F5
+        // Một số trang chỉ cần biết có bao nhiêu dòng trong giỏ để hiển thị số trên menu.
         if ("count".equals(request.getParameter("action"))) {
             response.setContentType("application/json");
             response.setCharacterEncoding("UTF-8");
@@ -167,6 +175,7 @@ public class cartServlet extends HttpServlet {
         }
 
         switch (action) {
+            // Thêm vào giỏ: gộp số lượng nếu đã có cùng biến thể; không vượt tồn kho.
             case "add": {
                 int customerId = getValidCustomerId(request);
                 if (customerId <= 0) {
@@ -231,7 +240,7 @@ public class cartServlet extends HttpServlet {
                     return;
                 }
 
-                // Trả lại tổng tiền + cartCount để UI cập nhật.
+                // Trả lời dạng chữ máy đọc: tổng tiền và số dòng để giao diện cập nhật không tải lại trang.
                 List<CartItemDisplay> list = cartDao.getCartDisplayByCustomerId(customerId);
                 int cartCount = (list != null) ? list.size() : 0;
                 long totalAmount = 0;
@@ -255,6 +264,7 @@ public class cartServlet extends HttpServlet {
                 }
                 return;
             }
+            // Đổi số lượng một dòng; kiểm tra tồn kho và đúng chủ giỏ.
             case "update": {
                 int customerId = getValidCustomerId(request);
                 if (customerId <= 0) {
@@ -317,6 +327,7 @@ public class cartServlet extends HttpServlet {
                 }
                 return;
             }
+            // Xóa một dòng giỏ khi đúng chủ.
             case "remove": {
                 int customerId = getValidCustomerId(request);
                 if (customerId <= 0) {
@@ -341,10 +352,7 @@ public class cartServlet extends HttpServlet {
         }
     }
 
-    /**
-     * Trả JSON cho AJAX: { "success": true/false, "totalAmount": number,
-     * "cartCount": number, "message": "..." }
-     */
+    /** Gửi câu trả lời dạng chữ máy đọc: thành công hay không, tổng tiền, số dòng, thông báo. */
     private void sendJson(HttpServletResponse response, boolean success, long totalAmount, int cartCount, String message) throws IOException {
         response.setContentType("application/json");
         response.setCharacterEncoding("UTF-8");
@@ -362,7 +370,6 @@ public class cartServlet extends HttpServlet {
     }
 
     private String escapeJson(String s) {
-        // Escape tối thiểu để string không làm vỡ JSON.
         return s.replace("\\", "\\\\").replace("\"", "\\\"");
     }
 

@@ -1,6 +1,7 @@
 <%@page contentType="text/html" pageEncoding="UTF-8"%>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 
+<%-- Sửa nhà cung cấp: POST supplier?action=update; cần supplier_id ẩn --%>
 <div class="w-full flex flex-col items-center">
     <c:if test="${not empty sessionScope.msg}">
         <div class="mb-4 w-full max-w-xl">
@@ -25,7 +26,7 @@
             <h2 class="text-xl font-bold mb-4">Edit supplier (#${supplier.supplier_id})</h2>
 
             <form action="supplier" method="POST" id="editSupplierForm"
-                  onsubmit="return validateSupplierNameField(document.getElementById('editSupplierName'));">
+                  onsubmit="return validateEditSupplierForm();">
                 <input type="hidden" name="action" value="update"/>
                 <input type="hidden" name="supplier_id" value="${supplier.supplier_id}"/>
 
@@ -37,12 +38,11 @@
                            title="Letters, digits, Vietnamese, spaces, &, . and -"
                            autocomplete="organization"
                            oninput="filterSupplierNameInput(this)">
-                    <p class="text-xs text-gray-500 mt-1">Allowed: letters, digits, Vietnamese, spaces, &amp;, . and -</p>
                 </div>
 
                 <div class="mb-3">
-                    <label class="block mb-1 font-medium">Phone *</label>
-                    <input type="tel" name="phone" required maxlength="10" pattern="[0-9]{10}"
+                    <label class="block mb-1 font-medium" for="editSupplierPhone">Phone *</label>
+                    <input id="editSupplierPhone" type="tel" name="phone" required maxlength="10" pattern="[0-9]{10}"
                            inputmode="numeric" title="Exactly 10 digits"
                            value="${supplier.phone}"
                            class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-200" placeholder="10 digits"
@@ -56,14 +56,14 @@
                            class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-200" placeholder="Email (optional)"
                            autocomplete="email"
                            onblur="if (this.value)
-                                   this.value = this.value.trim().toLowerCase()">
+                                       this.value = this.value.trim().toLowerCase()">
                 </div>
 
                 <div class="mb-3">
-                    <label class="block mb-1 font-medium" for="editSupplierAddress">Address</label>
-                    <textarea id="editSupplierAddress" name="address" rows="1" maxlength="500"
+                    <label class="block mb-1 font-medium" for="editSupplierAddress">Address *</label>
+                    <textarea id="editSupplierAddress" name="address" rows="1" maxlength="500" required
                               class="supplier-address-textarea block w-full px-3 py-2 border rounded-lg text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-200 resize-none break-words"
-                              placeholder="Warehouse / office address (optional)"
+                              placeholder="Warehouse / office address"
                               oninput="autoResizeAddress(this)"><c:out value="${supplier.address}"/></textarea>
                 </div>
 
@@ -97,10 +97,14 @@
     }
 </style>
 <script>
+    /*
+     * Form sửa nhà cung cấp: cùng logic resize địa chỉ và lọc/validate tên như form thêm.
+     */
+    /** Tự điều chỉnh chiều cao ô địa chỉ theo nội dung (có giới hạn tối đa). */
     function autoResizeAddress(el) {
         if (!el)
             return;
-        var cap = 192; // max ~12rem
+        var cap = 192;
         el.style.height = 'auto';
         el.style.overflowY = 'hidden';
         var sh = el.scrollHeight;
@@ -113,12 +117,15 @@
         }
     }
 
-    document.addEventListener('DOMContentLoaded', function () {
+    /** Sau khi trang load: căn chiều cao textarea địa chỉ (form edit thường có nội dung dài). */
+    function initEditSupplierAddressOnLoad() {
         var ta = document.getElementById('editSupplierAddress');
         if (ta)
             autoResizeAddress(ta);
-    });
+    }
+    document.addEventListener('DOMContentLoaded', initEditSupplierAddressOnLoad);
 
+    /** Loại bỏ ký tự không hợp lệ trong tên khi đang gõ (đồng bộ servlet). */
     function filterSupplierNameInput(el) {
         if (!el)
             return;
@@ -129,6 +136,7 @@
         }
     }
 
+    /** Kiểm tra tên trước submit: không rỗng, đúng bộ ký tự; báo lỗi bằng API hợp lệ của trình duyệt. */
     function validateSupplierNameField(el) {
         if (!el)
             return true;
@@ -151,6 +159,50 @@
             return false;
         }
         el.setCustomValidity('');
+        return true;
+    }
+
+    function validateSupplierPhoneField(el) {
+        if (!el)
+            return false;
+        var p = (el.value || '').replace(/\D/g, '');
+        el.value = p;
+        if (p.length !== 10 || !/^[0-9]{10}$/.test(p)) {
+            el.setCustomValidity('Phone must be exactly 10 digits.');
+            el.reportValidity();
+            return false;
+        }
+        el.setCustomValidity('');
+        return true;
+    }
+
+    function validateSupplierAddressField(el) {
+        if (!el)
+            return false;
+        if (!(el.value || '').trim().length) {
+            el.setCustomValidity('Please enter address.');
+            el.reportValidity();
+            return false;
+        }
+        el.setCustomValidity('');
+        return true;
+    }
+
+    function validateEditSupplierForm() {
+        if (!validateSupplierNameField(document.getElementById('editSupplierName')))
+            return false;
+        if (!validateSupplierPhoneField(document.getElementById('editSupplierPhone')))
+            return false;
+        if (!validateSupplierAddressField(document.getElementById('editSupplierAddress')))
+            return false;
+        var emailEl = document.getElementById('editSupplierEmail');
+        if (emailEl && emailEl.value.replace(/^\s+|\s+$/g, '').length > 0) {
+            emailEl.value = emailEl.value.trim().toLowerCase();
+            if (!emailEl.checkValidity()) {
+                emailEl.reportValidity();
+                return false;
+            }
+        }
         return true;
     }
 </script>

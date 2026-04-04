@@ -21,6 +21,7 @@ import utils.VNPayConfig;
 import utils.VNPayUtils;
 
 @WebServlet(name = "vnpayservlet", urlPatterns = {"/vnpayservlet"})
+// Thanh toán qua cổng bên thứ ba: tạo đường link thanh toán hoặc xử lý khi khách quay lại sau khi thanh toán.
 public class VNPayServlet extends HttpServlet {
 
     @Override
@@ -36,16 +37,15 @@ public class VNPayServlet extends HttpServlet {
         }
     }
 
+    /** Tạo đường dẫn sang trang thanh toán của cổng; mã tham chiếu tạm thời vì đơn chưa tạo lúc này. */
     private void handleCreatePayment(HttpServletRequest request, HttpServletResponse response)
             throws IOException {
 
         String amountParam = request.getParameter("amount");
         long amount = Long.parseLong(amountParam) * 100;
 
-        // Dùng timestamp làm txnRef tạm (chưa có orderId thật)
         String txnRef = String.valueOf(System.currentTimeMillis());
 
-        // Lưu txnRef vào session để verify sau
         request.getSession().setAttribute("vnpay_txnRef", txnRef);
 
         String createDate = new SimpleDateFormat("yyyyMMddHHmmss").format(new Date());
@@ -72,6 +72,7 @@ public class VNPayServlet extends HttpServlet {
         response.sendRedirect(paymentUrl);
     }
 
+    /** Khách quay lại từ cổng: nếu thành công thì tạo đơn, dòng đơn, xóa giỏ; không thì báo lỗi và giữ giỏ. */
     private void handleReturn(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
 
@@ -82,7 +83,6 @@ public class VNPayServlet extends HttpServlet {
         boolean success = "00".equals(responseCode);
 
         if (success) {
-            // Lấy thông tin từ session để tạo order
             HttpSession sess = request.getSession();
             try {
                 int customerId = (int) sess.getAttribute("vnpay_customerId");
@@ -92,20 +92,18 @@ public class VNPayServlet extends HttpServlet {
                 int voucherId = (int) sess.getAttribute("vnpay_voucherId");
                 BigDecimal totalAmount = BigDecimal.valueOf(totalAmountL);
 
-                // Lấy voucher nếu có
                 model.Voucher appliedVoucher = null;
                 if (voucherId > 0) {
                     appliedVoucher = new VoucherDAO().getVoucherById(voucherId);
                 }
 
-                // Tạo order
                 OrderDAO orderDAO = new OrderDAO();
                 model.Order newOrder = new model.Order(
                         customerId, appliedVoucher, paymentMethodId, address, totalAmount);
                 int orderId = orderDAO.insertOrder(newOrder);
 
                 if (orderId > 0) {
-                    // Thêm order_items + update inventory
+                    // Thêm từng dòng đơn từ giỏ rồi xóa giỏ, giống thanh toán khi nhận hàng.
                     CartItemDAO cartDao = new CartItemDAO();
                     InventoryItemDAO inventoryDAO = new InventoryItemDAO();
                     OrderItemDAO orderItemDAO = new OrderItemDAO();
@@ -126,19 +124,15 @@ public class VNPayServlet extends HttpServlet {
                         }
                     }
 
-                    // Cập nhật payment status PAID
                     orderDAO.updateOrderPaymentStatus(orderId, "PAID");
 
-                    // Cập nhật voucher
                     if (appliedVoucher != null) {
                         new VoucherDAO().incrementUsedQuantity(appliedVoucher.getVoucherId());
                     }
 
-                    // Xóa giỏ hàng
                     cartDao.deleteCartByCustomerId(customerId);
                 }
 
-                // Xóa session vnpay
                 sess.removeAttribute("vnpay_customerId");
                 sess.removeAttribute("vnpay_shippingAddress");
                 sess.removeAttribute("vnpay_paymentMethodId");
@@ -155,7 +149,7 @@ public class VNPayServlet extends HttpServlet {
             return;
         }
 
-        // Hủy hoặc thất bại → quay về trang đặt hàng, giỏ hàng vẫn còn
+        // Thanh toán hủy hoặc lỗi: quay lại trang đặt hàng, giỏ vẫn giữ.
         request.getSession().setAttribute("vnpayError", "24".equals(responseCode)
                 ? "You have canceled your VNPAY payment or an error has occurred. Please try again. We apologize for the inconvenience."
                 : "VNPay payment failed (Error code: " + responseCode + "). ");
