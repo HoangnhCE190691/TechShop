@@ -242,7 +242,7 @@ public class SupplierServlet extends HttpServlet {
                 String address = normalizeAddress(request.getParameter("address"));
                 String isActive = request.getParameter("is_active");
 
-                if (!name.isEmpty() && phone.length() == 10) {
+                if (!name.isEmpty() && phone.length() == 10 && address != null && !address.isEmpty()) {
                     if (!dao.hasConnection()) {
                         setMsg(request.getSession(), "Cannot connect to the database. Please try again later.", "danger");
                     } else if (!isValidSupplierName(name)) {
@@ -266,7 +266,7 @@ public class SupplierServlet extends HttpServlet {
                         }
                     }
                 } else {
-                    setMsg(request.getSession(), "Please enter name and phone.", "danger");
+                    setMsg(request.getSession(), "Please enter name, phone, and address.", "danger");
                 }
                 break;
             }
@@ -279,7 +279,8 @@ public class SupplierServlet extends HttpServlet {
                 String address = normalizeAddress(request.getParameter("address"));
                 String isActive = request.getParameter("is_active");
 
-                if (idStr != null && !idStr.isEmpty() && !name.isEmpty() && phone.length() == 10) {
+                if (idStr != null && !idStr.isEmpty() && !name.isEmpty() && phone.length() == 10
+                        && address != null && !address.isEmpty()) {
                     int id = parseIntSafe(idStr, 0);
                     if (id <= 0) {
                         setMsg(request.getSession(), "Invalid supplier id.", "danger");
