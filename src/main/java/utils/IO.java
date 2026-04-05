@@ -8,9 +8,11 @@ import dao.CustomerAddressDAO;
 import dao.CustomerDAO;
 import dao.EmployeesDAO;
 import dao.VoucherDAO;
+import java.security.SecureRandom;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Random;
 import model.Customer;
@@ -28,14 +30,34 @@ public class IO {
     private static EmployeesDAO edao = new EmployeesDAO();
     private static VoucherDAO vdao = new VoucherDAO();
     private static CustomerAddressDAO addressDAO = new CustomerAddressDAO();
+    private static final String UPPERCASE = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+    private static final String LOWERCASE = "abcdefghijklmnopqrstuvwxyz";
+    private static final String NUMBERS = "0123456789";
+    private static final String SPECIAL_CHARS = "!@#$%^&*()-_=+[]{};:,.<>/?";
+    private static final String ALL_CHARS = UPPERCASE + LOWERCASE + NUMBERS + SPECIAL_CHARS;
 
     public static String generate8DigitPassword() {
-        Random random = new Random();
-        StringBuilder password = new StringBuilder(8);
+        SecureRandom random = new SecureRandom(); // Dùng SecureRandom cho mật khẩu
+        List<Character> passwordChars = new ArrayList<>();
 
-        for (int i = 0; i < 8; i++) {
-            // Lấy ngẫu nhiên một số từ 0 đến 9 ghép vào chuỗi
-            password.append(random.nextInt(10));
+        // 1. Đảm bảo có ít nhất 1 chữ hoa
+        passwordChars.add(UPPERCASE.charAt(random.nextInt(UPPERCASE.length())));
+
+        // 2. Đảm bảo có ít nhất 1 ký tự đặc biệt
+        passwordChars.add(SPECIAL_CHARS.charAt(random.nextInt(SPECIAL_CHARS.length())));
+
+        // 3. Random 6 ký tự còn lại từ tất cả các tập hợp
+        for (int i = 0; i < 6; i++) {
+            passwordChars.add(ALL_CHARS.charAt(random.nextInt(ALL_CHARS.length())));
+        }
+
+        // 4. Trộn ngẫu nhiên vị trí các ký tự (để chữ hoa/kí tự đặc biệt không luôn ở đầu)
+        Collections.shuffle(passwordChars, random);
+
+        // 5. Ghép lại thành chuỗi String
+        StringBuilder password = new StringBuilder();
+        for (char c : passwordChars) {
+            password.append(c);
         }
 
         return password.toString();

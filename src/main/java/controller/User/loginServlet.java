@@ -105,10 +105,18 @@ public class loginServlet extends HttpServlet {
         } // 3. Trường hợp là Nhân viên (Employee)
         else if (employee.getEmployeeId() != -1) {
 
-            if (!employee.getStatus().equalsIgnoreCase("ACTIVE")) {
-
+            if (employee.getStatus().equalsIgnoreCase("LOCKED")) {
                 request.setAttribute("error", "Your account has been banned!");
                 // Đăng nhập thất bại
+                request.setAttribute("ContentPage", "/pages/MainPage/loginPage.jsp");
+                request.getRequestDispatcher("/template/userTemplate.jsp").forward(request, response);
+                return;
+            }
+            
+              if (employee.getStatus().equalsIgnoreCase("VERIFY")) {
+                request.setAttribute("username", employee.getUsername());
+                request.setAttribute("verifyPOPUP", true);
+                request.setAttribute("error", "Your account need VERIFY!");
                 request.setAttribute("ContentPage", "/pages/MainPage/loginPage.jsp");
                 request.getRequestDispatcher("/template/userTemplate.jsp").forward(request, response);
                 return;
