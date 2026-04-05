@@ -94,7 +94,6 @@
                                 class="text-xs font-bold text-gray-400 uppercase tracking-widest">Category</label>
                             <select name="categoryId" required
                                     class="w-full mt-1 p-3 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none cursor-pointer">
-                                <%-- Thêm dòng Select mặc định --%>
                                 <option value="" disabled selected>Select Category</option>
                                 <c:forEach items="${categories}" var="cat">
                                     <option value="${cat.categoryId}">${cat.categoryName}
@@ -118,7 +117,6 @@
                     <%-- Product Images --%>
                     <div>
                         <label class="text-xs font-bold text-gray-400 uppercase tracking-widest">Product Images</label>
-                        <%-- Xóa thuộc tính 'required' ở đây --%>
                         <input type="file" name="productImage" accept=".jpg,.jpeg,.png" multiple
                                class="w-full mt-1 p-2 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none transition-all">
                         <p class="text-[10px] text-gray-400 mt-1 italic">

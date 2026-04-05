@@ -25,10 +25,8 @@ public class searchSuggestionServlet extends HttpServlet {
         if (keyword != null && !keyword.trim().isEmpty()) {
             ProductDAO pdao = new ProductDAO();
 
-            // Lấy danh sách sản phẩm theo từ khoá tìm kiếm
             List<Product> list = pdao.getFilteredProductsWithPaging(keyword, null, null, null, null, null, 1, 10);
 
-            // Chỉ lấy max 5 sản phẩn hiển thị quick search
             if (list.size() > 5) {
                 list = list.subList(0, 5);
             }
@@ -38,7 +36,6 @@ public class searchSuggestionServlet extends HttpServlet {
 
             request.getRequestDispatcher("/pages/MainPage/searchSuggestion.jsp").forward(request, response);
         } else {
-            // Không trả về gì nếu không có keyword
             response.getWriter().write("");
         }
     }

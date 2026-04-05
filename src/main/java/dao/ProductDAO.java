@@ -12,10 +12,8 @@ import utils.DBContext;
 public class ProductDAO extends DBContext {
 
     // 1. Lấy tất cả sản phẩm
-    // Trong ProductDAO.java
     public List<Product> getAllProduct() {
         List<Product> list = new ArrayList<>();
-        // Thực hiện JOIN để lấy Category Name và Brand Name
         String sql = "SELECT p.*, c.category_name, b.brand_name "
                 + "FROM products p "
                 + "LEFT JOIN categories c ON p.category_id = c.category_id "
@@ -26,7 +24,6 @@ public class ProductDAO extends DBContext {
             ResultSet rs = ps.executeQuery();
             while (rs.next()) {
                 Product p = mapResultSetToProduct(rs);
-                // Gán thêm tên từ kết quả JOIN
                 p.setCategoryName(rs.getString("category_name"));
                 p.setBrandName(rs.getString("brand_name"));
                 list.add(p);
@@ -73,7 +70,6 @@ public class ProductDAO extends DBContext {
 
     // 2. Lấy sản phẩm theo ID
     public Product getProductById(int id) {
-        // SỬA: Phải JOIN với bảng categories và brands để lấy tên hiển thị
         String sql = "SELECT p.*, c.category_name, b.brand_name "
                 + "FROM products p "
                 + "LEFT JOIN categories c ON p.category_id = c.category_id "
@@ -85,7 +81,6 @@ public class ProductDAO extends DBContext {
             ResultSet rs = ps.executeQuery();
             if (rs.next()) {
                 Product p = mapResultSetToProduct(rs);
-                // QUAN TRỌNG: Phải gán thêm tên từ kết quả truy vấn vào object
                 p.setCategoryName(rs.getString("category_name"));
                 p.setBrandName(rs.getString("brand_name"));
                 return p;
@@ -117,8 +112,6 @@ public class ProductDAO extends DBContext {
 
     // 4. Kiểm tra trùng tên
     public boolean isProductDuplicate(String name, int categoryId, int brandId, int excludeId) {
-        // Câu lệnh SQL kiểm tra trùng tên + danh mục + thương hiệu
-        // nhưng bỏ qua bản ghi có ID hiện tại (dùng cho Update)
         String sql = "SELECT COUNT(*) FROM products "
                 + "WHERE name = ? AND category_id = ? AND brand_id = ? AND product_id <> ?";
         try {
@@ -126,7 +119,7 @@ public class ProductDAO extends DBContext {
             ps.setString(1, name);
             ps.setInt(2, categoryId);
             ps.setInt(3, brandId);
-            ps.setInt(4, excludeId); // Nếu là Add, truyền vào số 0
+            ps.setInt(4, excludeId);
 
             ResultSet rs = ps.executeQuery();
             if (rs.next()) {
@@ -150,7 +143,7 @@ public class ProductDAO extends DBContext {
             ps.setString(4, p.getDescription());
             ps.setString(5, p.getStatus());
             ps.setTimestamp(6, java.sql.Timestamp.valueOf(java.time.LocalDateTime.now()));
-            ps.setObject(7, p.getCreatedBy()); // ID của admin đang đăng nhập
+            ps.setObject(7, p.getCreatedBy()); 
             ps.executeUpdate();
 
             ResultSet rs = ps.getGeneratedKeys();
@@ -480,7 +473,7 @@ public class ProductDAO extends DBContext {
             sql.append(" ORDER BY p.product_id DESC ");
         }
 
-        // PHÂN TRANG (SQL Server)
+        // PHÂN TRANG
         sql.append(" OFFSET ? ROWS FETCH NEXT ? ROWS ONLY");
 
         try {

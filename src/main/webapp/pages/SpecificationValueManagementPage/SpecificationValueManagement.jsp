@@ -107,7 +107,6 @@
             const pName = row.querySelector('.prod-name-cell').innerText.toLowerCase();
             const sName = row.querySelector('.spec-name-cell').innerText.toLowerCase();
 
-            // Logic lọc kết hợp: tên sản phẩm bao gồm chuỗi tìm kiếm VÀ (không lọc thông số HOẶC thông số khớp chính xác)
             const isVisible = pName.includes(prodVal) && (specVal === "" || sName === specVal);
 
             row.style.display = isVisible ? "" : "none";
@@ -115,7 +114,6 @@
                 count++;
         });
 
-        // Cập nhật trạng thái hiển thị của dòng thông báo "không tìm thấy" và bộ đếm
         document.getElementById('noResults').style.display = (count === 0 && rows.length > 0) ? "" : "none";
         document.getElementById('visibleCount').innerText = count;
     }

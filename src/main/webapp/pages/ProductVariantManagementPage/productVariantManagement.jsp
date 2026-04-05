@@ -51,7 +51,7 @@
         </a>
     </div>
 
-    <%-- 3. BỘ LỌC ĐA NĂNG (Tương tự productManagement.jsp [cite: 243-248]) --%>
+    <%-- 3. BỘ LỌC ĐA NĂNG --%>
     <div class="flex flex-col md:flex-row gap-3 mb-6 items-center bg-gray-50 p-3 rounded-xl border border-gray-100">
         <div class="relative flex-1 w-full">
             <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-400">
@@ -138,7 +138,7 @@
         </table>
     </div>
 
-    <%-- 5. PHÂN TRANG (Giữ nguyên từ mẫu [cite: 270]) --%>
+    <%-- 5. PHÂN TRANG --%>
     <div class="flex flex-col md:flex-row justify-between items-center gap-3 mt-5 text-sm text-gray-500">
         <p>Showing <span id="visibleCount" class="font-bold text-gray-900">${listdata.size()}</span> variants</p>
         <nav class="inline-flex rounded-lg shadow-sm border overflow-hidden">
@@ -149,7 +149,7 @@
     </div>
 </div>
 
-<%-- 6. SCRIPT LỌC LIVE (Dựa trên mẫu [cite: 271-280]) --%>
+<%-- 6. SCRIPT LỌC LIVE --%>
 <script>
     function filterTable() {
         const skuVal = document.getElementById('skuFilter').value.toLowerCase();

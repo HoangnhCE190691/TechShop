@@ -75,7 +75,7 @@ public class categoryServlet extends HttpServlet {
                     Category cat = cdao.getCategoryById(idDel);
                     int pCount = cdao.countProductsByCategoryId(idDel);
                     request.setAttribute("category", cat);
-                    request.setAttribute("productCount", pCount); // Gửi số lượng sang JSP
+                    request.setAttribute("productCount", pCount);
                     page = "/pages/CategoryManagementPage/deleteCategory.jsp";
                     break;
                 case "edit":
@@ -88,11 +88,10 @@ public class categoryServlet extends HttpServlet {
                     int idDetail = Integer.parseInt(request.getParameter("id"));
                     Category catDetail = cdao.getCategoryById(idDetail);
 
-                    // Lấy số lượng sản phẩm liên kết
                     int productCount = cdao.countProductsByCategoryId(idDetail);
 
                     request.setAttribute("category", catDetail);
-                    request.setAttribute("productCount", productCount); // Đẩy dữ liệu này sang JSP
+                    request.setAttribute("productCount", productCount); 
                     page = "/pages/CategoryManagementPage/detailCategory.jsp";
                     break;
                 case "all":

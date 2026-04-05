@@ -39,7 +39,6 @@
     </div>
 
     <form action="reviewServlet" method="POST" class="mt-10 flex justify-center gap-4">
-        <%-- Tự động gửi action ngược lại với trạng thái hiện tại --%>
         <input type="hidden" name="action" value="${review.status.toLowerCase() != 'visible' ? 'show' : 'hide'}">
         <input type="hidden" name="reviewId" value="${review.reviewId}">
         

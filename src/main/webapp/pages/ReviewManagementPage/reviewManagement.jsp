@@ -1,7 +1,6 @@
 <%@page contentType="text/html" pageEncoding="UTF-8"%>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 
-<%-- Giữ nguyên phần thông báo Toast từ source 16 đến 19 --%>
 <c:if test="${not empty sessionScope.msg}">
     <div id="toast-notification" class="fixed top-10 left-1/2 -translate-x-1/2 z-[9999] min-w-[320px] transition-all duration-500">
         <div class="flex items-center justify-center p-4 rounded-xl shadow-2xl border-2 animate-bounce
@@ -28,7 +27,6 @@
         <h2 class="text-xl font-bold text-gray-800 uppercase tracking-tight">Review Management</h2>
     </div>
 
-    <%-- Giữ nguyên bộ lọc từ source 20 đến 23 --%>
     <div class="flex flex-col md:flex-row gap-3 mb-6 items-center bg-gray-50 p-3 rounded-xl border border-gray-100">
         <div class="relative flex-1 w-full">
             <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-400">
@@ -90,7 +88,6 @@
                         <td class="px-4 py-3 text-xs text-gray-500">${r.formattedDate}</td>
                         <td class="px-4 py-4 text-center">
                             <div class="flex items-center justify-center gap-4">
-                                <%-- Nút Xem Chi Tiết (Giữ nguyên) --%>
                                 <a href="reviewServlet?action=detail&id=${r.reviewId}" class="text-blue-500 hover:scale-110 transition-transform">
                                     <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                                     <path d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
@@ -98,7 +95,6 @@
                                 </a>
 
                                 <c:choose>
-                                    <%-- Nếu đang HIỆN -> Nút Ẩn (Mắt gạch) dẫn sang trang xác nhận --%>
                                     <c:when test="${r.status.toLowerCase() == 'visible'}">
                                         <a href="reviewServlet?action=delete&id=${r.reviewId}" class="text-gray-400 hover:text-red-500 hover:scale-110 transition-transform">
                                             <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
@@ -106,7 +102,6 @@
                                             </svg>
                                         </a>
                                     </c:when>
-                                    <%-- Nếu đang ẨN -> Nút Hiện (Mắt xanh) CŨNG dẫn sang trang xác nhận --%>
                                     <c:otherwise>
                                         <a href="reviewServlet?action=delete&id=${r.reviewId}" class="text-green-500 hover:text-green-700 hover:scale-110 transition-transform">
                                             <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">

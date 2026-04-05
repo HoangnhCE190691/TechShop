@@ -1,7 +1,7 @@
 <%@page contentType="text/html" pageEncoding="UTF-8"%>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 
-<%-- 1. THÔNG BÁO TOAST (Giữ nguyên từ bản gốc của bạn) --%>
+<%-- 1. THÔNG BÁO TOAST --%>
 <c:if test="${not empty sessionScope.msg}">
     <div id="toast-notification" class="fixed top-10 left-1/2 -translate-x-1/2 z-[9999] min-w-[320px] transition-all duration-500">
         <div class="flex items-center justify-center p-4 rounded-xl shadow-2xl border-2 animate-bounce
@@ -39,7 +39,7 @@
 </c:if>
     
 <div class="bg-white rounded-xl shadow-lg p-5">
-    <%-- 2. TIÊU ĐỀ & NÚT THÊM (Đã sửa theo style Product) --%>
+    <%-- 2. TIÊU ĐỀ & NÚT THÊM --%>
     <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
         <h2 class="text-xl font-bold text-gray-800 uppercase tracking-tight">Category Management</h2>
         <a href="categoryServlet?action=add"
@@ -51,7 +51,7 @@
         </a>
     </div>
 
-    <%-- 3. BỘ LỌC (Giữ nguyên vị trí) --%>
+    <%-- 3. BỘ LỌC --%>
     <div class="flex flex-col md:flex-row gap-3 mb-6 items-center bg-gray-50 p-3 rounded-xl border border-gray-100">
         <div class="relative flex-1 w-full">
             <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-400">
@@ -71,7 +71,7 @@
         </select>
     </div>
 
-    <%-- 4. BẢNG DỮ LIỆU (Size chữ text-sm & Icon Actions) --%>
+    <%-- 4. BẢNG DỮ LIỆU --%>
     <div class="overflow-x-auto rounded-lg border border-gray-200">
         <table class="w-full text-sm text-left text-gray-600">
             <thead class="text-xs uppercase bg-gray-50 text-gray-700 font-bold">
@@ -137,7 +137,7 @@
     </div>
 </div>
 
-<%-- 6. LIVE FILTER LOGIC (Giữ nguyên logic của bạn) --%>
+<%-- 6. LIVE FILTER LOGIC --%>
 <script>
     document.addEventListener("DOMContentLoaded", function () {
         const searchInput = document.getElementById('searchInput');

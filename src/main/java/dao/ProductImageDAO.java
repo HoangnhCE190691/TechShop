@@ -19,7 +19,6 @@ import utils.DBContext;
  */
 public class ProductImageDAO extends DBContext {
 
-    // Dependency: Cần ProductDAO để lấy thông tin Product khi map dữ liệu
     private ProductDAO productDAO = new ProductDAO();
 
     // 1. READ: Lấy tất cả ảnh (Existing)
@@ -77,10 +76,9 @@ public class ProductImageDAO extends DBContext {
         String sql = "INSERT INTO [product_images] ([product_id], [image_url], [is_thumbnail]) VALUES (?, ?, ?)";
         try {
             PreparedStatement ps = conn.prepareStatement(sql);
-            // Giả sử model ProductImage có method getProduct() trả về đối tượng Product
             ps.setInt(1, pi.getProduct().getProductId());
             ps.setString(2, pi.getImageUrl());
-            ps.setByte(3, pi.getIs_thumbnail()); // Dùng setByte vì DB bạn getByte, nếu model là boolean thì dùng setBoolean
+            ps.setByte(3, pi.getIs_thumbnail()); 
 
             int rowsAffected = ps.executeUpdate();
             return rowsAffected > 0;
@@ -129,7 +127,6 @@ public class ProductImageDAO extends DBContext {
         String imageURL = rs.getString("image_url");
         byte isThumbnail = rs.getByte("is_thumbnail");
 
-        // Gọi DAO khác để lấy full object Product (Nếu cần)
         Product product = productDAO.getProductById(productID);
 
         return new ProductImage(imageId, product, imageURL, isThumbnail);

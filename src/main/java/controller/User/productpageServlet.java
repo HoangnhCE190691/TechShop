@@ -83,7 +83,6 @@ public class productpageServlet extends HttpServlet {
         Double minPrice = null;
         Double maxPrice = null;
 
-        // 3. Xử lý ép kiểu và logic khoảng giá
         try {
             if (categoryIdParam != null && !categoryIdParam.trim().isEmpty()) {
                 categoryId = Integer.parseInt(categoryIdParam);
@@ -116,28 +115,22 @@ public class productpageServlet extends HttpServlet {
 
         ProductDAO pdao = new ProductDAO();
 
-        // Lấy tổng số để tính endPage 
         int totalProducts = pdao.getTotalFilteredProducts(keyword, categoryId, brandId, minPrice, maxPrice);
         int endPage = (int) Math.ceil((double) totalProducts / pageSize);
 
-        // Lấy danh sách sản phẩm theo trang hiện tại 
         List<Product> productList = pdao.getFilteredProductsWithPaging(
                 keyword, categoryId, brandId, minPrice, maxPrice, sortOrder, pageIndex, pageSize);
 
-        // 5. Lấy dữ liệu bổ trợ cho các bộ lọc Sidebar 
         dao.CategoryDAO cdao = new dao.CategoryDAO();
         dao.BrandDAO bdao = new dao.BrandDAO();
 
-        // 6. Đưa dữ liệu lên Request Attribute
         request.setAttribute("categoryList", cdao.getAllActiveCategories());
         request.setAttribute("brandList", bdao.getAllActiveBrands());
         request.setAttribute("productList", productList);
 
-        // Thêm các attribute cho phân trang
         request.setAttribute("endP", endPage);
         request.setAttribute("tag", pageIndex);
 
-        // Giữ lại trạng thái các bộ lọc để UI không bị reset
         request.setAttribute("keyword", keyword);
         request.setAttribute("categoryId", categoryId);
         request.setAttribute("brandId", brandId);

@@ -153,17 +153,13 @@ public class specificationValueServlet extends HttpServlet {
                 // 4. KIỂM TRA RÀNG BUỘC (Validation Logic)
                 if ("RAM".equalsIgnoreCase(specName) || "Storage".equalsIgnoreCase(specName) || "Color".equalsIgnoreCase(specName)) {
 
-                    // CHÚ Ý: Giữ nguyên khoảng trắng của tên sản phẩm, chỉ chuyển về chữ thường
                     String cleanProductName = productName.toLowerCase();
                     String valueToMatch = (specValue + unit).toLowerCase();
 
                     String regex = "";
                     if ("Color".equalsIgnoreCase(specName)) {
-                        // Dùng word boundary \b để "Red" không khớp nhầm với "Redmi"
                         regex = "(?i).*\\b" + java.util.regex.Pattern.quote(valueToMatch) + "\\b.*";
                     } else {
-                        // Chặn khớp một phần (vd: nhập '6' không khớp với '256')
-                        // Phía trước và sau con số không được là một chữ số khác
                         regex = "(?i).*(^|[^0-9])" + java.util.regex.Pattern.quote(valueToMatch) + "([^0-9]|$).*";
                     }
 
@@ -171,10 +167,9 @@ public class specificationValueServlet extends HttpServlet {
                         session.setAttribute("msg", "ERROR: Value '" + (specValue + unit) + "' does not match product name '" + productName + "'!");
                         session.setAttribute("msgType", "danger");
 
-                        // Quay lại trang tương ứng tùy theo hành động
                         String redirectUrl = "add".equals(action) ? "action=add" : "action=edit&pid=" + productId + "&sid=" + specId;
                         response.sendRedirect("specificationValueServlet?" + redirectUrl);
-                        return; // Ngăn không cho lưu dữ liệu sai
+                        return; 
                     }
                 }
 
@@ -203,7 +198,6 @@ public class specificationValueServlet extends HttpServlet {
                 session.setAttribute("msgType", "success");
 
             } else if ("delete".equals(action)) {
-                // Xử lý xóa
                 int pId = Integer.parseInt(request.getParameter("productId"));
                 int sId = Integer.parseInt(request.getParameter("specId"));
                 valueDao.deleteProductSpec(pId, sId);

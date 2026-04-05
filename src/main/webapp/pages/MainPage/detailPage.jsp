@@ -86,7 +86,7 @@
                 <%-- Variant Selectors --%>
                 <div id="variantSelectors" class="mb-8"></div>
 
-                <%-- Thêm giỏ: POST cartservlet action=add; JS intercept → fetch JSON (ajax) + refresh badge ?action=count. --%>
+                <%-- Thêm giỏ --%>
                 <form id="addToCartForm"
                       action="${pageContext.request.contextPath}/cartservlet"
                       method="post"
@@ -320,7 +320,7 @@
                                             data-value="${i}">★</button>
                                 </c:forEach>
                             </div>
-                            <%-- Dòng text trạng thái bắt buộc --%>
+                            <%-- Dòng text trạng thái --%>
                             <p id="ratingText"
                                class="font-bold text-sm uppercase tracking-wider">
                             </p>
@@ -593,7 +593,6 @@
 
                                 var addToCartOverlay = null;
 
-                                // Spinner khi gọi cartservlet (add) bằng fetch — không reload trang.
                                 function showAddToCartLoading() {
                                     if (!addToCartOverlay) {
                                         addToCartOverlay = document.createElement('div');
@@ -617,7 +616,6 @@
                                 }
 
                                 function refreshNavbarCartCount() {
-                                    // cartCount = số dòng SKU trong giỏ (không phải tổng quantity).
                                     fetch('${pageContext.request.contextPath}/cartservlet?action=count', {credentials: 'same-origin'})
                                             .then(r => r.json())
                                             .then(data => {
@@ -696,7 +694,6 @@
                                         e.preventDefault();
                                         showAddToCartLoading();
 
-                                        // Giống cartServlet.isAjax: ajax=1 + header → nhận JSON success/message.
                                         var url = form.getAttribute('action') + (form.getAttribute('action').indexOf('?') >= 0 ? '&' : '?') + 'ajax=1';
                                         var params = new URLSearchParams(new FormData(form));
                                         params.append('ajax', '1');

@@ -178,7 +178,6 @@ public class CategoryDAO extends DBContext {
 
     public static void main(String[] args) {
         CategoryDAO dao = new CategoryDAO();
-        // Test: In ra tất cả danh mục
         for (Category c : dao.getAllCategory()) {
             System.out.println(c);
         }

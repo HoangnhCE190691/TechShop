@@ -22,17 +22,17 @@ import model.Product;
  *
  * @author CaoTram
  */
-@WebServlet(name = "productVariantServlet", urlPatterns = { "/variantServlet" })
+@WebServlet(name = "productVariantServlet", urlPatterns = {"/variantServlet"})
 public class productVariantServlet extends HttpServlet {
 
     /**
      * Processes requests for both HTTP <code>GET</code> and <code>POST</code>
      * methods.
      *
-     * @param request  servlet request
+     * @param request servlet request
      * @param response servlet response
      * @throws ServletException if a servlet-specific error occurs
-     * @throws IOException      if an I/O error occurs
+     * @throws IOException if an I/O error occurs
      */
     protected void processRequest(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
@@ -56,10 +56,10 @@ public class productVariantServlet extends HttpServlet {
     /**
      * Handles the HTTP <code>GET</code> method.
      *
-     * @param request  servlet request
+     * @param request servlet request
      * @param response servlet response
      * @throws ServletException if a servlet-specific error occurs
-     * @throws IOException      if an I/O error occurs
+     * @throws IOException if an I/O error occurs
      */
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
@@ -85,12 +85,10 @@ public class productVariantServlet extends HttpServlet {
                     request.setAttribute("variant", editVariant);
                     request.setAttribute("products", pdao.getAllProduct());
 
-                    // Load current variant spec values
                     VariantSpecValueDAO vsDao = new VariantSpecValueDAO();
                     List<VariantSpecValue> currentSpecs = vsDao.getSpecsByVariantId(idEdit);
                     request.setAttribute("currentVariantSpecs", currentSpecs);
 
-                    // Load variant spec definitions based on product's category
                     if (editVariant != null) {
                         Product editProduct = pdao.getProductById(editVariant.getProductId());
                         if (editProduct != null) {
@@ -107,7 +105,6 @@ public class productVariantServlet extends HttpServlet {
                     int idDetail = Integer.parseInt(request.getParameter("id"));
                     request.setAttribute("variant", vdao.getVariantById(idDetail));
 
-                    // Load variant spec values for display
                     VariantSpecValueDAO vsDetailDao = new VariantSpecValueDAO();
                     request.setAttribute("detailVariantSpecs", vsDetailDao.getSpecsByVariantId(idDetail));
 
@@ -132,10 +129,10 @@ public class productVariantServlet extends HttpServlet {
     /**
      * Handles the HTTP <code>POST</code> method.
      *
-     * @param request  servlet request
+     * @param request servlet request
      * @param response servlet response
      * @throws ServletException if a servlet-specific error occurs
-     * @throws IOException      if an I/O error occurs
+     * @throws IOException if an I/O error occurs
      */
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
@@ -160,7 +157,6 @@ public class productVariantServlet extends HttpServlet {
             ProductVariant v = new ProductVariant(0, productId, sku, price, isActive);
             int newVariantId = vdao.insertVariant(v);
 
-            // Insert variant_spec_values nếu newVariantId > 0
             if (newVariantId > 0) {
                 VariantSpecValueDAO vsUpdateDao = new VariantSpecValueDAO();
                 java.util.Enumeration<String> paramNames = request.getParameterNames();
@@ -174,7 +170,6 @@ public class productVariantServlet extends HttpServlet {
                                 int specId = Integer.parseInt(specIdStr);
                                 vsUpdateDao.insertVariantSpec(newVariantId, specId, specValue.trim());
                             } catch (NumberFormatException ex) {
-                                // skip invalid spec id
                             }
                         }
                     }
@@ -201,11 +196,9 @@ public class productVariantServlet extends HttpServlet {
             ProductVariant v = new ProductVariant(id, productId, sku, price, isActive);
             vdao.updateVariant(v);
 
-            // Update variant_spec_values: xóa cũ, insert mới
             VariantSpecValueDAO vsUpdateDao = new VariantSpecValueDAO();
             vsUpdateDao.deleteByVariantId(id);
 
-            // Lấy tất cả params có tên bắt đầu bằng "specValue_"
             java.util.Enumeration<String> paramNames = request.getParameterNames();
             while (paramNames.hasMoreElements()) {
                 String paramName = paramNames.nextElement();
@@ -217,7 +210,6 @@ public class productVariantServlet extends HttpServlet {
                             int specId = Integer.parseInt(specIdStr);
                             vsUpdateDao.insertVariantSpec(id, specId, specValue.trim());
                         } catch (NumberFormatException ex) {
-                            // skip invalid spec id
                         }
                     }
                 }

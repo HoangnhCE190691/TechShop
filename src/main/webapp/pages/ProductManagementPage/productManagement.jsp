@@ -186,7 +186,6 @@
         const brandVal = document.getElementById('brandFilter').value.toLowerCase();
         const statusVal = document.getElementById('statusFilter').value.toUpperCase();
         
-        // Chỉ lấy các dòng dữ liệu (loại trừ dòng thông báo)
         const rows = document.querySelectorAll('#productTableBody .product-row');
         const noResultsRow = document.getElementById('noResultsRow');
         let visibleCount = 0;
@@ -206,11 +205,10 @@
             if(isVisible) visibleCount++;
         });
 
-        // XỬ LÝ HIỆN DÒNG THÔNG BÁO
         if (visibleCount === 0) {
-            noResultsRow.style.display = ""; // Hiện thông báo
+            noResultsRow.style.display = "";
         } else {
-            noResultsRow.style.display = "none"; // Ẩn thông báo
+            noResultsRow.style.display = "none"; 
         }
 
         const countDisplay = document.getElementById('visibleCount');

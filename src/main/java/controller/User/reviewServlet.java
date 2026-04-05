@@ -84,8 +84,6 @@ public class reviewServlet extends HttpServlet {
                 }
             }
         }
-
-        // Sau khi thêm/sửa, load lại trang chi tiết
         response.sendRedirect("detailservlet?productId=" + productId);
     }
 }

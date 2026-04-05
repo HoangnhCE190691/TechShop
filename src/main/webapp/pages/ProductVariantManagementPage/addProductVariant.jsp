@@ -104,7 +104,7 @@
             </div>
         </div>
 
-        <%-- ===== VARIANT SPECIFICATIONS (Dynamic based on product category) ===== --%>
+        <%-- ===== VARIANT SPECIFICATIONS ===== --%>
         <div id="variant-specs-section" class="border-t-4 border-gray-100 pt-8" style="display: none;">
             <div class="flex justify-between items-center mb-6">
                 <h3 class="text-lg font-black text-gray-800 border-l-8 border-purple-500 pl-3 uppercase">Variant Specifications</h3>
@@ -147,13 +147,11 @@
         const noSpecsMessage = document.getElementById('no-specs-message');
 
         function updateSpecs() {
-            // Ẩn tất cả input specs và disable form element để tránh submit rác
             specContainers.forEach(group => {
                 group.classList.add('hidden', 'scale-95', 'opacity-0');
                 group.classList.remove('scale-100', 'opacity-100');
                 group.querySelectorAll('input').forEach(input => {
                     input.disabled = true;
-                    // Mặc định required = false để không kẹt form, user nên tự điền nếu có input
                     input.removeAttribute('required');
                 });
             });
@@ -162,15 +160,12 @@
             if (selectedOption && selectedOption.value) {
                 const categoryId = selectedOption.getAttribute('data-category');
 
-                // Hiển thị phần wrapper
                 specSection.style.display = 'block';
 
                 let countSpecs = 0;
-                // Hiển thị các specs group khớp categoryId hiện tại
                 specContainers.forEach(group => {
                     if (group.getAttribute('data-category-id') === categoryId) {
                         group.classList.remove('hidden');
-                        // Animation frame delay để transition hoạt động
                         requestAnimationFrame(() => {
                             group.classList.remove('scale-95', 'opacity-0');
                             group.classList.add('scale-100', 'opacity-100');
@@ -178,7 +173,7 @@
 
                         group.querySelectorAll('input').forEach(input => {
                             input.disabled = false;
-                            input.setAttribute('required', 'required'); // Bắt buộc điền spec values
+                            input.setAttribute('required', 'required'); 
                         });
                         countSpecs++;
                     }
@@ -194,10 +189,8 @@
             }
         }
 
-        // Gắn sự kiện change cho dropdown "Product Parent"
         productSelect.addEventListener('change', updateSpecs);
 
-        // Gọi update ngay khi load phòng trường hợp form re-render và giữ selected state
         updateSpecs();
     });
 </script>

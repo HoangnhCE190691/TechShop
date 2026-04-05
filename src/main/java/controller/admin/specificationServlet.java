@@ -131,7 +131,6 @@ public class specificationServlet extends HttpServlet {
             }
 
             if (isVariantRequested) {
-                // RÀNG BUỘC 1: Nếu đã có sản phẩm thì không cho thêm Variant mới (tránh hỏng dữ liệu cũ)
                 int productCount = sdao.countProductsInCategory(categoryId);
                 if (productCount > 0) {
                     session.setAttribute("msg", "ERROR: Cannot add a variant because this category already contains " + productCount + " products!");
@@ -140,7 +139,6 @@ public class specificationServlet extends HttpServlet {
                     return;
                 }
 
-                // RÀNG BUỘC 2: CHỖ BỊ THIẾU - Kiểm tra xem Category này đã có Variant nào chưa
                 if (sdao.hasExistingVariantInCategory(categoryId, 0)) {
                     session.setAttribute("msg", "ERROR: This category already has a variant specification! (Only 1 variant per category allowed)");
                     session.setAttribute("msgType", "danger");
@@ -149,7 +147,6 @@ public class specificationServlet extends HttpServlet {
                 }
             }
 
-            // Nếu ok hết thì mới Insert
             SpecificationDefinition s = new SpecificationDefinition();
             s.setCategoryId(categoryId);
             s.setSpecName(specName);
@@ -174,7 +171,7 @@ public class specificationServlet extends HttpServlet {
                     session.setAttribute("msg", "ERROR: Cannot change Spec Type! This category already contains " + productCount + " products.");
                     session.setAttribute("msgType", "danger");
                     response.sendRedirect("specificationServlet?action=edit&id=" + specId);
-                    return; // Dừng xử lý ngay lập tức
+                    return; 
                 }
             }
 

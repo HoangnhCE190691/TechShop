@@ -116,7 +116,6 @@
             <h3 class="text-lg font-bold text-gray-800">System Information</h3>
 
             <div class="space-y-4">
-                <%-- Ngày tạo & Người tạo --%>
                 <div class="flex items-center gap-4">
                     <div
                         class="w-10 h-10 bg-white rounded-full flex items-center justify-center shadow-sm text-blue-600">
@@ -138,7 +137,6 @@
                     </div>
                 </div>
 
-                <%-- Lần cuối cập nhật & Người cập nhật --%>
                 <div class="flex items-center gap-4 pt-4 border-t border-gray-200">
                     <div
                         class="w-10 h-10 bg-white rounded-full flex items-center justify-center shadow-sm text-orange-600">

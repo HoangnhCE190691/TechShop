@@ -129,7 +129,6 @@
                                     class="text-xs font-bold text-gray-400 uppercase tracking-widest">Status</label>
                                 <div class="mt-2 flex gap-4">
                                     <%-- Lựa chọn Active --%>
-                                    <%-- Lựa chọn Active --%>
                                     <label class="flex items-center gap-2 cursor-pointer">
                                         <input type="radio" name="status" value="ACTIVE"
                                                ${product.status.toUpperCase().trim() == 'ACTIVE' ? 'checked' : ''} 
@@ -203,7 +202,7 @@
                         </div>
                     </div>
 
-                    <%-- THÔNG TIN HỆ THỐNG (READ-ONLY) --%>
+                    <%-- THÔNG TIN HỆ THỐNG --%>
                     <div
                         class="bg-gray-50 p-6 rounded-xl space-y-6 border border-gray-100 shadow-inner">
                         <h3 class="text-lg font-bold text-gray-800">History Log</h3>

@@ -123,7 +123,6 @@ public class ReviewDAO extends DBContext {
 
     public List<Review> getReviewsByProductId(int productId) {
         List<Review> list = new ArrayList<>();
-        // Thêm điều kiện lọc status ở mệnh đề WHERE
         String sql = "SELECT r.*, c.full_name as customer_name, p.name as product_name "
                 + "FROM reviews r "
                 + "JOIN customers c ON r.customer_id = c.customer_id "
@@ -200,7 +199,7 @@ public class ReviewDAO extends DBContext {
         } catch (Exception e) {
             e.printStackTrace();
         }
-        return -1; // Không tìm thấy (chưa mua hoặc đã review hết)
+        return -1;
     }
 
     // 7b. Lấy order_item_id của một sản phẩm trong một đơn hàng cụ thể
@@ -307,7 +306,7 @@ public class ReviewDAO extends DBContext {
         r.setOrderItemId(rs.getInt("order_item_id"));
         r.setRating(rs.getInt("rating"));
         r.setComment(rs.getString("comment"));
-        r.setStatus(rs.getString("status")); // Thêm dòng này
+        r.setStatus(rs.getString("status")); 
         java.sql.Timestamp ts = rs.getTimestamp("created_at");
         if (ts != null) {
             r.setCreatedAt(ts.toLocalDateTime());

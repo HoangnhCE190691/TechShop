@@ -239,10 +239,8 @@ public class productServlet extends HttpServlet {
             p.setStatus("INACTIVE");
             p.setCreatedBy((Integer) session.getAttribute("userId"));
 
-            //  Logic xử lý sau khi insert sản phẩm thành công
             int productId = pdao.insertProduct(p);
 
-// Kiểm tra xem người dùng có thực sự upload ảnh nào không
             boolean hasAnyImage = false;
             for (Part part : request.getParts()) {
                 if ("productImage".equals(part.getName()) && part.getSize() > 0) {
@@ -436,14 +434,12 @@ public class productServlet extends HttpServlet {
             int inventoryCount = pdao.countProductInInventory(id);
 
             if (orderCount > 0 || inventoryCount > 0) {
-                // Nếu đã từng nhập kho hoặc đã bán, chỉ được phép ẨN (Soft Delete)
                 pdao.softDeleteProduct(id);
 
                 String reason = (orderCount > 0) ? "sales history" : "inventory records";
                 session.setAttribute("msg", "Product has " + reason + ". It has been DEACTIVATED to preserve data.");
                 session.setAttribute("msgType", "warning");
             } else {
-                // Chỉ xóa vĩnh viễn nếu sản phẩm "sạch" hoàn toàn (vừa tạo xong chưa làm gì)
                 boolean isDeleted = pdao.deleteProduct(id);
                 if (isDeleted) {
                     session.setAttribute("msg", "Product has been permanently deleted successfully!");

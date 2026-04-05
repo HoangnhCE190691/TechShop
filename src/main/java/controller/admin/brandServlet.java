@@ -146,7 +146,6 @@ public class brandServlet extends HttpServlet {
 
         if ("add".equals(action) || "update".equals(action)) {
             String name = request.getParameter("brandName").trim();
-            // Lấy trạng thái từ radio button (1 là true, 0 là false)
             boolean status = "1".equals(request.getParameter("isActive"));
 
             // 1. XỬ LÝ FILE UPLOAD
@@ -202,7 +201,6 @@ public class brandServlet extends HttpServlet {
             } else if ("update".equals(action)) {
                 int id = Integer.parseInt(request.getParameter("brandId"));
 
-                // Kiểm tra trùng tên (loại trừ ID của chính mình)
                 if (bdao.isBrandNameExists(name, id)) {
                     session.setAttribute("msg", "Error: Name '" + name + "' is used by another brand!");
                     session.setAttribute("msgType", "danger");
@@ -223,7 +221,6 @@ public class brandServlet extends HttpServlet {
 
         } else if ("delete".equals(action)) {
             int id = Integer.parseInt(request.getParameter("brandId"));
-            // Nếu thương hiệu đã có sản phẩm, chỉ cho phép ẩn (Deactivate)
             if (bdao.countProductsByBrandId(id) > 0) {
                 bdao.deactivateBrand(id);
                 session.setAttribute("msg", "Brand contains products. Switched to INACTIVE.");
@@ -233,8 +230,6 @@ public class brandServlet extends HttpServlet {
             }
             session.setAttribute("msgType", "success");
         }
-
-        // Sau khi xử lý xong, quay lại danh sách quản lý
         response.sendRedirect("brandServlet?action=all");
     }
 

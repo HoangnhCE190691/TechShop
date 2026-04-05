@@ -55,7 +55,7 @@
     </div>
 
     <div class="text-center space-y-4">
-        <%-- TIÊU ĐỀ: Chỉ có text, không kèm ID --%>
+        <%-- TIÊU ĐỀ --%>
         <h2 class="text-2xl font-extrabold text-gray-900 uppercase tracking-tight">Confirm Action</h2>
         <p class="text-gray-500">Please review the category information before proceeding.</p>
 
@@ -77,7 +77,7 @@
             </c:choose>
         </div>
 
-        <%-- GRID THÔNG TIN: ID nằm kế bên Name --%>
+        <%-- GRID THÔNG TIN --%>
         <div class="grid grid-cols-12 gap-4 p-5 bg-gray-50 rounded-xl border border-gray-100 text-left">
             <div class="col-span-3">
                 <p class="text-xs font-bold text-gray-400 uppercase tracking-widest">Category ID</p>
@@ -94,7 +94,7 @@
         </div>
     </div>
 
-    <%-- NÚT BẤM ĐIỀU KHIỂN: Redirect chuẩn về categoryServlet --%>
+    <%-- NÚT BẤM ĐIỀU KHIỂN --%>
     <form action="categoryServlet" method="POST" class="mt-10 flex justify-end gap-4">
         <input type="hidden" name="action" value="delete">
         <input type="hidden" name="categoryId" value="${category.categoryId}">
