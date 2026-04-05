@@ -149,6 +149,7 @@ public class OrderDAO extends DBContext {
                 );
 
                 o.setCustomerName(rs.getString("full_name"));
+                o.setCancelReason(rs.getString("cancel_reason"));
 
                 String pName = rs.getString("representative_product");
                 int count = rs.getInt("total_items");
@@ -862,7 +863,10 @@ public class OrderDAO extends DBContext {
             String sqlUpdate = "UPDATE orders SET status = ?, cancel_reason = ? WHERE order_id = ?";
             PreparedStatement ps3 = conn.prepareStatement(sqlUpdate);
             ps3.setString(1, cancelledCode);
-            ps3.setString(2, cancelReason);
+            String finalCancelReason = (cancelReason != null && !cancelReason.isEmpty())
+                    ? "Customer cancel: " + cancelReason
+                    : "Customer cancel";
+            ps3.setString(2, finalCancelReason);
             ps3.setInt(3, orderId);
             ps3.executeUpdate();
 

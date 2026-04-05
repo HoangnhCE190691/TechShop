@@ -94,9 +94,6 @@
                                     <c:when test="${not empty item.imei}">
                                         ${item.imei}
                                     </c:when>
-                                    <c:when test="${not empty item.quantity}">
-                                        x${item.quantity}
-                                    </c:when>
                                     <c:otherwise>
                                         —
                                     </c:otherwise>

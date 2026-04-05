@@ -261,8 +261,11 @@ public class orderStaffServlet extends HttpServlet {
             boolean isChangingToCancel = !oldStatus.equalsIgnoreCase(status)
                     && status.equalsIgnoreCase(cancelledCode);
 
+            String finalCancelReason = (cancelReason != null && !cancelReason.isEmpty())
+                    ? "Staff cancel: " + cancelReason
+                    : "Staff cancel";
             boolean success = odao.updateOrderFull(orderId, address, status, paymentStatus,
-                    isChangingToCancel ? cancelReason : null);
+                    isChangingToCancel ? finalCancelReason : null);
 
             if (success) {
                 if (!oldStatus.equalsIgnoreCase(status)) {

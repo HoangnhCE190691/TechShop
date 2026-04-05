@@ -1,6 +1,7 @@
 <%@page contentType="text/html" pageEncoding="UTF-8"%>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
+<%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
 
 
 <div class="bg-white rounded-xl shadow-lg p-5">
@@ -95,7 +96,14 @@
                                     <c:set var="badgeName" value="${st.name}"/>
                                     <c:choose>
                                         <c:when test="${st.code == 'CANCELLED'}">
-                                            <c:set var="badgeClass" value="px-3 py-1 rounded-full text-xs font-bold uppercase bg-gray-100 text-gray-600 border border-gray-200"/>
+                                            <c:choose>
+                                                <c:when test="${fn:contains(o.cancelReason, 'Customer cancel')}">
+                                                    <c:set var="badgeClass" value="px-3 py-1 rounded-full text-xs font-bold uppercase bg-orange-100 text-orange-700 border border-orange-200"/>
+                                                </c:when>
+                                                <c:otherwise>
+                                                    <c:set var="badgeClass" value="px-3 py-1 rounded-full text-xs font-bold uppercase bg-gray-100 text-gray-600 border border-gray-200"/>
+                                                </c:otherwise>
+                                            </c:choose>
                                         </c:when>
                                         <c:when test="${st.isFinal == 'true'}">
                                             <c:set var="badgeClass" value="px-3 py-1 rounded-full text-xs font-bold uppercase bg-green-100 text-green-700 border border-green-200"/>
