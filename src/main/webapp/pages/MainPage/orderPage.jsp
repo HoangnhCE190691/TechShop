@@ -37,7 +37,7 @@
             </div>
         </c:if>
 
-        <form id="checkoutForm" method="post" action="orderpageservlet" class="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-10">
+        <form id="checkoutForm" method="post" action="orderpageservlet" onsubmit="return validateCheckoutForm()" class="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-10">
             <input type="hidden" name="appliedVoucherId" id="appliedVoucherId" value="0">
             <div class="lg:col-span-7 flex flex-col gap-8">
 
@@ -71,6 +71,7 @@
                                         <input type="radio" name="addressId" value="${addr.addressId}" 
                                                class="absolute top-5 right-5 w-5 h-5 text-red-600 focus:ring-red-500" 
                                                ${isSelected ? 'checked' : ''}
+                                               required
                                                onclick="changeSelectedAddress(this)">
 
                                         <div class="pr-8">
@@ -432,4 +433,20 @@ discountDisplay.innerText = '-' + formatMoney(currentDiscount);
     if (window.location.search.includes('orderSuccess=1')) {
         showSuccessModal();
     }
+    
+    function validateCheckoutForm() {
+    // 1. Kiểm tra xem có radio addressId nào được chọn không
+    const selectedAddress = document.querySelector('input[name="addressId"]:checked');
+    
+    // 2. Nếu không tìm thấy addressId nào (do list trống hoặc chưa chọn)
+    if (!selectedAddress) {
+        alert("Please add and select a delivery address before placing your order!");
+        
+        // Cuộn màn hình lên phần địa chỉ để nhắc nhở người dùng
+        document.querySelector('h2').scrollIntoView({ behavior: 'smooth' });
+        return false; // Ngăn form gửi đi
+    }
+    
+    return true; // Cho phép gửi form
+}
 </script>
